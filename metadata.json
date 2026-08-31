@@ -1,0 +1,6 @@
+{
+  "name": "3D WorkReport Pro",
+  "description": "Hệ thống báo cáo công việc Ngày, Tuần, Tháng, Năm không gian 3D siêu sống động với phân quyền Admin/Người xem, nhập liệu bảng tính và AI đo lường hiệu suất.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
