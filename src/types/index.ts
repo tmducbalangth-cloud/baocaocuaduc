@@ -123,6 +123,36 @@ export interface MonthlyReport {
   keyHighlights: string[];
 }
 
+export interface QuarterlyReport {
+  id: string;
+  quarter: number; // 1 - 4
+  year: number;
+  totalTasks: number;
+  completedTasks: number;
+  completionRate: number;
+  totalHours: number;
+  avgScore: number;
+  overallGrade: string;
+  monthlyStats: {
+    month: string;
+    monthNum: number;
+    tasks: number;
+    completed: number;
+    hours: number;
+    score: number;
+  }[];
+  quarterlyOKRs: {
+    title: string;
+    target: string;
+    current: string;
+    progress: number;
+    status: 'on_track' | 'at_risk' | 'completed';
+  }[];
+  strategicHighlights: string[];
+  operationalRisks: string[];
+  aiQuarterlySynthesis?: string;
+}
+
 export interface YearlyReport {
   id: string;
   year: number;
@@ -147,4 +177,4 @@ export interface YearlyReport {
   aiAnnualSynthesis?: string;
 }
 
-export type ViewTab = 'daily' | 'weekly' | 'monthly' | 'yearly' | 'sheet';
+export type ViewTab = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'sheet';

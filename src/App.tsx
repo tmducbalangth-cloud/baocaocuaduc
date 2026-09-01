@@ -4,6 +4,7 @@ import { ThreeCanvasBackground } from './components/ThreeCanvasBackground';
 import { DailyReportView } from './components/DailyReportView';
 import { WeeklyReportView } from './components/WeeklyReportView';
 import { MonthlyReportView } from './components/MonthlyReportView';
+import { QuarterlyReportView } from './components/QuarterlyReportView';
 import { YearlyReportView } from './components/YearlyReportView';
 import { MasterSheetView } from './components/MasterSheetView';
 import { AuthScreen } from './components/AuthScreen';
@@ -186,6 +187,14 @@ export default function App() {
 
             {activeTab === 'monthly' && (
               <MonthlyReportView
+                selectedDate={selectedDate}
+                allTasks={tasks}
+                dailyReports={dailyReports}
+              />
+            )}
+
+            {activeTab === 'quarterly' && (
+              <QuarterlyReportView
                 selectedDate={selectedDate}
                 allTasks={tasks}
                 dailyReports={dailyReports}

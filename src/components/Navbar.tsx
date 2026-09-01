@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, BarChart3, TrendingUp, Award, ShieldCheck, Eye, LogIn, LogOut, FileSpreadsheet, Printer } from 'lucide-react';
+import { Calendar, BarChart3, TrendingUp, PieChart, Award, ShieldCheck, Eye, LogIn, LogOut, FileSpreadsheet, Printer } from 'lucide-react';
 import { User, ViewTab } from '../types';
 import { BaLangLogo } from './BaLangLogo';
 
@@ -24,6 +24,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'daily' as ViewTab, label: 'Báo Cáo Ngày', icon: Calendar, tag: 'Chi tiết' },
     { id: 'weekly' as ViewTab, label: 'Báo Cáo Tuần', icon: BarChart3, tag: 'Tổng hợp' },
     { id: 'monthly' as ViewTab, label: 'Báo Cáo Tháng', icon: TrendingUp, tag: 'Xu hướng' },
+    { id: 'quarterly' as ViewTab, label: 'Báo Cáo Quý', icon: PieChart, tag: 'Mục tiêu' },
     { id: 'yearly' as ViewTab, label: 'Báo Cáo Năm', icon: Award, tag: 'Chiến lược' },
     { id: 'sheet' as ViewTab, label: 'Bảng Tính Tổng Hợp', icon: FileSpreadsheet, tag: 'Master Sheet' },
   ];
