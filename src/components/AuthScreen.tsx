@@ -13,7 +13,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
 
   // Login form state
   const [loginUsername, setLoginUsername] = useState('admin');
-  const [loginPassword, setLoginPassword] = useState('admin123');
+  const [loginPassword, setLoginPassword] = useState('');
 
   // Register form state
   const [regName, setRegName] = useState('Trịnh Minh Đức');
@@ -77,14 +77,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
     );
 
     if (foundUser) {
-      if (loginPassword.length < 4) {
-        setErrorMsg('Mật khẩu tối thiểu 4 ký tự.');
-        return;
-      }
       setSuccessMsg(`Đăng nhập thành công! Chào mừng ${foundUser.name}`);
       setTimeout(() => {
         onLogin(foundUser);
-      }, 500);
+      }, 400);
     } else {
       // Auto login as dynamic user
       const dynamicUser: User = {
@@ -329,12 +325,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-semibold text-slate-300">
-                    Mật khẩu:
-                  </label>
-                  <span className="text-[11px] text-slate-500">Mặc định: admin123</span>
-                </div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  Mật khẩu:
+                </label>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
@@ -342,9 +335,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
                     type="password"
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
-                    placeholder="••••••••"
+                    placeholder="Không bắt buộc cho tài khoản mẫu..."
                     className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-cyan-400"
-                    required
                   />
                 </div>
               </div>

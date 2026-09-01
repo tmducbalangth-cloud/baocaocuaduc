@@ -19,7 +19,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   onLogout,
 }) => {
   const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('admin123');
+  const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [customAvatar, setCustomAvatar] = useState(currentUser?.avatar || INITIAL_USERS[0].avatar);
@@ -67,10 +67,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     const foundUser = INITIAL_USERS.find((u) => u.username.toLowerCase() === trimmedUser);
 
     if (foundUser) {
-      if (password.length < 4) {
-        setErrorMsg('Mật khẩu tối thiểu 4 ký tự.');
-        return;
-      }
       const userToSave = {
         ...foundUser,
         name: customName || foundUser.name,
@@ -208,7 +204,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           <button
             type="button"
             id="quick-admin-login"
-            onClick={() => handleQuickSelect(INITIAL_USERS[0], 'admin123')}
+            onClick={() => handleQuickSelect(INITIAL_USERS[0], '')}
             className={`p-3.5 rounded-2xl border text-left transition-all ${
               currentUser?.role === 'admin'
                 ? 'bg-cyan-500/20 border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.3)]'
@@ -224,7 +220,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 <CheckCircle2 className="w-4 h-4 text-cyan-400" />
               )}
             </div>
-            <p className="text-xs font-semibold text-white">admin / admin123</p>
+            <p className="text-xs font-semibold text-white">Tài khoản: admin</p>
             <p className="text-[11px] text-slate-400 mt-1">
               Toàn quyền thêm, sửa, đẩy Sheet, bấm AI tổng kê đo lường
             </p>
@@ -234,7 +230,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           <button
             type="button"
             id="quick-viewer-login"
-            onClick={() => handleQuickSelect(INITIAL_USERS[1], 'viewer123')}
+            onClick={() => handleQuickSelect(INITIAL_USERS[1], '')}
             className={`p-3.5 rounded-2xl border text-left transition-all ${
               currentUser?.role === 'viewer'
                 ? 'bg-amber-500/20 border-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.3)]'
@@ -250,7 +246,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 <CheckCircle2 className="w-4 h-4 text-amber-400" />
               )}
             </div>
-            <p className="text-xs font-semibold text-white">viewer / viewer123</p>
+            <p className="text-xs font-semibold text-white">Tài khoản: viewer</p>
             <p className="text-[11px] text-slate-400 mt-1">
               Chỉ xem báo cáo 3D, tùy chỉnh ngày tháng, xuất báo cáo
             </p>
@@ -297,9 +293,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Nhập mật khẩu..."
+                placeholder="Không bắt buộc cho tài khoản mẫu..."
                 className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
-                required
               />
             </div>
           </div>
