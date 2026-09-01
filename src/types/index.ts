@@ -147,4 +147,4 @@ export interface YearlyReport {
   aiAnnualSynthesis?: string;
 }
 
-export type ViewTab = 'daily' | 'weekly' | 'monthly' | 'yearly';
+export type ViewTab = 'daily' | 'weekly' | 'monthly' | 'yearly' | 'sheet';

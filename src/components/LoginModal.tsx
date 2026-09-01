@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, ShieldCheck, Eye, KeyRound, User as UserIcon, CheckCircle2, AlertCircle } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { X, ShieldCheck, Eye, KeyRound, User as UserIcon, CheckCircle2, AlertCircle, Camera, Upload } from 'lucide-react';
 import { User } from '../types';
 import { INITIAL_USERS } from '../mock/initialData';
 
@@ -22,8 +22,41 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   const [password, setPassword] = useState('admin123');
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [customAvatar, setCustomAvatar] = useState(currentUser?.avatar || INITIAL_USERS[0].avatar);
+  const [customName, setCustomName] = useState(currentUser?.name || 'Trịnh Minh Đức');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64 = event.target?.result as string;
+        setCustomAvatar(base64);
+        if (currentUser) {
+          const updated = { ...currentUser, avatar: base64, name: customName || 'Trịnh Minh Đức' };
+          onLogin(updated);
+          setSuccessMsg('Đã cập nhật ảnh đại diện thành công!');
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUpdateProfile = () => {
+    if (currentUser) {
+      const updated = {
+        ...currentUser,
+        name: customName.trim() || 'Trịnh Minh Đức',
+        avatar: customAvatar,
+      };
+      onLogin(updated);
+      setSuccessMsg('Đã lưu thông tin tài khoản thành công!');
+      setTimeout(() => onClose(), 600);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,24 +67,27 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     const foundUser = INITIAL_USERS.find((u) => u.username.toLowerCase() === trimmedUser);
 
     if (foundUser) {
-      // For demo convenience, allow corresponding passwords or any password >= 4 chars
       if (password.length < 4) {
         setErrorMsg('Mật khẩu tối thiểu 4 ký tự.');
         return;
       }
-      onLogin(foundUser);
+      const userToSave = {
+        ...foundUser,
+        name: customName || foundUser.name,
+        avatar: customAvatar || foundUser.avatar,
+      };
+      onLogin(userToSave);
       setSuccessMsg(`Đăng nhập thành công với vai trò ${foundUser.role.toUpperCase()}`);
       setTimeout(() => {
         onClose();
       }, 600);
     } else {
-      // Allow custom user login as viewer by default
       const customUser: User = {
         id: `user_${Date.now()}`,
         username: trimmedUser,
-        name: trimmedUser.charAt(0).toUpperCase() + trimmedUser.slice(1),
+        name: customName || (trimmedUser.charAt(0).toUpperCase() + trimmedUser.slice(1)),
         role: trimmedUser.includes('admin') ? 'admin' : 'viewer',
-        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+        avatar: customAvatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
         email: `${trimmedUser}@example.com`,
         title: trimmedUser.includes('admin') ? 'Quản Trị Viên' : 'Người Xem Báo Cáo',
       };
@@ -66,8 +102,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   const handleQuickSelect = (user: User, defaultPass: string) => {
     setUsername(user.username);
     setPassword(defaultPass);
-    onLogin(user);
-    setSuccessMsg(`Đã chuyển sang vai trò: ${user.name}`);
+    const userToSet = {
+      ...user,
+      name: customName || user.name,
+      avatar: customAvatar || user.avatar,
+    };
+    onLogin(userToSet);
+    setSuccessMsg(`Đã chuyển sang vai trò: ${userToSet.name}`);
     setTimeout(() => {
       onClose();
     }, 600);
@@ -90,16 +131,75 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         </button>
 
         {/* Title */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 mb-3 shadow-inner">
-            <KeyRound className="w-6 h-6" />
-          </div>
+        <div className="text-center mb-5">
           <h2 className="text-2xl font-bold text-white tracking-tight font-display">
-            Đăng Nhập Hệ Thống 3D
+            Tài Khoản & Quyền Hệ Thống
           </h2>
-          <p className="text-sm text-slate-400 mt-1">
-            Chọn tài khoản Admin (Quản trị) hoặc Viewer (Người xem)
+          <p className="text-xs text-slate-400 mt-1">
+            Quản lý hồ sơ cá nhân và chuyển đổi vai trò Admin / Viewer
           </p>
+        </div>
+
+        {/* Profile Card & Avatar Uploader */}
+        <div className="p-4 rounded-2xl bg-slate-800/60 border border-slate-700/80 mb-5 flex flex-col sm:flex-row items-center gap-4">
+          <div className="relative group shrink-0">
+            <img
+              src={customAvatar}
+              alt={customName}
+              className="w-16 h-16 rounded-2xl object-cover border-2 border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.35)]"
+            />
+            <button
+              type="button"
+              id="upload-avatar-trigger-btn"
+              onClick={() => fileInputRef.current?.click()}
+              className="absolute -bottom-1 -right-1 p-1.5 rounded-xl bg-cyan-500 text-slate-950 hover:bg-cyan-400 shadow-md transition-transform hover:scale-110"
+              title="Tải ảnh chân dung từ máy tính"
+            >
+              <Camera className="w-3.5 h-3.5" />
+            </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              accept="image/*"
+              className="hidden"
+            />
+          </div>
+
+          <div className="flex-1 w-full space-y-2 text-center sm:text-left">
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                Tên hiển thị & Chủ sở hữu báo cáo:
+              </label>
+              <input
+                id="custom-user-name-input"
+                type="text"
+                value={customName}
+                onChange={(e) => setCustomName(e.target.value)}
+                placeholder="Trịnh Minh Đức"
+                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-sm text-white font-bold focus:outline-none focus:border-cyan-400"
+              />
+            </div>
+            <div className="flex items-center justify-center sm:justify-start gap-2">
+              <button
+                type="button"
+                id="btn-upload-avatar-file"
+                onClick={() => fileInputRef.current?.click()}
+                className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 rounded-lg transition-colors"
+              >
+                <Upload className="w-3 h-3" />
+                <span>Tải ảnh từ máy (.jpg/.png)</span>
+              </button>
+              <button
+                type="button"
+                id="btn-save-profile-custom"
+                onClick={handleUpdateProfile}
+                className="px-2.5 py-1 text-[11px] font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors"
+              >
+                Lưu tên & ảnh
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Quick Demo Switcher Cards */}

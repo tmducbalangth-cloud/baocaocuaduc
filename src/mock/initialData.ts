@@ -4,18 +4,18 @@ export const INITIAL_USERS: User[] = [
   {
     id: 'user_admin',
     username: 'admin',
-    name: 'Nguyễn Thành Nam (Quản Trị Viên)',
+    name: 'Trịnh Minh Đức',
     role: 'admin',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    email: 'admin@workreport3d.pro',
-    title: 'Lead Architect / Trưởng Nhóm Điều Hành',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
+    email: 'tmduc.balangth@gmail.com',
+    title: 'Lead Architect / Trịnh Minh Đức',
   },
   {
     id: 'user_viewer',
     username: 'viewer',
-    name: 'Trần Minh Đức (Người Xem)',
+    name: 'Trịnh Minh Đức (Người Xem)',
     role: 'viewer',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
     email: 'tmduc.balangth@gmail.com',
     title: 'Giám Sát Dự Án / Stakeholder',
   },
@@ -62,7 +62,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     completionPercent: 100,
     kpiMetric: 'Hoàn thành 4/4 khối viewport 3D đạt 60fps',
     outcome: 'Giao diện chạy mượt mà, hiệu ứng parallax sống động',
-    assignedTo: 'Nguyễn Thành Nam',
+    assignedTo: 'Trịnh Minh Đức',
     tags: ['UI/UX', 'Three.js', '3D UI'],
   },
   {
@@ -77,7 +77,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     completionPercent: 100,
     kpiMetric: 'Parse 100% các cột Tên việc, Giờ, Trạng thái, KPI',
     outcome: 'Đã test thành công với 5 mẫu file Excel doanh nghiệp',
-    assignedTo: 'Nguyễn Thành Nam',
+    assignedTo: 'Trịnh Minh Đức',
     tags: ['Sheet Parser', 'Excel', 'Data Import'],
   },
   {
@@ -92,7 +92,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     completionPercent: 100,
     kpiMetric: 'Thời gian phản hồi AI < 1.5s, xuất Infographic đầy đủ',
     outcome: 'Xuất sắc đạt điểm A+ với đầy đủ khuyến nghị tối ưu',
-    assignedTo: 'Nguyễn Thành Nam',
+    assignedTo: 'Trịnh Minh Đức',
     tags: ['Gemini AI', 'Analytics', 'Infographic'],
   },
   {
@@ -107,7 +107,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     completionPercent: 80,
     kpiMetric: 'Phân quyền chính xác 100% theo vai trò',
     outcome: 'Đã hoàn thành kiểm thử giao diện và API',
-    assignedTo: 'Nguyễn Thành Nam',
+    assignedTo: 'Trịnh Minh Đức',
     tags: ['Auth', 'Security', 'RBAC'],
   },
 
@@ -124,7 +124,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     completionPercent: 100,
     kpiMetric: 'Liên kết 7 ngày trong tuần vào bộ lọc',
     outcome: 'Bộ lọc hoạt động mượt mà, phản hồi tức thì',
-    assignedTo: 'Nguyễn Thành Nam',
+    assignedTo: 'Trịnh Minh Đức',
   },
   {
     id: 'task_6',
@@ -138,7 +138,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     completionPercent: 100,
     kpiMetric: 'Biểu đồ tròn 3D & Biểu đồ cột tương tác',
     outcome: 'Dữ liệu phân bổ rõ ràng, trực quan',
-    assignedTo: 'Nguyễn Thành Nam',
+    assignedTo: 'Trịnh Minh Đức',
   },
   {
     id: 'task_7',
@@ -152,7 +152,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     completionPercent: 100,
     kpiMetric: 'Thống nhất 100% các mục tiêu sprint',
     outcome: 'Biên bản cuộc họp được gửi tới toàn bộ thành viên',
-    assignedTo: 'Nguyễn Thành Nam',
+    assignedTo: 'Trịnh Minh Đức',
   },
 
   // Day -2
@@ -168,7 +168,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     completionPercent: 100,
     kpiMetric: 'Đạt chuẩn 60fps trên cả thiết bị di động',
     outcome: 'Chọn giải pháp Three.js kết hợp Tailwind CSS 3D',
-    assignedTo: 'Nguyễn Thành Nam',
+    assignedTo: 'Trịnh Minh Đức',
   },
   {
     id: 'task_9',
@@ -182,7 +182,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     completionPercent: 100,
     kpiMetric: '3 API endpoint hoàn chỉnh với error handling',
     outcome: 'Server phản hồi chuẩn format JSON',
-    assignedTo: 'Nguyễn Thành Nam',
+    assignedTo: 'Trịnh Minh Đức',
   },
   {
     id: 'task_10',
@@ -196,7 +196,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     completionPercent: 100,
     kpiMetric: '50+ đầu việc trải đều các phòng ban',
     outcome: 'Bộ dữ liệu phong phú, sinh động',
-    assignedTo: 'Nguyễn Thành Nam',
+    assignedTo: 'Trịnh Minh Đức',
   },
 
   // Day -3
@@ -212,7 +212,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     completionPercent: 100,
     kpiMetric: 'Đáp ứng 100% tiêu chuẩn responsive',
     outcome: 'Giao diện hiển thị sắc nét trên mọi thiết bị',
-    assignedTo: 'Nguyễn Thành Nam',
+    assignedTo: 'Trịnh Minh Đức',
   },
   {
     id: 'task_12',
@@ -226,7 +226,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     completionPercent: 100,
     kpiMetric: 'Hỗ trợ 3 định dạng: PDF In, Thẻ ảnh 3D, Markdown',
     outcome: 'Xuất bản nhanh chóng, thiết kế sang trọng',
-    assignedTo: 'Nguyễn Thành Nam',
+    assignedTo: 'Trịnh Minh Đức',
   },
 
   // Day -4
@@ -242,7 +242,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     completionPercent: 100,
     kpiMetric: 'Setup 100% sạch, build không lỗi',
     outcome: 'Dự án sẵn sàng phát triển thần tốc',
-    assignedTo: 'Nguyễn Thành Nam',
+    assignedTo: 'Trịnh Minh Đức',
   },
   {
     id: 'task_14',
@@ -256,7 +256,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     completionPercent: 100,
     kpiMetric: 'Sơ đồ luồng logic 4 cấp độ báo cáo',
     outcome: 'Được phê duyệt bởi hội đồng chuyên môn',
-    assignedTo: 'Nguyễn Thành Nam',
+    assignedTo: 'Trịnh Minh Đức',
   },
 ];
 
@@ -293,7 +293,7 @@ export const INITIAL_DAILY_REPORTS: DailyReport[] = [
       ],
       infographicSummary: 'Hiệu suất đạt 94/100 điểm (Hạng A+). Năng suất bứt phá với các tính năng 3D & AI đột phá.',
     },
-    author: 'Nguyễn Thành Nam',
+    author: 'Trịnh Minh Đức',
     status: 'approved',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -325,7 +325,7 @@ export const INITIAL_DAILY_REPORTS: DailyReport[] = [
       ],
       infographicSummary: 'Điểm hiệu suất 90/100 (Hạng A+). Hoàn thành trọn vẹn 3/3 mục tiêu trong ngày.',
     },
-    author: 'Nguyễn Thành Nam',
+    author: 'Trịnh Minh Đức',
     status: 'approved',
     createdAt: new Date(Date.now() - 86400000).toISOString(),
     updatedAt: new Date(Date.now() - 86400000).toISOString(),
