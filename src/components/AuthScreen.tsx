@@ -12,17 +12,17 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
 
   // Login form state
-  const [loginUsername, setLoginUsername] = useState('admin');
+  const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
-  // Register form state (Chỉ tạo tài khoản Người Xem / Viewer)
+  // Register form state (Chỉ tạo tài khoản Người Xem / Viewer - Để trống để người dùng tự nhập)
   const [regName, setRegName] = useState('');
   const [regUsername, setRegUsername] = useState('');
   const [regEmail, setRegEmail] = useState('');
-  const [regTitle, setRegTitle] = useState('Người Xem Báo Cáo');
+  const [regTitle, setRegTitle] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
-  const [regAvatar, setRegAvatar] = useState('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80');
+  const [regAvatar, setRegAvatar] = useState('');
 
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -157,12 +157,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
     }
 
     // Luôn cố định vai trò Người Xem (Viewer) cho tài khoản mới
+    const finalAvatar = regAvatar.trim() || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80';
     const newUser: User = {
       id: `user_viewer_${Date.now()}`,
       username: trimmedUsername,
       name: regName.trim(),
       role: 'viewer',
-      avatar: regAvatar,
+      avatar: finalAvatar,
       email: regEmail.trim(),
       title: regTitle.trim() || 'Người Xem Báo Cáo',
     };
@@ -265,7 +266,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
                     type="text"
                     value={loginUsername}
                     onChange={(e) => setLoginUsername(e.target.value)}
-                    placeholder="admin hoặc tmduc.balangth@gmail.com"
+                    placeholder="Nhập tên đăng nhập hoặc email..."
                     className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-cyan-400"
                     required
                   />
@@ -283,7 +284,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
                     type="password"
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
-                    placeholder="Không bắt buộc cho tài khoản mẫu..."
+                    placeholder="Nhập mật khẩu..."
                     className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-cyan-400"
                   />
                 </div>
@@ -307,11 +308,17 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
             {/* Avatar Upload Preview */}
             <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800 flex items-center gap-4">
               <div className="relative group shrink-0">
-                <img
-                  src={regAvatar}
-                  alt="Preview Avatar"
-                  className="w-14 h-14 rounded-2xl object-cover border-2 border-cyan-400 shadow-md"
-                />
+                {regAvatar ? (
+                  <img
+                    src={regAvatar}
+                    alt="Preview Avatar"
+                    className="w-14 h-14 rounded-2xl object-cover border-2 border-cyan-400 shadow-md"
+                  />
+                ) : (
+                  <div className="w-14 h-14 rounded-2xl bg-slate-800/80 border-2 border-dashed border-slate-600 flex items-center justify-center text-slate-400 shadow-md">
+                    <UserIcon className="w-7 h-7 text-slate-400" />
+                  </div>
+                )}
                 <button
                   type="button"
                   id="reg-avatar-upload-btn"
@@ -331,14 +338,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-bold text-white">Ảnh Đại Diện</p>
-                <p className="text-[11px] text-slate-400 mb-2">Tải ảnh chân dung (.jpg, .png) của bạn</p>
+                <p className="text-[11px] text-slate-400 mb-2">Tải ảnh chân dung (.jpg, .png) hoặc để trống</p>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 rounded-lg transition-colors"
                 >
                   <Upload className="w-3 h-3" />
-                  <span>Chọn ảnh từ máy tính</span>
+                  <span>{regAvatar ? 'Đổi ảnh khác' : 'Chọn ảnh từ máy tính'}</span>
                 </button>
               </div>
             </div>
@@ -354,7 +361,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
                   type="text"
                   value={regName}
                   onChange={(e) => setRegName(e.target.value)}
-                  placeholder="VD: Nguyễn Văn An"
+                  placeholder="Nhập họ và tên..."
                   className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-cyan-400"
                   required
                 />
@@ -369,7 +376,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
                   type="text"
                   value={regUsername}
                   onChange={(e) => setRegUsername(e.target.value)}
-                  placeholder="VD: nguoixem01 hoặc viewer_user"
+                  placeholder="Nhập tên đăng nhập..."
                   className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-cyan-400"
                   required
                 />
@@ -389,7 +396,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
                     type="email"
                     value={regEmail}
                     onChange={(e) => setRegEmail(e.target.value)}
-                    placeholder="VD: nguoixem@balang.com.vn"
+                    placeholder="Nhập địa chỉ email..."
                     className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-8 pr-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-cyan-400"
                     required
                   />
@@ -407,7 +414,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
                     type="text"
                     value={regTitle}
                     onChange={(e) => setRegTitle(e.target.value)}
-                    placeholder="VD: Giám Sát / Đối Tác / Nhân Viên"
+                    placeholder="Nhập chức danh / vị trí công tác..."
                     className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-8 pr-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-cyan-400"
                   />
                 </div>
@@ -462,7 +469,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
                   type="password"
                   value={regPassword}
                   onChange={(e) => setRegPassword(e.target.value)}
-                  placeholder="Tối thiểu 4 ký tự"
+                  placeholder="Nhập mật khẩu..."
                   className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-cyan-400"
                   required
                 />
@@ -477,7 +484,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
                   type="password"
                   value={regConfirmPassword}
                   onChange={(e) => setRegConfirmPassword(e.target.value)}
-                  placeholder="Nhập lại mật khẩu"
+                  placeholder="Nhập lại mật khẩu..."
                   className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-cyan-400"
                   required
                 />
