@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
@@ -9,7 +10,7 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '20mb' }));
 
 // Initialize GoogleGenAI client lazily or when key is available
 function getGeminiClient(): GoogleGenAI | null {
@@ -28,6 +29,66 @@ function getGeminiClient(): GoogleGenAI | null {
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// API: Save & Persist Admin Avatar permanently
+app.post('/api/user/avatar', (req, res) => {
+  try {
+    const { avatar } = req.body;
+    if (!avatar) {
+      return res.status(400).json({ error: 'Avatar data is required' });
+    }
+
+    const publicDir = path.join(process.cwd(), 'public');
+    const distDir = path.join(process.cwd(), 'dist');
+    if (!fs.existsSync(publicDir)) {
+      fs.mkdirSync(publicDir, { recursive: true });
+    }
+
+    // If it's a data URL, decode and write to public/admin-avatar.jpg
+    if (avatar.startsWith('data:image/')) {
+      const matches = avatar.match(/^data:image\/([a-zA-Z0-9\+]+);base64,(.+)$/);
+      if (matches && matches[2]) {
+        const buffer = Buffer.from(matches[2], 'base64');
+        fs.writeFileSync(path.join(publicDir, 'admin-avatar.jpg'), buffer);
+        if (fs.existsSync(distDir)) {
+          try {
+            fs.writeFileSync(path.join(distDir, 'admin-avatar.jpg'), buffer);
+          } catch (e) {
+            console.warn('Could not write to distDir:', e);
+          }
+        }
+      }
+    }
+
+    // Also persist data URL string to file for instant retrieval
+    fs.writeFileSync(path.join(publicDir, 'admin-avatar.txt'), avatar, 'utf-8');
+
+    return res.json({ success: true, url: '/admin-avatar.jpg' });
+  } catch (err: any) {
+    console.error('Error saving avatar:', err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// API: Get Persisted Admin Avatar
+app.get('/api/user/avatar', (req, res) => {
+  try {
+    const publicDir = path.join(process.cwd(), 'public');
+    const txtPath = path.join(publicDir, 'admin-avatar.txt');
+    const imgPath = path.join(publicDir, 'admin-avatar.jpg');
+
+    if (fs.existsSync(txtPath)) {
+      const data = fs.readFileSync(txtPath, 'utf-8');
+      return res.json({ avatar: data, url: '/admin-avatar.jpg' });
+    }
+    if (fs.existsSync(imgPath)) {
+      return res.json({ url: '/admin-avatar.jpg', avatar: '/admin-avatar.jpg' });
+    }
+    return res.json({ avatar: null, url: '/admin-avatar.jpg' });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
 });
 
 // API: Daily Report AI Analysis & Redesign

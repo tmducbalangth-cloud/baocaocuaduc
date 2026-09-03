@@ -19,7 +19,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { TaskItem, DailyReport, TaskCategory, TaskPriority, TaskStatus } from '../types';
+import { TaskItem, DailyReport, TaskCategory, TaskPriority, TaskStatus, normalizeCategory } from '../types';
 
 interface GoogleSheetSyncModalProps {
   isOpen: boolean;
@@ -147,7 +147,7 @@ export const GoogleSheetSyncModal: React.FC<GoogleSheetSyncModalProps> = ({
           id: row[0] && String(row[0]).startsWith('task_') ? String(row[0]) : `task_gs_${Date.now()}_${i}`,
           date: dateIdx !== -1 && row[dateIdx] ? String(row[dateIdx]) : new Date().toISOString().split('T')[0],
           title: String(titleVal).trim(),
-          category: (catIdx !== -1 && row[catIdx] ? row[catIdx] : 'Phát triển') as TaskCategory,
+          category: normalizeCategory(catIdx !== -1 && row[catIdx] ? String(row[catIdx]) : 'Marketing'),
           timeSpentHours: timeIdx !== -1 ? parseFloat(String(row[timeIdx])) || 2 : 2,
           completionPercent: 100,
           status: (statusIdx !== -1 && row[statusIdx] ? row[statusIdx] : 'completed') as TaskStatus,
@@ -269,7 +269,7 @@ function doGet(e) {
       id: String(row[0] || ("task_gs_" + Date.now() + "_" + i)),
       date: String(row[1] || ""),
       title: String(row[2] || ""),
-      category: String(row[3] || "Phát triển"),
+      category: normalizeCategory(String(row[3] || "Marketing")),
       timeSpentHours: Number(row[4]) || 2,
       completionPercent: Number(String(row[5]).replace("%","")) || 100,
       status: String(row[6] || "completed"),

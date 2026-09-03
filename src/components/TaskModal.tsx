@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Check, Trash2, Tag, Clock, Target, CheckCircle2 } from 'lucide-react';
-import { TaskItem, TaskCategory, TaskPriority, TaskStatus } from '../types';
+import { X, Check, Trash2, Tag, Clock, Target, CheckCircle2, Layers } from 'lucide-react';
+import { TaskItem, TaskCategory, TaskPriority, TaskStatus, TASK_CATEGORIES, normalizeCategory } from '../types';
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -22,10 +22,11 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   const [title, setTitle] = useState('');
   const [taskDate, setTaskDate] = useState(selectedDate);
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState<TaskCategory>('Phát triển');
+  const [category, setCategory] = useState<TaskCategory>('Marketing');
   const [status, setStatus] = useState<TaskStatus>('completed');
   const [priority, setPriority] = useState<TaskPriority>('medium');
-  const [timeSpentHours, setTimeSpentHours] = useState(2);
+  const [quantityInput, setQuantityInput] = useState<string>('1');
+  const [timeSpentInput, setTimeSpentInput] = useState<string>('2');
   const [completionPercent, setCompletionPercent] = useState(100);
   const [kpiMetric, setKpiMetric] = useState('');
   const [outcome, setOutcome] = useState('');
@@ -36,10 +37,19 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       setTitle(taskToEdit.title);
       setTaskDate(taskToEdit.date || selectedDate);
       setDescription(taskToEdit.description || '');
-      setCategory(taskToEdit.category as TaskCategory);
+      setCategory(normalizeCategory(taskToEdit.category));
       setStatus(taskToEdit.status);
       setPriority(taskToEdit.priority);
-      setTimeSpentHours(taskToEdit.timeSpentHours);
+      setQuantityInput(
+        taskToEdit.quantity !== undefined && taskToEdit.quantity !== null
+          ? String(taskToEdit.quantity)
+          : '1'
+      );
+      setTimeSpentInput(
+        taskToEdit.timeSpentHours !== undefined && taskToEdit.timeSpentHours !== null
+          ? String(taskToEdit.timeSpentHours)
+          : '2'
+      );
       setCompletionPercent(taskToEdit.completionPercent);
       setKpiMetric(taskToEdit.kpiMetric || '');
       setOutcome(taskToEdit.outcome || '');
@@ -48,10 +58,11 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       setTitle('');
       setTaskDate(selectedDate);
       setDescription('');
-      setCategory('Phát triển');
+      setCategory('Marketing');
       setStatus('completed');
       setPriority('medium');
-      setTimeSpentHours(2);
+      setQuantityInput('1');
+      setTimeSpentInput('2');
       setCompletionPercent(100);
       setKpiMetric('');
       setOutcome('');
@@ -70,6 +81,16 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       .map((t) => t.trim())
       .filter((t) => t.length > 0);
 
+    // Parse quantity input: freely entered, minimum 1 (e.g. 1, 2, 5, 10...)
+    const sanitizedQty = quantityInput.toString().trim().replace(',', '.');
+    const parsedQty = parseFloat(sanitizedQty);
+    const finalQuantity = !isNaN(parsedQty) && parsedQty >= 1 ? parsedQty : 1;
+
+    // Parse user input: accept any positive number, support comma as decimal point (e.g., 2,5 or 2.5)
+    const sanitizedTime = timeSpentInput.toString().trim().replace(',', '.');
+    const parsedTime = parseFloat(sanitizedTime);
+    const finalHours = !isNaN(parsedTime) && parsedTime >= 0 ? parsedTime : 0;
+
     const task: TaskItem = {
       id: taskToEdit ? taskToEdit.id : `task_${Date.now()}`,
       title: title.trim(),
@@ -78,7 +99,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       status,
       priority,
       date: taskDate || selectedDate,
-      timeSpentHours: Number(timeSpentHours) || 1,
+      quantity: finalQuantity,
+      timeSpentHours: finalHours,
       completionPercent: Number(completionPercent) || 0,
       kpiMetric: kpiMetric.trim() || 'Hoàn thành 100% mục tiêu',
       outcome: outcome.trim() || (status === 'completed' ? 'Đã hoàn thành' : 'Đang xử lý'),
@@ -89,16 +111,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     onClose();
   };
 
-  const categories: TaskCategory[] = [
-    'Phát triển',
-    'Thiết kế',
-    'Kinh doanh',
-    'Marketing',
-    'Quản trị',
-    'Hỗ trợ',
-    'Nghiên cứu',
-    'Khác',
-  ];
+  const categories = TASK_CATEGORIES;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
@@ -212,47 +225,115 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             </div>
           </div>
 
-          {/* Time & Completion % */}
+          {/* Quantity & Time Spent */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Thời gian thực hiện (Giờ)</span>
-              </label>
-              <input
-                id="task-hours-input"
-                type="number"
-                step="0.5"
-                min="0.25"
-                max="24"
-                value={timeSpentHours}
-                onChange={(e) => setTimeSpentHours(parseFloat(e.target.value) || 0)}
-                className="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400"
-              />
-            </div>
-
+            {/* Quantity */}
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center justify-between">
-                <span>Tiến độ hoàn thành:</span>
-                <span className="text-cyan-400 font-bold">{completionPercent}%</span>
+                <span className="flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Số lượng công việc</span>
+                </span>
+                <span className="text-[10px] text-slate-400">Tối thiểu: 1</span>
               </label>
-              <input
-                id="task-progress-range"
-                type="range"
-                min="0"
-                max="100"
-                step="5"
-                value={completionPercent}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value);
-                  setCompletionPercent(val);
-                  if (val === 100) setStatus('completed');
-                  else if (val > 0) setStatus('in_progress');
-                  else setStatus('pending');
-                }}
-                className="w-full accent-cyan-400 h-2 bg-slate-800 rounded-lg cursor-pointer mt-2"
-              />
+              <div className="relative">
+                <input
+                  id="task-quantity-input"
+                  type="text"
+                  inputMode="decimal"
+                  value={quantityInput}
+                  onChange={(e) => setQuantityInput(e.target.value)}
+                  placeholder="VD: 1, 2, 5, 10..."
+                  className="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-400 font-mono font-semibold"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-semibold pointer-events-none">
+                  Việc / Mục
+                </span>
+              </div>
+              {/* Quick suggestions */}
+              <div className="flex items-center gap-1.5 mt-1.5">
+                {['1', '2', '3', '5', '10'].map((val) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setQuantityInput(val)}
+                    className={`px-2 py-0.5 rounded text-[10px] font-mono transition-colors ${
+                      quantityInput === val
+                        ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-bold'
+                        : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    {val}
+                  </button>
+                ))}
+              </div>
             </div>
+
+            {/* Time Spent */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Thời gian thực hiện (Giờ)</span>
+                </span>
+                <span className="text-[10px] text-slate-400">Nhập số giờ bất kỳ</span>
+              </label>
+              <div className="relative">
+                <input
+                  id="task-hours-input"
+                  type="text"
+                  inputMode="decimal"
+                  value={timeSpentInput}
+                  onChange={(e) => setTimeSpentInput(e.target.value)}
+                  placeholder="VD: 0.5, 1.5, 2, 4, 8..."
+                  className="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono font-semibold"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-semibold pointer-events-none">
+                  Giờ
+                </span>
+              </div>
+              {/* Quick suggestions */}
+              <div className="flex items-center gap-1.5 mt-1.5">
+                {['0.5', '1', '1.5', '2', '4', '8'].map((val) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setTimeSpentInput(val)}
+                    className={`px-1.5 py-0.5 rounded text-[10px] font-mono transition-colors ${
+                      timeSpentInput === val
+                        ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold'
+                        : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    {val}h
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Completion Progress Slider */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
+              <span>Tiến độ hoàn thành:</span>
+              <span className="text-cyan-400 font-bold text-sm">{completionPercent}%</span>
+            </label>
+            <input
+              id="task-progress-range"
+              type="range"
+              min="0"
+              max="100"
+              step="5"
+              value={completionPercent}
+              onChange={(e) => {
+                const val = parseInt(e.target.value);
+                setCompletionPercent(val);
+                if (val === 100) setStatus('completed');
+                else if (val > 0) setStatus('in_progress');
+                else setStatus('pending');
+              }}
+              className="w-full accent-cyan-400 h-2 bg-slate-800 rounded-lg cursor-pointer"
+            />
           </div>
 
           {/* Status */}

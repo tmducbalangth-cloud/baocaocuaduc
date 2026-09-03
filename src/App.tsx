@@ -12,21 +12,27 @@ import { LoginModal } from './components/LoginModal';
 import { TaskModal } from './components/TaskModal';
 import { SheetImportModal } from './components/SheetImportModal';
 import { ExportModal } from './components/ExportModal';
-import { TaskItem, DailyReport, User, ViewTab } from './types';
-import { INITIAL_USERS, INITIAL_TASKS, INITIAL_DAILY_REPORTS, formatDateStr } from './mock/initialData';
+import { TaskItem, DailyReport, User, ViewTab, normalizeCategory } from './types';
+import { INITIAL_USERS, INITIAL_TASKS, INITIAL_DAILY_REPORTS, formatDateStr, DEFAULT_ADMIN_AVATAR, getStoredAdminAvatar } from './mock/initialData';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<ViewTab>('daily');
   const [selectedDate, setSelectedDate] = useState<string>(() => formatDateStr(new Date()));
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     const saved = localStorage.getItem('3d_workreport_current_user');
+    const permanentAvatar = getStoredAdminAvatar();
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (parsed && (parsed.name?.includes('Nguyễn Thành Nam') || parsed.name?.includes('Trần Minh Đức'))) {
-          return { ...parsed, name: 'Trịnh Minh Đức' };
+        if (parsed) {
+          if (parsed.name?.includes('Nguyễn Thành Nam') || parsed.name?.includes('Trần Minh Đức')) {
+            parsed.name = 'Trịnh Minh Đức';
+          }
+          if (parsed.avatar?.includes('photo-1507003211169') || !parsed.avatar) {
+            parsed.avatar = permanentAvatar;
+          }
+          return parsed;
         }
-        return parsed;
       } catch (e) {
         console.error(e);
       }
@@ -42,11 +48,52 @@ export default function App() {
     }
   }, [currentUser]);
 
+  // Synchronize admin avatar permanently with backend and local storage
+  useEffect(() => {
+    const permAvatar = getStoredAdminAvatar();
+    const activeAvatar = currentUser?.avatar && !currentUser.avatar.includes('photo-1507003211169') ? currentUser.avatar : permAvatar;
+
+    if (activeAvatar && activeAvatar.startsWith('data:image')) {
+      try {
+        localStorage.setItem('3d_workreport_permanent_admin_avatar', activeAvatar);
+        fetch('/api/user/avatar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ avatar: activeAvatar }),
+        }).catch(console.warn);
+      } catch (e) {
+        console.error(e);
+      }
+    } else {
+      fetch('/api/user/avatar')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.avatar && data.avatar.startsWith('data:image')) {
+            localStorage.setItem('3d_workreport_permanent_admin_avatar', data.avatar);
+            if (currentUser && (!currentUser.avatar || currentUser.avatar.includes('photo-1507003211169'))) {
+              setCurrentUser((prev) => (prev ? { ...prev, avatar: data.avatar } : null));
+            }
+          }
+        })
+        .catch(console.warn);
+    }
+  }, [currentUser]);
+
   // Tasks & Reports State
   const [tasks, setTasks] = useState<TaskItem[]>(() => {
     const saved = localStorage.getItem('3d_workreport_tasks');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { console.error(e); }
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.map((t: TaskItem) => ({
+            ...t,
+            category: normalizeCategory(t.category),
+          }));
+        }
+      } catch (e) {
+        console.error(e);
+      }
     }
     return INITIAL_TASKS;
   });
@@ -54,7 +101,20 @@ export default function App() {
   const [dailyReports, setDailyReports] = useState<DailyReport[]>(() => {
     const saved = localStorage.getItem('3d_workreport_daily_reports');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { console.error(e); }
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.map((r: DailyReport) => ({
+            ...r,
+            tasks: (r.tasks || []).map((t: TaskItem) => ({
+              ...t,
+              category: normalizeCategory(t.category),
+            })),
+          }));
+        }
+      } catch (e) {
+        console.error(e);
+      }
     }
     return INITIAL_DAILY_REPORTS;
   });

@@ -1,7 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ShieldCheck, Eye, KeyRound, User as UserIcon, CheckCircle2, AlertCircle, Camera, Upload, ArrowRight, Sparkles, Lock, Mail, Briefcase } from 'lucide-react';
 import { User, UserRole } from '../types';
-import { INITIAL_USERS } from '../mock/initialData';
+import { INITIAL_USERS, DEFAULT_ADMIN_AVATAR, getStoredAdminAvatar } from '../mock/initialData';
 import { BaLangLogo } from './BaLangLogo';
 
 interface AuthScreenProps {
@@ -23,23 +23,39 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
   const [regRole, setRegRole] = useState<UserRole>('admin');
   const [regPassword, setRegPassword] = useState('123456');
   const [regConfirmPassword, setRegConfirmPassword] = useState('123456');
-  const [regAvatar, setRegAvatar] = useState('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80');
+  const [regAvatar, setRegAvatar] = useState(() => getStoredAdminAvatar());
 
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Sync avatar on mount if available
+  useEffect(() => {
+    const perm = getStoredAdminAvatar();
+    setRegAvatar(perm);
+  }, []);
+
   // Load custom registered users
   const getRegisteredUsers = (): User[] => {
+    const permanentAvatar = getStoredAdminAvatar();
     const saved = localStorage.getItem('3d_workreport_registered_users');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const list: User[] = JSON.parse(saved);
+        return list.map((u) => {
+          if (u.username === 'admin' || u.role === 'admin' || u.avatar?.includes('photo-1507003211169')) {
+            return { ...u, avatar: permanentAvatar };
+          }
+          return u;
+        });
       } catch (e) {
         console.error(e);
       }
     }
-    return INITIAL_USERS;
+    return INITIAL_USERS.map((u) => ({
+      ...u,
+      avatar: permanentAvatar,
+    }));
   };
 
   const saveRegisteredUsers = (users: User[]) => {
@@ -53,7 +69,17 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
       reader.onload = (event) => {
         const base64 = event.target?.result as string;
         setRegAvatar(base64);
-        setSuccessMsg('Đã tải ảnh đại diện thành công!');
+        try {
+          localStorage.setItem('3d_workreport_permanent_admin_avatar', base64);
+          fetch('/api/user/avatar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ avatar: base64 }),
+          }).catch(console.warn);
+        } catch (e) {
+          console.error(e);
+        }
+        setSuccessMsg('Đã tải và cố định ảnh đại diện thành công!');
         setTimeout(() => setSuccessMsg(''), 3000);
       };
       reader.readAsDataURL(file);
@@ -71,12 +97,16 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
       return;
     }
 
+    const permanentAvatar = getStoredAdminAvatar();
     const allUsers = getRegisteredUsers();
-    const foundUser = allUsers.find(
+    let foundUser = allUsers.find(
       (u) => u.username.toLowerCase() === trimmed || u.email.toLowerCase() === trimmed
     );
 
     if (foundUser) {
+      if (foundUser.role === 'admin' || trimmed === 'admin') {
+        foundUser = { ...foundUser, avatar: permanentAvatar };
+      }
       setSuccessMsg(`Đăng nhập thành công! Chào mừng ${foundUser.name}`);
       setTimeout(() => {
         onLogin(foundUser);
@@ -88,7 +118,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
         username: trimmed,
         name: trimmed === 'admin' ? 'Trịnh Minh Đức' : trimmed.charAt(0).toUpperCase() + trimmed.slice(1),
         role: trimmed.includes('admin') ? 'admin' : 'viewer',
-        avatar: regAvatar,
+        avatar: permanentAvatar,
         email: `${trimmed}@balang.com.vn`,
         title: trimmed.includes('admin') ? 'Quản Trị Viên' : 'Người Xem Báo Cáo',
       };
@@ -99,13 +129,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
         onLogin(dynamicUser);
       }, 500);
     }
-  };
-
-  const handleQuickLogin = (user: User) => {
-    setSuccessMsg(`Đang đăng nhập với vai trò: ${user.name}`);
-    setTimeout(() => {
-      onLogin(user);
-    }, 400);
   };
 
   const handleRegisterSubmit = (e: React.FormEvent) => {
@@ -239,71 +262,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
         {/* LOGIN VIEW */}
         {activeTab === 'login' && (
           <div className="space-y-5">
-            {/* Quick 1-Click Login Cards */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                  Chọn nhanh tài khoản mẫu:
-                </span>
-                <span className="text-[11px] text-cyan-400 font-semibold">1-Click vào hệ thống</span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Admin Card */}
-                <button
-                  type="button"
-                  id="quick-login-admin-btn"
-                  onClick={() => handleQuickLogin(INITIAL_USERS[0])}
-                  className="p-3 rounded-2xl bg-slate-800/60 border border-cyan-500/40 hover:border-cyan-400 hover:bg-cyan-500/10 text-left transition-all group flex items-center gap-3"
-                >
-                  <img
-                    src={INITIAL_USERS[0].avatar}
-                    alt="Admin Avatar"
-                    className="w-10 h-10 rounded-xl object-cover border border-cyan-400 shrink-0 group-hover:scale-105 transition-transform"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold text-white group-hover:text-cyan-300 truncate">
-                        {INITIAL_USERS[0].name}
-                      </span>
-                      <ShieldCheck className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                    </div>
-                    <p className="text-[10px] text-cyan-300 font-semibold uppercase">Admin (Toàn quyền)</p>
-                  </div>
-                </button>
-
-                {/* Viewer Card */}
-                <button
-                  type="button"
-                  id="quick-login-viewer-btn"
-                  onClick={() => handleQuickLogin(INITIAL_USERS[1])}
-                  className="p-3 rounded-2xl bg-slate-800/60 border border-slate-700 hover:border-indigo-400 hover:bg-indigo-500/10 text-left transition-all group flex items-center gap-3"
-                >
-                  <img
-                    src={INITIAL_USERS[1].avatar}
-                    alt="Viewer Avatar"
-                    className="w-10 h-10 rounded-xl object-cover border border-indigo-400 shrink-0 group-hover:scale-105 transition-transform"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold text-white group-hover:text-indigo-300 truncate">
-                        {INITIAL_USERS[1].name}
-                      </span>
-                      <Eye className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-                    </div>
-                    <p className="text-[10px] text-indigo-300 font-semibold uppercase">Viewer (Xem báo cáo)</p>
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            <div className="relative flex py-2 items-center">
-              <div className="flex-grow border-t border-slate-800"></div>
-              <span className="flex-shrink mx-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">
-                Hoặc nhập thông tin
-              </span>
-              <div className="flex-grow border-t border-slate-800"></div>
-            </div>
-
             {/* Login Form */}
             <form onSubmit={handleLoginSubmit} className="space-y-4">
               <div>

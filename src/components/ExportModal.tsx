@@ -36,7 +36,7 @@ ${r.tasks
   .map(
     (t, i) =>
       `${i + 1}. **[${t.status === 'completed' ? 'x' : ' '}] ${t.title}**
-   - Danh mục: ${t.category} | Thời gian: ${t.timeSpentHours}h | Tiến độ: ${t.completionPercent}%
+   - Danh mục: ${t.category} | Số lượng: ${t.quantity || 1} | Thời gian: ${t.timeSpentHours}h | Tiến độ: ${t.completionPercent}%
    - KPI đo lường: ${t.kpiMetric || 'Đạt yêu cầu'}
    - Kết quả: ${t.outcome || 'Đã hoàn thành'}`
   )

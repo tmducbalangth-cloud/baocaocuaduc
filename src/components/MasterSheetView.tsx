@@ -22,7 +22,7 @@ import {
   ShieldAlert
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { TaskItem, DailyReport, User, TaskStatus, TaskPriority, TaskCategory } from '../types';
+import { TaskItem, DailyReport, User, TaskStatus, TaskPriority, TaskCategory, TASK_CATEGORIES } from '../types';
 import { formatDateStr } from '../mock/initialData';
 import { GoogleSheetSyncModal } from './GoogleSheetSyncModal';
 
@@ -55,15 +55,7 @@ export const MasterSheetView: React.FC<MasterSheetViewProps> = ({
   const isAdmin = currentUser?.role === 'admin';
 
   // Categories list
-  const categories: TaskCategory[] = [
-    'Phát triển',
-    'Thiết kế',
-    'Kinh doanh',
-    'Marketing',
-    'Quản trị',
-    'Hỗ trợ',
-    'Nghiên cứu',
-  ];
+  const categories = TASK_CATEGORIES;
 
   // Filtered tasks for Sheet 1
   const filteredTasks = useMemo(() => {
@@ -83,7 +75,11 @@ export const MasterSheetView: React.FC<MasterSheetViewProps> = ({
 
   // Quick stats
   const totalHours = useMemo(() => {
-    return allTasks.reduce((acc, t) => acc + (t.timeSpentHours || 0), 0);
+    return allTasks.reduce((acc, t) => acc + (Number(t.timeSpentHours) || 0), 0);
+  }, [allTasks]);
+
+  const totalQuantity = useMemo(() => {
+    return allTasks.reduce((acc, t) => acc + (Number(t.quantity) || 1), 0);
   }, [allTasks]);
 
   const completedCount = useMemo(() => {
@@ -135,10 +131,11 @@ export const MasterSheetView: React.FC<MasterSheetViewProps> = ({
     const newTask: TaskItem = {
       id: `task_sheet_manual_${Date.now()}`,
       title: 'Công việc mới cần thực hiện',
-      category: 'Phát triển',
+      category: 'Marketing',
       status: 'in_progress',
       priority: 'medium',
       date: formatDateStr(new Date()),
+      quantity: 1,
       timeSpentHours: 2,
       completionPercent: 50,
       kpiMetric: 'Hoàn thành 100% mục tiêu',
@@ -184,6 +181,7 @@ export const MasterSheetView: React.FC<MasterSheetViewProps> = ({
       'Ngày Thực Hiện': t.date,
       'Tên Công Việc': t.title,
       'Danh Mục': t.category,
+      'Số Lượng': t.quantity || 1,
       'Thời Gian (Giờ)': t.timeSpentHours,
       'Tiến Độ (%)': `${t.completionPercent}%`,
       'Trạng Thái': t.status === 'completed' ? 'Hoàn thành' : t.status === 'in_progress' ? 'Đang thực hiện' : t.status === 'pending' ? 'Chờ xử lý' : 'Bị tắc nghẽn',
@@ -309,9 +307,9 @@ export const MasterSheetView: React.FC<MasterSheetViewProps> = ({
 
   // Copy Sheet to Clipboard for direct Google Sheets paste
   const handleCopyForGoogleSheets = () => {
-    let tsv = 'Mã ID\tNgày\tTên Công Việc\tDanh Mục\tThời Gian (Giờ)\tTiến Độ (%)\tTrạng Thái\tKPI Đo Lường\tKết Quả Đạt Được\tNgười Thực Hiện\n';
+    let tsv = 'Mã ID\tNgày\tTên Công Việc\tDanh Mục\tSố Lượng\tThời Gian (Giờ)\tTiến Độ (%)\tTrạng Thái\tKPI Đo Lường\tKết Quả Đạt Được\tNgười Thực Hiện\n';
     allTasks.forEach((t) => {
-      tsv += `${t.id}\t${t.date}\t${t.title}\t${t.category}\t${t.timeSpentHours}\t${t.completionPercent}%\t${t.status}\t${t.kpiMetric || ''}\t${t.outcome || ''}\t${t.assignedTo || ''}\n`;
+      tsv += `${t.id}\t${t.date}\t${t.title}\t${t.category}\t${t.quantity || 1}\t${t.timeSpentHours}\t${t.completionPercent}%\t${t.status}\t${t.kpiMetric || ''}\t${t.outcome || ''}\t${t.assignedTo || ''}\n`;
     });
 
     navigator.clipboard.writeText(tsv).then(() => {
@@ -561,7 +559,7 @@ export const MasterSheetView: React.FC<MasterSheetViewProps> = ({
             {/* Live Metrics Counters */}
             <div className="flex items-center gap-3 text-xs font-semibold shrink-0">
               <span className="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300">
-                Tổng: <strong className="text-white">{allTasks.length}</strong> việc
+                Tổng: <strong className="text-white">{allTasks.length}</strong> việc (<strong className="text-purple-300">{totalQuantity}</strong> mục)
               </span>
               <span className="px-2.5 py-1 rounded-lg bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">
                 Tổng giờ: <strong className="text-cyan-200">{totalHours}h</strong>
@@ -582,7 +580,8 @@ export const MasterSheetView: React.FC<MasterSheetViewProps> = ({
                     <th className="p-3 min-w-[110px]">Ngày</th>
                     <th className="p-3 min-w-[240px]">Tên Công Việc (Sửa trực tiếp)</th>
                     <th className="p-3 min-w-[130px]">Danh Mục</th>
-                    <th className="p-3 min-w-[80px]">Giờ (h)</th>
+                    <th className="p-3 min-w-[80px] text-center">Số Lượng</th>
+                    <th className="p-3 min-w-[80px] text-center">Giờ (h)</th>
                     <th className="p-3 min-w-[100px]">Tiến Độ</th>
                     <th className="p-3 min-w-[130px]">Trạng Thái</th>
                     <th className="p-3 min-w-[180px]">Chỉ Số Đo Lường KPI</th>
@@ -595,7 +594,7 @@ export const MasterSheetView: React.FC<MasterSheetViewProps> = ({
                 <tbody className="divide-y divide-slate-800/70 text-slate-200 font-medium">
                   {filteredTasks.length === 0 ? (
                     <tr>
-                      <td colSpan={11} className="p-8 text-center text-slate-400">
+                      <td colSpan={12} className="p-8 text-center text-slate-400">
                         Không tìm thấy dòng công việc nào khớp với bộ lọc.
                       </td>
                     </tr>
@@ -643,16 +642,37 @@ export const MasterSheetView: React.FC<MasterSheetViewProps> = ({
                           </select>
                         </td>
 
-                        {/* Hours */}
-                        <td className="p-2">
+                        {/* Quantity */}
+                        <td className="p-2 text-center">
                           <input
-                            type="number"
-                            step="0.5"
-                            min="0.5"
-                            max="24"
+                            type="text"
+                            inputMode="decimal"
                             disabled={!isAdmin}
-                            value={task.timeSpentHours}
-                            onChange={(e) => handleTaskCellChange(task.id, 'timeSpentHours', parseFloat(e.target.value) || 0)}
+                            value={task.quantity !== undefined && task.quantity !== null ? task.quantity : 1}
+                            onChange={(e) => {
+                              const raw = e.target.value.replace(',', '.');
+                              const num = parseFloat(raw);
+                              handleTaskCellChange(task.id, 'quantity', raw === '' ? '' : (!isNaN(num) && num >= 1 ? num : raw));
+                            }}
+                            placeholder="1"
+                            title="Số lượng công việc (tối thiểu 1)"
+                            className="bg-transparent border border-transparent hover:border-slate-700 focus:border-indigo-400 rounded-lg px-2 py-1 text-indigo-300 font-mono font-bold text-xs w-16 text-center focus:bg-slate-950"
+                          />
+                        </td>
+
+                        {/* Hours */}
+                        <td className="p-2 text-center">
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            disabled={!isAdmin}
+                            value={task.timeSpentHours !== undefined && task.timeSpentHours !== null ? task.timeSpentHours : ''}
+                            onChange={(e) => {
+                              const raw = e.target.value.replace(',', '.');
+                              const num = parseFloat(raw);
+                              handleTaskCellChange(task.id, 'timeSpentHours', raw === '' ? '' : (!isNaN(num) && num >= 0 ? num : raw));
+                            }}
+                            placeholder="Giờ"
                             className="bg-transparent border border-transparent hover:border-slate-700 focus:border-cyan-400 rounded-lg px-2 py-1 text-cyan-300 font-mono font-bold text-xs w-16 text-center focus:bg-slate-950"
                           />
                         </td>

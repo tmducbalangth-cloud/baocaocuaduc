@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Upload, FileSpreadsheet, Sparkles, Check, AlertCircle, RefreshCw } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { TaskItem, TaskCategory, TaskPriority, TaskStatus } from '../types';
+import { TaskItem, TaskCategory, TaskPriority, TaskStatus, normalizeCategory } from '../types';
 
 interface SheetImportModalProps {
   isOpen: boolean;
@@ -54,6 +54,7 @@ export const SheetImportModal: React.FC<SheetImportModalProps> = ({
         const headers: string[] = (data[0] || []).map((h: any) => String(h || '').toLowerCase());
         const titleIdx = headers.findIndex((h) => h.includes('công việc') || h.includes('tên') || h.includes('task') || h.includes('nội dung'));
         const timeIdx = headers.findIndex((h) => h.includes('giờ') || h.includes('thời gian') || h.includes('hour') || h.includes('time'));
+        const qtyIdx = headers.findIndex((h) => h.includes('số lượng') || h.includes('quantity') || h.includes('sl') || h.includes('mục'));
         const statusIdx = headers.findIndex((h) => h.includes('trạng thái') || h.includes('status') || h.includes('tiến độ'));
         const kpiIdx = headers.findIndex((h) => h.includes('kpi') || h.includes('đo lường') || h.includes('chỉ số') || h.includes('mục tiêu'));
         const categoryIdx = headers.findIndex((h) => h.includes('danh mục') || h.includes('phòng ban') || h.includes('category') || h.includes('loại'));
@@ -71,7 +72,7 @@ export const SheetImportModal: React.FC<SheetImportModalProps> = ({
           const hoursVal = timeIdx !== -1 ? parseFloat(String(row[timeIdx])) : 2;
           const statusRaw = statusIdx !== -1 ? String(row[statusIdx]).toLowerCase() : 'hoàn thành';
           const kpiVal = kpiIdx !== -1 ? String(row[kpiIdx]) : 'Hoàn thành theo tiến độ';
-          const catVal = categoryIdx !== -1 ? String(row[categoryIdx]) : 'Phát triển';
+          const catVal = categoryIdx !== -1 ? String(row[categoryIdx]) : 'Marketing';
           const outcomeVal = outcomeIdx !== -1 ? String(row[outcomeIdx]) : 'Đã thực hiện xong';
 
           let status: TaskStatus = 'completed';
@@ -82,10 +83,11 @@ export const SheetImportModal: React.FC<SheetImportModalProps> = ({
           tasks.push({
             id: `task_sheet_${Date.now()}_${i}`,
             title: String(titleVal).trim(),
-            category: (catVal as TaskCategory) || 'Phát triển',
+            category: normalizeCategory(catVal),
             status,
             priority: 'medium' as TaskPriority,
             date: targetDate,
+            quantity: qtyIdx !== -1 ? Math.max(1, parseFloat(String(row[qtyIdx])) || 1) : 1,
             timeSpentHours: isNaN(hoursVal) ? 2 : hoursVal,
             completionPercent: status === 'completed' ? 100 : status === 'in_progress' ? 60 : 0,
             kpiMetric: kpiVal,
@@ -121,7 +123,7 @@ export const SheetImportModal: React.FC<SheetImportModalProps> = ({
         const parts = line.split('\t').map((p) => p.trim());
         const title = parts[0] || `Công việc ${idx + 1}`;
         const hours = parseFloat(parts[1]) || 2;
-        const category = (parts[2] as TaskCategory) || 'Phát triển';
+        const category = normalizeCategory(parts[2]);
         const kpi = parts[3] || 'Hoàn thành chỉ tiêu';
         tasks.push({
           id: `task_paste_${Date.now()}_${idx}`,
@@ -142,7 +144,7 @@ export const SheetImportModal: React.FC<SheetImportModalProps> = ({
           tasks.push({
             id: `task_paste_${Date.now()}_${idx}`,
             title: cleaned,
-            category: 'Phát triển',
+            category: 'Marketing',
             status: 'completed',
             priority: 'medium',
             date: targetDate,
@@ -210,10 +212,11 @@ export const SheetImportModal: React.FC<SheetImportModalProps> = ({
       id: item.id || `task_imported_${Date.now()}_${idx}`,
       title: item.title || 'Công việc chưa đặt tên',
       description: item.description || '',
-      category: item.category || 'Phát triển',
+      category: normalizeCategory(item.category),
       status: item.status || 'completed',
       priority: item.priority || 'medium',
       date: targetDate,
+      quantity: item.quantity || 1,
       timeSpentHours: item.timeSpentHours || 1.5,
       completionPercent: item.completionPercent ?? 100,
       kpiMetric: item.kpiMetric || 'Hoàn thành 100%',

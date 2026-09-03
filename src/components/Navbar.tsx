@@ -118,8 +118,11 @@ export const Navbar: React.FC<NavbarProps> = ({
               {currentUser ? (
                 <>
                   <img
-                    src={currentUser.avatar}
+                    src={currentUser.avatar || '/admin-avatar.jpg'}
                     alt={currentUser.name}
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = '/admin-avatar.jpg';
+                    }}
                     className="w-8 h-8 rounded-lg object-cover border border-slate-700"
                   />
                   <div>

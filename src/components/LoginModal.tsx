@@ -1,7 +1,7 @@
-import React, { useState, useRef } from 'react';
-import { X, ShieldCheck, Eye, KeyRound, User as UserIcon, CheckCircle2, AlertCircle, Camera, Upload } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { X, ShieldCheck, Eye, KeyRound, User as UserIcon, CheckCircle2, AlertCircle, Camera, Upload, Check } from 'lucide-react';
 import { User } from '../types';
-import { INITIAL_USERS } from '../mock/initialData';
+import { INITIAL_USERS, DEFAULT_ADMIN_AVATAR, getStoredAdminAvatar } from '../mock/initialData';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -22,9 +22,44 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
-  const [customAvatar, setCustomAvatar] = useState(currentUser?.avatar || INITIAL_USERS[0].avatar);
+
+  const getInitialAvatar = () => {
+    const permanent = getStoredAdminAvatar();
+    if (permanent && !permanent.includes('photo-1507003211169')) return permanent;
+    if (currentUser?.avatar && !currentUser.avatar.includes('photo-1507003211169')) return currentUser.avatar;
+    return DEFAULT_ADMIN_AVATAR;
+  };
+
+  const [customAvatar, setCustomAvatar] = useState(getInitialAvatar);
   const [customName, setCustomName] = useState(currentUser?.name || 'Trịnh Minh Đức');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync avatar to permanent client storage & backend
+  const saveAndPersistAvatar = (avatarData: string) => {
+    try {
+      localStorage.setItem('3d_workreport_permanent_admin_avatar', avatarData);
+      fetch('/api/user/avatar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ avatar: avatarData }),
+      }).catch((err) => console.warn('Sync avatar to server error:', err));
+    } catch (e) {
+      console.error('Error persisting avatar:', e);
+    }
+  };
+
+  // Sync on mount if current user already has custom avatar
+  useEffect(() => {
+    if (currentUser?.avatar && !currentUser.avatar.includes('photo-1507003211169')) {
+      setCustomAvatar(currentUser.avatar);
+      if (currentUser.avatar.startsWith('data:image')) {
+        saveAndPersistAvatar(currentUser.avatar);
+      }
+    } else {
+      const perm = getStoredAdminAvatar();
+      setCustomAvatar(perm);
+    }
+  }, [currentUser]);
 
   if (!isOpen) return null;
 
@@ -35,17 +70,20 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       reader.onload = (event) => {
         const base64 = event.target?.result as string;
         setCustomAvatar(base64);
+        saveAndPersistAvatar(base64);
+
         if (currentUser) {
           const updated = { ...currentUser, avatar: base64, name: customName || 'Trịnh Minh Đức' };
           onLogin(updated);
-          setSuccessMsg('Đã cập nhật ảnh đại diện thành công!');
         }
+        setSuccessMsg('✓ Đã cập nhật & cố định ảnh đại diện Admin thành công!');
       };
       reader.readAsDataURL(file);
     }
   };
 
   const handleUpdateProfile = () => {
+    saveAndPersistAvatar(customAvatar);
     if (currentUser) {
       const updated = {
         ...currentUser,
@@ -53,8 +91,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         avatar: customAvatar,
       };
       onLogin(updated);
-      setSuccessMsg('Đã lưu thông tin tài khoản thành công!');
+      setSuccessMsg('✓ Đã lưu thông tin và cố định ảnh đại diện Admin thành công!');
       setTimeout(() => onClose(), 600);
+    } else {
+      setSuccessMsg('✓ Đã lưu và cố định ảnh đại diện cho tài khoản Admin!');
     }
   };
 
@@ -65,12 +105,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
     const trimmedUser = username.trim().toLowerCase();
     const foundUser = INITIAL_USERS.find((u) => u.username.toLowerCase() === trimmedUser);
+    const permanentAvatar = getStoredAdminAvatar() || customAvatar || DEFAULT_ADMIN_AVATAR;
 
     if (foundUser) {
       const userToSave = {
         ...foundUser,
         name: customName || foundUser.name,
-        avatar: customAvatar || foundUser.avatar,
+        avatar: permanentAvatar,
       };
       onLogin(userToSave);
       setSuccessMsg(`Đăng nhập thành công với vai trò ${foundUser.role.toUpperCase()}`);
@@ -83,7 +124,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         username: trimmedUser,
         name: customName || (trimmedUser.charAt(0).toUpperCase() + trimmedUser.slice(1)),
         role: trimmedUser.includes('admin') ? 'admin' : 'viewer',
-        avatar: customAvatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+        avatar: permanentAvatar,
         email: `${trimmedUser}@example.com`,
         title: trimmedUser.includes('admin') ? 'Quản Trị Viên' : 'Người Xem Báo Cáo',
       };
@@ -93,21 +134,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         onClose();
       }, 600);
     }
-  };
-
-  const handleQuickSelect = (user: User, defaultPass: string) => {
-    setUsername(user.username);
-    setPassword(defaultPass);
-    const userToSet = {
-      ...user,
-      name: customName || user.name,
-      avatar: customAvatar || user.avatar,
-    };
-    onLogin(userToSet);
-    setSuccessMsg(`Đã chuyển sang vai trò: ${userToSet.name}`);
-    setTimeout(() => {
-      onClose();
-    }, 600);
   };
 
   return (
@@ -142,6 +168,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             <img
               src={customAvatar}
               alt={customName}
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src = DEFAULT_ADMIN_AVATAR;
+              }}
               className="w-16 h-16 rounded-2xl object-cover border-2 border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.35)]"
             />
             <button
@@ -164,9 +193,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
           <div className="flex-1 w-full space-y-2 text-center sm:text-left">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-400 mb-1">
-                Tên hiển thị & Chủ sở hữu báo cáo:
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-[11px] font-semibold text-slate-400">
+                  Tên hiển thị & Chủ sở hữu báo cáo:
+                </label>
+                <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/30 flex items-center gap-1">
+                  <Check className="w-2.5 h-2.5" /> Cố định Admin
+                </span>
+              </div>
               <input
                 id="custom-user-name-input"
                 type="text"
@@ -190,76 +224,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 type="button"
                 id="btn-save-profile-custom"
                 onClick={handleUpdateProfile}
-                className="px-2.5 py-1 text-[11px] font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors"
+                className="px-2.5 py-1 text-[11px] font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors shadow-sm"
               >
                 Lưu tên & ảnh
               </button>
             </div>
           </div>
-        </div>
-
-        {/* Quick Demo Switcher Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-          {/* Admin Card */}
-          <button
-            type="button"
-            id="quick-admin-login"
-            onClick={() => handleQuickSelect(INITIAL_USERS[0], '')}
-            className={`p-3.5 rounded-2xl border text-left transition-all ${
-              currentUser?.role === 'admin'
-                ? 'bg-cyan-500/20 border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.3)]'
-                : 'bg-slate-800/50 border-slate-700/80 hover:border-cyan-500/40 hover:bg-slate-800'
-            }`}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5 text-cyan-300 font-bold text-xs">
-                <ShieldCheck className="w-4 h-4" />
-                <span>ADMIN (QUẢN TRỊ)</span>
-              </div>
-              {currentUser?.role === 'admin' && (
-                <CheckCircle2 className="w-4 h-4 text-cyan-400" />
-              )}
-            </div>
-            <p className="text-xs font-semibold text-white">Tài khoản: admin</p>
-            <p className="text-[11px] text-slate-400 mt-1">
-              Toàn quyền thêm, sửa, đẩy Sheet, bấm AI tổng kê đo lường
-            </p>
-          </button>
-
-          {/* Viewer Card */}
-          <button
-            type="button"
-            id="quick-viewer-login"
-            onClick={() => handleQuickSelect(INITIAL_USERS[1], '')}
-            className={`p-3.5 rounded-2xl border text-left transition-all ${
-              currentUser?.role === 'viewer'
-                ? 'bg-amber-500/20 border-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.3)]'
-                : 'bg-slate-800/50 border-slate-700/80 hover:border-amber-500/40 hover:bg-slate-800'
-            }`}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5 text-amber-300 font-bold text-xs">
-                <Eye className="w-4 h-4" />
-                <span>NGƯỜI XEM (VIEWER)</span>
-              </div>
-              {currentUser?.role === 'viewer' && (
-                <CheckCircle2 className="w-4 h-4 text-amber-400" />
-              )}
-            </div>
-            <p className="text-xs font-semibold text-white">Tài khoản: viewer</p>
-            <p className="text-[11px] text-slate-400 mt-1">
-              Chỉ xem báo cáo 3D, tùy chỉnh ngày tháng, xuất báo cáo
-            </p>
-          </button>
-        </div>
-
-        {/* Divider */}
-        <div className="flex items-center gap-3 my-4">
-          <div className="h-px bg-slate-800 flex-1" />
-          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-            hoặc đăng nhập thủ công
-          </span>
-          <div className="h-px bg-slate-800 flex-1" />
         </div>
 
         {/* Form */}

@@ -12,7 +12,29 @@ export interface User {
 
 export type TaskStatus = 'completed' | 'in_progress' | 'pending' | 'blocked';
 export type TaskPriority = 'high' | 'medium' | 'low';
-export type TaskCategory = 'Phát triển' | 'Thiết kế' | 'Kinh doanh' | 'Marketing' | 'Quản trị' | 'Hỗ trợ' | 'Nghiên cứu' | 'Khác';
+export type TaskCategory = 'Marketing' | 'Hỗ trợ' | 'CV ngoài';
+
+export const TASK_CATEGORIES: TaskCategory[] = [
+  'Marketing',
+  'Hỗ trợ',
+  'CV ngoài',
+];
+
+export function normalizeCategory(cat?: string): TaskCategory {
+  if (!cat) return 'Marketing';
+  const c = cat.trim().toLowerCase();
+  if (c.includes('hỗ trợ') || c.includes('support')) return 'Hỗ trợ';
+  if (
+    c.includes('cv ngoài') ||
+    c.includes('ngoài') ||
+    c.includes('khác') ||
+    c.includes('quản trị') ||
+    c.includes('nghiên cứu')
+  ) {
+    return 'CV ngoài';
+  }
+  return 'Marketing';
+}
 
 export interface TaskItem {
   id: string;
@@ -22,6 +44,7 @@ export interface TaskItem {
   status: TaskStatus;
   priority: TaskPriority;
   date: string; // YYYY-MM-DD
+  quantity?: number; // Số lượng công việc (tùy ý, tối thiểu 1)
   timeSpentHours: number;
   completionPercent: number; // 0 - 100
   kpiMetric?: string; // e.g., "5/5 API endpoints", "Doanh thu 15tr", "Xử lý 10 tickets"

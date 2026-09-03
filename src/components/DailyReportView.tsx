@@ -22,7 +22,7 @@ import {
   Zap,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { DailyReport, TaskItem, User } from '../types';
+import { DailyReport, TaskItem, User, TASK_CATEGORIES } from '../types';
 import { TiltCard } from './TiltCard';
 import { MetricCard3D } from './MetricCard3D';
 
@@ -91,6 +91,7 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
 
   // Calculate Metrics
   const totalTasks = tasks.length;
+  const totalQuantity = tasks.reduce((sum, t) => sum + (Number(t.quantity) || 1), 0);
   const completedTasks = tasks.filter((t) => t.status === 'completed' || t.completionPercent >= 100).length;
   const totalHours = tasks.reduce((sum, t) => sum + (Number(t.timeSpentHours) || 0), 0);
   const avgCompletion = totalTasks > 0
@@ -182,7 +183,7 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
     }
   };
 
-  const categories = Array.from(new Set(tasks.map((t) => t.category))).filter(Boolean);
+  const categories = Array.from(new Set([...TASK_CATEGORIES, ...tasks.map((t) => t.category)])).filter(Boolean);
 
   return (
     <div className="space-y-6 animate-fadeIn">
@@ -291,7 +292,7 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
           id="metric-daily-tasks"
           title="Tổng Số Công Việc"
           value={`${completedTasks}/${totalTasks}`}
-          subValue="Đầu việc"
+          subValue={`${totalQuantity} số lượng mục`}
           icon={Layers}
           colorScheme="purple"
           progress={totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0}
@@ -579,6 +580,12 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
                       >
                         {task.priority === 'high' ? 'Ưu tiên cao' : task.priority === 'medium' ? 'Trung bình' : 'Thấp'}
                       </span>
+                      {task.quantity !== undefined && task.quantity > 0 && (
+                        <span className="text-[11px] text-purple-300 font-semibold flex items-center gap-1 bg-purple-500/10 px-2 py-0.5 rounded-lg border border-purple-500/20">
+                          <Layers className="w-3 h-3 text-purple-400" />
+                          <span>SL: {task.quantity}</span>
+                        </span>
+                      )}
                       <span className="text-[11px] text-slate-400 flex items-center gap-1">
                         <Clock className="w-3 h-3 text-cyan-400" />
                         <span>{task.timeSpentHours}h</span>

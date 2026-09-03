@@ -1,12 +1,22 @@
 import { DailyReport, TaskItem, User } from '../types';
 
+export const DEFAULT_ADMIN_AVATAR = '/admin-avatar.jpg';
+
+export function getStoredAdminAvatar(): string {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('3d_workreport_permanent_admin_avatar');
+    if (saved && !saved.includes('photo-1507003211169')) return saved;
+  }
+  return DEFAULT_ADMIN_AVATAR;
+}
+
 export const INITIAL_USERS: User[] = [
   {
     id: 'user_admin',
     username: 'admin',
     name: 'Trịnh Minh Đức',
     role: 'admin',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
+    avatar: DEFAULT_ADMIN_AVATAR,
     email: 'tmduc.balangth@gmail.com',
     title: 'Lead Architect / Trịnh Minh Đức',
   },
@@ -15,7 +25,7 @@ export const INITIAL_USERS: User[] = [
     username: 'viewer',
     name: 'Trịnh Minh Đức (Người Xem)',
     role: 'viewer',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
+    avatar: DEFAULT_ADMIN_AVATAR,
     email: 'tmduc.balangth@gmail.com',
     title: 'Giám Sát Dự Án / Stakeholder',
   },
@@ -54,7 +64,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     id: 'task_1',
     title: 'Thiết kế giao diện 3D Cyber Workspace & Glassmorphism',
     description: 'Xây dựng Canvas WebGL Three.js tương tác hạt và đổ bóng 3D trực quan cho trang báo cáo',
-    category: 'Thiết kế',
+    category: 'Marketing',
     status: 'completed',
     priority: 'high',
     date: todayStr,
@@ -69,7 +79,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     id: 'task_2',
     title: 'Phát triển module bóc tách Sheet/Excel tự động',
     description: 'Hỗ trợ kéo thả file .xlsx, .csv và paste dữ liệu từ Google Sheets với auto column mapping',
-    category: 'Phát triển',
+    category: 'Marketing',
     status: 'completed',
     priority: 'high',
     date: todayStr,
@@ -84,7 +94,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     id: 'task_3',
     title: 'Tích hợp AI Gemini đánh giá & tái thiết kế báo cáo',
     description: 'Tự động tính điểm hiệu suất, phân tích thế mạnh, điểm nghẽn và đo lường rủi ro công việc',
-    category: 'Phát triển',
+    category: 'Marketing',
     status: 'completed',
     priority: 'high',
     date: todayStr,
@@ -99,7 +109,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     id: 'task_4',
     title: 'Kiểm thử phân quyền Admin & Viewer',
     description: 'Đảm bảo Admin có toàn quyền chỉnh sửa và Viewer xem an toàn, bảo mật dữ liệu',
-    category: 'Quản trị',
+    category: 'CV ngoài',
     status: 'in_progress',
     priority: 'medium',
     date: todayStr,
@@ -116,7 +126,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     id: 'task_5',
     title: 'Xây dựng cấu trúc Dashboard Báo cáo Tuần & Tháng',
     description: 'Thiết kế bộ lọc ngày tháng năm tùy chỉnh và các biểu đồ thống kê năng suất tuần',
-    category: 'Phát triển',
+    category: 'Marketing',
     status: 'completed',
     priority: 'high',
     date: yesterdayStr,
@@ -129,8 +139,8 @@ export const INITIAL_TASKS: TaskItem[] = [
   {
     id: 'task_6',
     title: 'Lập biểu đồ đo lường tiến độ theo danh mục công việc',
-    description: 'Trực quan hóa tỷ lệ phần trăm giờ làm việc theo Phát triển, Thiết kế, Quản trị, Marketing',
-    category: 'Thiết kế',
+    description: 'Trực quan hóa tỷ lệ phần trăm giờ làm việc theo Marketing, Hỗ trợ, CV ngoài',
+    category: 'Marketing',
     status: 'completed',
     priority: 'medium',
     date: yesterdayStr,
@@ -144,7 +154,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     id: 'task_7',
     title: 'Họp rà soát tiến độ và phân chia công việc tuần',
     description: 'Thảo luận các tính năng trọng tâm và chuẩn bị kịch bản đo lường hiệu suất',
-    category: 'Quản trị',
+    category: 'CV ngoài',
     status: 'completed',
     priority: 'low',
     date: yesterdayStr,
@@ -160,7 +170,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     id: 'task_8',
     title: 'Nghiên cứu kiến trúc 3D Three.js và Motion layout',
     description: 'Đánh giá hiệu năng card tilt 3D, perspective depth và shader ánh sáng',
-    category: 'Nghiên cứu',
+    category: 'CV ngoài',
     status: 'completed',
     priority: 'high',
     date: day2Str,
@@ -174,7 +184,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     id: 'task_9',
     title: 'Xây dựng API Backend Express và middleware',
     description: 'Thiết lập các endpoint phân tích báo cáo và tích hợp Gemini API an toàn',
-    category: 'Phát triển',
+    category: 'Marketing',
     status: 'completed',
     priority: 'high',
     date: day2Str,
@@ -188,7 +198,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     id: 'task_10',
     title: 'Xử lý dữ liệu bảng tính demo và case study thực tế',
     description: 'Chuẩn bị dữ liệu mẫu báo cáo ngày, tuần, tháng, năm chân thực',
-    category: 'Kinh doanh',
+    category: 'Hỗ trợ',
     status: 'completed',
     priority: 'medium',
     date: day2Str,
@@ -204,7 +214,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     id: 'task_11',
     title: 'Tối ưu hóa UI/UX trên màn hình rộng & Tablet',
     description: 'Cân đối không gian hiển thị, căn lề và hiệu ứng neon hover',
-    category: 'Thiết kế',
+    category: 'Marketing',
     status: 'completed',
     priority: 'medium',
     date: day3Str,
@@ -218,7 +228,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     id: 'task_12',
     title: 'Phát triển tính năng Xuất Báo Cáo PDF & Markdown',
     description: 'Hỗ trợ in ấn trực tiếp, sao chép định dạng chuyên nghiệp gửi đối tác',
-    category: 'Phát triển',
+    category: 'Marketing',
     status: 'completed',
     priority: 'medium',
     date: day3Str,
@@ -234,7 +244,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     id: 'task_13',
     title: 'Khởi tạo kiến trúc dự án và thiết lập môi trường',
     description: 'Cài đặt các gói phụ thuộc, TypeScript, Tailwind CSS v4, Lucide icons',
-    category: 'Phát triển',
+    category: 'CV ngoài',
     status: 'completed',
     priority: 'high',
     date: day4Str,
@@ -248,7 +258,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     id: 'task_14',
     title: 'Thiết kế wireframe hệ thống báo cáo 4 cấp độ',
     description: 'Xác định luồng tương tác giữa Ngày -> Tuần -> Tháng -> Năm',
-    category: 'Thiết kế',
+    category: 'Marketing',
     status: 'completed',
     priority: 'high',
     date: day4Str,
@@ -313,7 +323,7 @@ export const INITIAL_DAILY_REPORTS: DailyReport[] = [
     aiAnalysis: {
       strengths: [
         '100% công việc hoàn thành đúng hạn.',
-        'Phân bổ thời gian đồng đều giữa Phát triển, Thiết kế và Quản trị.',
+        'Phân bổ thời gian đồng đều giữa Marketing, Hỗ trợ và CV ngoài.',
       ],
       improvements: [
         'Nên bổ sung thêm các chỉ số đo lường định lượng cho các buổi họp.',
