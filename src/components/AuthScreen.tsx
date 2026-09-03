@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { ShieldCheck, Eye, KeyRound, User as UserIcon, CheckCircle2, AlertCircle, Camera, Upload, ArrowRight, Sparkles, Lock, Mail, Briefcase } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { ShieldCheck, Eye, KeyRound, User as UserIcon, CheckCircle2, AlertCircle, Camera, Upload, ArrowRight, Sparkles, Lock, Mail, Briefcase, UserCheck } from 'lucide-react';
 import { User, UserRole } from '../types';
 import { INITIAL_USERS, DEFAULT_ADMIN_AVATAR, getStoredAdminAvatar } from '../mock/initialData';
 import { BaLangLogo } from './BaLangLogo';
@@ -15,25 +15,18 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
   const [loginUsername, setLoginUsername] = useState('admin');
   const [loginPassword, setLoginPassword] = useState('');
 
-  // Register form state
-  const [regName, setRegName] = useState('Trịnh Minh Đức');
-  const [regUsername, setRegUsername] = useState('tmduc');
-  const [regEmail, setRegEmail] = useState('tmduc.balangth@gmail.com');
-  const [regTitle, setRegTitle] = useState('Giám Đốc Điều Hành / Trịnh Minh Đức');
-  const [regRole, setRegRole] = useState<UserRole>('admin');
-  const [regPassword, setRegPassword] = useState('123456');
-  const [regConfirmPassword, setRegConfirmPassword] = useState('123456');
-  const [regAvatar, setRegAvatar] = useState(() => getStoredAdminAvatar());
+  // Register form state (Chỉ tạo tài khoản Người Xem / Viewer)
+  const [regName, setRegName] = useState('');
+  const [regUsername, setRegUsername] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regTitle, setRegTitle] = useState('Người Xem Báo Cáo');
+  const [regPassword, setRegPassword] = useState('');
+  const [regConfirmPassword, setRegConfirmPassword] = useState('');
+  const [regAvatar, setRegAvatar] = useState('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80');
 
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Sync avatar on mount if available
-  useEffect(() => {
-    const perm = getStoredAdminAvatar();
-    setRegAvatar(perm);
-  }, []);
 
   // Load custom registered users
   const getRegisteredUsers = (): User[] => {
@@ -69,17 +62,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
       reader.onload = (event) => {
         const base64 = event.target?.result as string;
         setRegAvatar(base64);
-        try {
-          localStorage.setItem('3d_workreport_permanent_admin_avatar', base64);
-          fetch('/api/user/avatar', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ avatar: base64 }),
-          }).catch(console.warn);
-        } catch (e) {
-          console.error(e);
-        }
-        setSuccessMsg('Đã tải và cố định ảnh đại diện thành công!');
+        setSuccessMsg('Đã tải ảnh đại diện người xem thành công!');
         setTimeout(() => setSuccessMsg(''), 3000);
       };
       reader.readAsDataURL(file);
@@ -112,15 +95,16 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
         onLogin(foundUser);
       }, 400);
     } else {
-      // Auto login as dynamic user
+      // Auto login as dynamic user - chỉ duy nhất 'admin' mới là Quản Trị Viên
+      const isAdminAccount = trimmed === 'admin';
       const dynamicUser: User = {
         id: `user_${Date.now()}`,
         username: trimmed,
-        name: trimmed === 'admin' ? 'Trịnh Minh Đức' : trimmed.charAt(0).toUpperCase() + trimmed.slice(1),
-        role: trimmed.includes('admin') ? 'admin' : 'viewer',
-        avatar: permanentAvatar,
+        name: isAdminAccount ? 'Trịnh Minh Đức' : trimmed.charAt(0).toUpperCase() + trimmed.slice(1),
+        role: isAdminAccount ? 'admin' : 'viewer',
+        avatar: isAdminAccount ? permanentAvatar : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80',
         email: `${trimmed}@balang.com.vn`,
-        title: trimmed.includes('admin') ? 'Quản Trị Viên' : 'Người Xem Báo Cáo',
+        title: isAdminAccount ? 'Quản Trị Viên' : 'Người Xem Báo Cáo',
       };
       const updatedList = [...allUsers, dynamicUser];
       saveRegisteredUsers(updatedList);
@@ -140,8 +124,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
       setErrorMsg('Vui lòng nhập họ và tên.');
       return;
     }
-    if (!regUsername.trim()) {
+    const trimmedUsername = regUsername.trim().toLowerCase();
+    if (!trimmedUsername) {
       setErrorMsg('Vui lòng nhập tên đăng nhập.');
+      return;
+    }
+    if (trimmedUsername === 'admin') {
+      setErrorMsg('Tên đăng nhập "admin" là tài khoản Quản Trị Viên cố định của hệ thống. Vui lòng chọn tên đăng nhập khác cho Người Xem.');
       return;
     }
     if (!regEmail.trim() || !regEmail.includes('@')) {
@@ -159,7 +148,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
 
     const allUsers = getRegisteredUsers();
     const existing = allUsers.find(
-      (u) => u.username.toLowerCase() === regUsername.trim().toLowerCase()
+      (u) => u.username.toLowerCase() === trimmedUsername
     );
 
     if (existing) {
@@ -167,20 +156,21 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
       return;
     }
 
+    // Luôn cố định vai trò Người Xem (Viewer) cho tài khoản mới
     const newUser: User = {
-      id: `user_${Date.now()}`,
-      username: regUsername.trim().toLowerCase(),
+      id: `user_viewer_${Date.now()}`,
+      username: trimmedUsername,
       name: regName.trim(),
-      role: regRole,
+      role: 'viewer',
       avatar: regAvatar,
       email: regEmail.trim(),
-      title: regTitle.trim() || (regRole === 'admin' ? 'Quản Trị Viên' : 'Người Xem Báo Cáo'),
+      title: regTitle.trim() || 'Người Xem Báo Cáo',
     };
 
     const updatedList = [newUser, ...allUsers];
     saveRegisteredUsers(updatedList);
 
-    setSuccessMsg('Tạo tài khoản thành công! Đang chuyển vào hệ thống...');
+    setSuccessMsg('Tạo tài khoản Người Xem thành công! Đang chuyển vào hệ thống...');
     setTimeout(() => {
       onLogin(newUser);
     }, 600);
@@ -364,7 +354,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
                   type="text"
                   value={regName}
                   onChange={(e) => setRegName(e.target.value)}
-                  placeholder="Trịnh Minh Đức"
+                  placeholder="VD: Nguyễn Văn An"
                   className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-cyan-400"
                   required
                 />
@@ -379,7 +369,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
                   type="text"
                   value={regUsername}
                   onChange={(e) => setRegUsername(e.target.value)}
-                  placeholder="tmduc hoặc duc_balang"
+                  placeholder="VD: nguoixem01 hoặc viewer_user"
                   className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-cyan-400"
                   required
                 />
@@ -399,7 +389,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
                     type="email"
                     value={regEmail}
                     onChange={(e) => setRegEmail(e.target.value)}
-                    placeholder="tmduc.balangth@gmail.com"
+                    placeholder="VD: nguoixem@balang.com.vn"
                     className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-8 pr-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-cyan-400"
                     required
                   />
@@ -417,53 +407,48 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
                     type="text"
                     value={regTitle}
                     onChange={(e) => setRegTitle(e.target.value)}
-                    placeholder="Giám Đốc Điều Hành / Trưởng Phòng"
+                    placeholder="VD: Giám Sát / Đối Tác / Nhân Viên"
                     className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-8 pr-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-cyan-400"
                   />
                 </div>
               </div>
             </div>
 
-            {/* Role Selection */}
+            {/* Phân quyền tài khoản - Cố định Người Xem (Viewer) */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Chọn vai trò & quyền hạn:
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  id="reg-role-admin-btn"
-                  onClick={() => setRegRole('admin')}
-                  className={`p-3 rounded-xl border text-left transition-all flex items-center gap-2.5 ${
-                    regRole === 'admin'
-                      ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 shadow-sm'
-                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white'
-                  }`}
-                >
-                  <ShieldCheck className="w-4 h-4 text-cyan-400 shrink-0" />
-                  <div>
-                    <p className="text-xs font-bold">Quản Trị Viên (Admin)</p>
-                    <p className="text-[10px] text-slate-400">Toàn quyền sửa, xóa, duyệt</p>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  id="reg-role-viewer-btn"
-                  onClick={() => setRegRole('viewer')}
-                  className={`p-3 rounded-xl border text-left transition-all flex items-center gap-2.5 ${
-                    regRole === 'viewer'
-                      ? 'bg-indigo-500/20 border-indigo-400 text-indigo-300 shadow-sm'
-                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white'
-                  }`}
-                >
-                  <Eye className="w-4 h-4 text-indigo-400 shrink-0" />
-                  <div>
-                    <p className="text-xs font-bold">Người Xem (Viewer)</p>
-                    <p className="text-[10px] text-slate-400">Xem và xuất báo cáo</p>
-                  </div>
-                </button>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold text-slate-300">
+                  Phân quyền tài khoản đăng ký:
+                </label>
+                <span className="text-[10px] font-bold text-indigo-300 bg-indigo-500/20 px-2 py-0.5 rounded-full border border-indigo-500/30 flex items-center gap-1">
+                  <Lock className="w-2.5 h-2.5 text-indigo-400" /> Chỉ tạo tài khoản Người Xem
+                </span>
               </div>
+
+              <div className="p-3.5 rounded-xl border border-indigo-500/40 bg-gradient-to-r from-indigo-950/50 via-slate-900/60 to-slate-950/70 flex items-center justify-between gap-3 shadow-inner">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center text-indigo-400 shrink-0 shadow-sm">
+                    <Eye className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs font-bold text-white">Người Xem Báo Cáo (Viewer)</p>
+                      <span className="text-[9px] font-extrabold uppercase tracking-wider text-emerald-300 bg-emerald-500/20 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                        Cố định
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-300 mt-0.5">
+                      Được cấp quyền xem toàn bộ báo cáo công việc, tra cứu tiến độ và xuất dữ liệu PDF / Excel.
+                    </p>
+                  </div>
+                </div>
+                <div className="p-1 rounded-full bg-emerald-500/20 text-emerald-400 shrink-0">
+                  <CheckCircle2 className="w-5 h-5" />
+                </div>
+              </div>
+              <p className="text-[10px] text-slate-500 mt-1 italic">
+                * Lưu ý: Quyền Quản Trị Viên (Admin) được bảo mật độc quyền cho ban điều hành (Trịnh Minh Đức), không mở đăng ký tự do.
+              </p>
             </div>
 
             {/* Passwords */}
@@ -502,10 +487,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
             <button
               type="submit"
               id="submit-register-btn"
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-600 to-cyan-600 hover:from-emerald-400 hover:to-cyan-500 text-white font-bold text-sm shadow-[0_0_30px_rgba(16,185,129,0.4)] flex items-center justify-center gap-2 transition-all mt-2"
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 via-cyan-600 to-emerald-600 hover:from-indigo-400 hover:to-emerald-500 text-white font-bold text-sm shadow-[0_0_30px_rgba(99,102,241,0.35)] flex items-center justify-center gap-2 transition-all mt-2"
             >
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Tạo Tài Khoản & Vào Báo Cáo</span>
+              <UserCheck className="w-4 h-4" />
+              <span>Tạo Tài Khoản Người Xem & Vào Báo Cáo</span>
             </button>
           </form>
         )}

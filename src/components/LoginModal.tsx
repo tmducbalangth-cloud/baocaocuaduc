@@ -119,14 +119,15 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         onClose();
       }, 600);
     } else {
+      const isAdminUser = trimmedUser === 'admin';
       const customUser: User = {
         id: `user_${Date.now()}`,
         username: trimmedUser,
         name: customName || (trimmedUser.charAt(0).toUpperCase() + trimmedUser.slice(1)),
-        role: trimmedUser.includes('admin') ? 'admin' : 'viewer',
-        avatar: permanentAvatar,
-        email: `${trimmedUser}@example.com`,
-        title: trimmedUser.includes('admin') ? 'Quản Trị Viên' : 'Người Xem Báo Cáo',
+        role: isAdminUser ? 'admin' : 'viewer',
+        avatar: isAdminUser ? permanentAvatar : DEFAULT_ADMIN_AVATAR,
+        email: `${trimmedUser}@balang.com.vn`,
+        title: isAdminUser ? 'Quản Trị Viên' : 'Người Xem Báo Cáo',
       };
       onLogin(customUser);
       setSuccessMsg(`Đăng nhập thành công với vai trò ${customUser.role.toUpperCase()}`);
