@@ -276,8 +276,9 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
               </button>
             </>
           ) : (
-            <div className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold">
-              <span>Đang ở chế độ Người xem (Viewer) — Chỉ xem & đo lường</span>
+            <div className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-semibold shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Chế độ Người Xem: Tự động cập nhật trực tiếp theo Quản Trị Viên</span>
             </div>
           )}
         </div>

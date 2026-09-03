@@ -12,8 +12,10 @@ import { LoginModal } from './components/LoginModal';
 import { TaskModal } from './components/TaskModal';
 import { SheetImportModal } from './components/SheetImportModal';
 import { ExportModal } from './components/ExportModal';
-import { TaskItem, DailyReport, User, ViewTab, normalizeCategory, ViewerFeedback } from './types';
+import { TaskItem, DailyReport, User, ViewTab, normalizeCategory, ViewerFeedback, TaskStatus } from './types';
 import { INITIAL_USERS, INITIAL_TASKS, INITIAL_DAILY_REPORTS, INITIAL_FEEDBACK, formatDateStr, DEFAULT_ADMIN_AVATAR, getStoredAdminAvatar } from './mock/initialData';
+import { subscribeToCloudData, saveCloudData } from './services/firestoreService';
+import { computeDailyReportForTasks } from './services/reportSyncService';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<ViewTab>('daily');
@@ -178,6 +180,62 @@ export default function App() {
       .catch(console.warn);
   }, []);
 
+  // Synchronize with Google Firebase Firestore in Real Time (Indestructible across Vercel deployments)
+  useEffect(() => {
+    const unsubscribe = subscribeToCloudData(
+      (cloudData) => {
+        if (cloudData.tasks && Array.isArray(cloudData.tasks) && cloudData.tasks.length > 0) {
+          setTasks(cloudData.tasks);
+        } else {
+          // If Firestore is empty, seed it with current initial tasks and reports!
+          saveCloudData(tasks, dailyReports, feedbacks).catch(console.warn);
+        }
+
+        if (cloudData.dailyReports && Array.isArray(cloudData.dailyReports) && cloudData.dailyReports.length > 0) {
+          setDailyReports(cloudData.dailyReports);
+        }
+
+        if (cloudData.feedbacks && Array.isArray(cloudData.feedbacks) && cloudData.feedbacks.length > 0) {
+          setFeedbacks(cloudData.feedbacks);
+        }
+      },
+      (err) => {
+        console.warn('Firebase sync warning:', err);
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
+
+  const [syncToastMessage, setSyncToastMessage] = useState<string | null>(null);
+
+  const showSyncSuccessToast = (msg: string = '✓ Đã tự động cập nhật toàn bộ báo cáo & đồng bộ người xem!') => {
+    setSyncToastMessage(msg);
+    setTimeout(() => {
+      setSyncToastMessage(null);
+    }, 3500);
+  };
+
+  // Helper to sync to both Google Firebase Cloud Firestore and server API
+  const persistAllData = (
+    nextTasks: TaskItem[],
+    nextReports: DailyReport[],
+    nextFeedbacks: ViewerFeedback[]
+  ) => {
+    // 1. Google Firebase Cloud Firestore (Real-time and persistent across deployments)
+    saveCloudData(nextTasks, nextReports, nextFeedbacks).catch(console.warn);
+    // 2. Server API sync (fallback)
+    syncServerData(nextTasks, nextReports);
+    // 3. Local storage instant update
+    try {
+      localStorage.setItem('3d_workreport_tasks', JSON.stringify(nextTasks));
+      localStorage.setItem('3d_workreport_daily_reports', JSON.stringify(nextReports));
+      localStorage.setItem('3d_workreport_feedbacks', JSON.stringify(nextFeedbacks));
+    } catch (e) {
+      console.warn('LocalStorage error:', e);
+    }
+  };
+
   // Helper to sync tasks and reports to server
   const syncServerData = (updatedTasks: TaskItem[], updatedReports: DailyReport[]) => {
     fetch('/api/shared/data', {
@@ -194,61 +252,98 @@ export default function App() {
   const [isSheetModalOpen, setIsSheetModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
-  // Current Day Tasks and Report
+  // Current Day Tasks and Report (guaranteed sync between tasks and daily reports)
   const currentDayTasks = tasks.filter((t) => t.date === selectedDate);
-  const currentDayReport = dailyReports.find((r) => r.date === selectedDate) || null;
+  const currentDayReport =
+    dailyReports.find((r) => r.date === selectedDate) ||
+    (currentDayTasks.length > 0
+      ? computeDailyReportForTasks(selectedDate, tasks, dailyReports, currentUser?.name || 'Trịnh Minh Đức')[0]
+      : null);
 
-  // Task Operations
+  // Task Operations - Automatically updates DailyReport metrics, highlights & syncs to Cloud
   const handleSaveTask = (task: TaskItem) => {
-    setTasks((prev) => {
-      const exists = prev.some((t) => t.id === task.id);
-      const nextTasks = exists ? prev.map((t) => (t.id === task.id ? task : t)) : [task, ...prev];
-      syncServerData(nextTasks, dailyReports);
-      return nextTasks;
-    });
+    const exists = tasks.some((t) => t.id === task.id);
+    const nextTasks = exists ? tasks.map((t) => (t.id === task.id ? task : t)) : [task, ...tasks];
+    const nextReports = computeDailyReportForTasks(
+      task.date,
+      nextTasks,
+      dailyReports,
+      currentUser?.name || 'Trịnh Minh Đức'
+    );
+    setTasks(nextTasks);
+    setDailyReports(nextReports);
+    persistAllData(nextTasks, nextReports, feedbacks);
+    showSyncSuccessToast(exists ? '✓ Đã cập nhật công việc & tự động tính toán lại báo cáo!' : '✓ Đã thêm công việc mới & tự động tính toán lại báo cáo!');
   };
 
   const handleDeleteTask = (taskId: string) => {
-    setTasks((prev) => {
-      const nextTasks = prev.filter((t) => t.id !== taskId);
-      syncServerData(nextTasks, dailyReports);
-      return nextTasks;
-    });
+    const taskToDelete = tasks.find((t) => t.id === taskId);
+    const targetDate = taskToDelete?.date || selectedDate;
+    const nextTasks = tasks.filter((t) => t.id !== taskId);
+    const nextReports = computeDailyReportForTasks(
+      targetDate,
+      nextTasks,
+      dailyReports,
+      currentUser?.name || 'Trịnh Minh Đức'
+    );
+    setTasks(nextTasks);
+    setDailyReports(nextReports);
+    persistAllData(nextTasks, nextReports, feedbacks);
+    showSyncSuccessToast('✓ Đã xóa công việc & tự động cập nhật báo cáo ngày!');
   };
 
   const handleToggleTaskStatus = (taskId: string) => {
-    setTasks((prev) => {
-      const nextTasks = prev.map((t) => {
-        if (t.id === taskId) {
-          const isDone = t.status === 'completed' || t.completionPercent >= 100;
-          return {
-            ...t,
-            status: isDone ? 'in_progress' : 'completed',
-            completionPercent: isDone ? 50 : 100,
-          };
-        }
-        return t;
-      });
-      syncServerData(nextTasks, dailyReports);
-      return nextTasks;
+    const targetTask = tasks.find((t) => t.id === taskId);
+    const targetDate = targetTask?.date || selectedDate;
+    const nextTasks = tasks.map((t) => {
+      if (t.id === taskId) {
+        const isDone = t.status === 'completed' || (t.completionPercent || 0) >= 100;
+        return {
+          ...t,
+          status: (isDone ? 'in_progress' : 'completed') as TaskStatus,
+          completionPercent: isDone ? 50 : 100,
+        };
+      }
+      return t;
     });
+    const nextReports = computeDailyReportForTasks(
+      targetDate,
+      nextTasks,
+      dailyReports,
+      currentUser?.name || 'Trịnh Minh Đức'
+    );
+    setTasks(nextTasks);
+    setDailyReports(nextReports);
+    persistAllData(nextTasks, nextReports, feedbacks);
+    showSyncSuccessToast('✓ Đã đổi trạng thái & tự động đồng bộ tiến độ người xem!');
   };
 
   const handleImportTasks = (newTasks: TaskItem[]) => {
-    setTasks((prev) => {
-      const nextTasks = [...newTasks, ...prev];
-      syncServerData(nextTasks, dailyReports);
-      return nextTasks;
-    });
+    const nextTasks = [...newTasks, ...tasks];
+    let updatedReports = [...dailyReports];
+    const affectedDates = Array.from(new Set(newTasks.map((t) => t.date)));
+    for (const d of affectedDates) {
+      updatedReports = computeDailyReportForTasks(
+        d,
+        nextTasks,
+        updatedReports,
+        currentUser?.name || 'Trịnh Minh Đức'
+      );
+    }
+    setTasks(nextTasks);
+    setDailyReports(updatedReports);
+    persistAllData(nextTasks, updatedReports, feedbacks);
+    showSyncSuccessToast(`✓ Đã nhập ${newTasks.length} công việc từ Sheet & cập nhật toàn bộ báo cáo!`);
   };
 
   const handleSaveDailyReport = (newReport: DailyReport) => {
     setDailyReports((prev) => {
       const filtered = prev.filter((r) => r.date !== newReport.date);
       const nextReports = [newReport, ...filtered];
-      syncServerData(tasks, nextReports);
+      persistAllData(tasks, nextReports, feedbacks);
       return nextReports;
     });
+    showSyncSuccessToast('✓ Đã lưu và đồng bộ báo cáo ngày lên Cloud vĩnh viễn!');
   };
 
   // Feedback Operations
@@ -259,7 +354,9 @@ export default function App() {
       createdAt: new Date().toISOString(),
     };
 
-    setFeedbacks((prev) => [feedbackItem, ...prev]);
+    const nextFeedbacks = [feedbackItem, ...feedbacks];
+    setFeedbacks(nextFeedbacks);
+    persistAllData(tasks, dailyReports, nextFeedbacks);
 
     try {
       const res = await fetch('/api/shared/feedback', {
@@ -277,7 +374,10 @@ export default function App() {
   };
 
   const handleDeleteFeedback = async (id: string) => {
-    setFeedbacks((prev) => prev.filter((f) => f.id !== id));
+    const nextFeedbacks = feedbacks.filter((f) => f.id !== id);
+    setFeedbacks(nextFeedbacks);
+    persistAllData(tasks, dailyReports, nextFeedbacks);
+
     try {
       const res = await fetch(`/api/shared/feedback/${id}`, {
         method: 'DELETE',
@@ -475,7 +575,32 @@ export default function App() {
         activeTab={activeTab}
         currentDailyReport={currentDayReport}
         currentWeeklyReport={null}
+        tasks={tasks}
+        dailyReports={dailyReports}
+        feedbacks={feedbacks}
+        onRestoreData={(restoredTasks, restoredReports, restoredFeedbacks) => {
+          setTasks(restoredTasks);
+          setDailyReports(restoredReports);
+          setFeedbacks(restoredFeedbacks);
+          persistAllData(restoredTasks, restoredReports, restoredFeedbacks);
+        }}
+        onSyncCloud={async () => {
+          return await saveCloudData(tasks, dailyReports, feedbacks);
+        }}
       />
+      {/* Floating Auto-Sync Notification */}
+      {syncToastMessage && (
+        <div
+          id="global-sync-toast"
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-slate-900/95 border border-emerald-500/50 text-emerald-300 text-xs font-bold shadow-[0_10px_35px_rgba(16,185,129,0.35)] backdrop-blur-xl transition-all duration-300 transform translate-y-0"
+        >
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+          </span>
+          <span>{syncToastMessage}</span>
+        </div>
+      )}
     </div>
   );
 }

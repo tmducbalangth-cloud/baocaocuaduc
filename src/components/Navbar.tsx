@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, BarChart3, TrendingUp, PieChart, Award, ShieldCheck, Eye, LogIn, LogOut, FileSpreadsheet, Printer } from 'lucide-react';
+import { Calendar, BarChart3, TrendingUp, PieChart, Award, ShieldCheck, Eye, LogIn, LogOut, FileSpreadsheet, Printer, Cloud } from 'lucide-react';
 import { User, ViewTab } from '../types';
 import { BaLangLogo } from './BaLangLogo';
 
@@ -96,8 +96,19 @@ export const Navbar: React.FC<NavbarProps> = ({
           })}
         </nav>
 
-        {/* Right Actions: Export & Role Switcher */}
+        {/* Right Actions: Cloud Sync, Export & Role Switcher */}
         <div className="hidden md:flex items-center gap-2.5">
+          <button
+            id="nav-cloud-status-btn"
+            onClick={onOpenExport}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/20 transition-all shadow-sm group"
+            title="Dữ liệu được bảo vệ và lưu trữ vĩnh viễn trên Google Firebase Firestore"
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <Cloud className="w-3.5 h-3.5 text-emerald-300" />
+            <span className="hidden lg:inline">Cloud Firebase</span>
+          </button>
+
           <button
             id="nav-export-btn"
             onClick={onOpenExport}
