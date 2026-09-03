@@ -17,9 +17,10 @@ import {
   PieChart,
   RefreshCw,
 } from 'lucide-react';
-import { DailyReport, TaskItem, User, WeeklyReport } from '../types';
+import { DailyReport, TaskItem, User, WeeklyReport, ViewerFeedback } from '../types';
 import { TiltCard } from './TiltCard';
 import { MetricCard3D } from './MetricCard3D';
+import { ViewerEvaluationSection } from './ViewerEvaluationSection';
 
 interface WeeklyReportViewProps {
   selectedDate: string;
@@ -28,6 +29,10 @@ interface WeeklyReportViewProps {
   allTasks: TaskItem[];
   currentUser: User | null;
   onSelectDailyReport: (date: string) => void;
+  feedbacks?: ViewerFeedback[];
+  onAddFeedback?: (feedback: Omit<ViewerFeedback, 'id' | 'createdAt'>) => Promise<void> | void;
+  onDeleteFeedback?: (id: string) => Promise<void> | void;
+  onOpenLoginModal?: () => void;
 }
 
 // Helpers for Week calculations
@@ -69,6 +74,10 @@ export const WeeklyReportView: React.FC<WeeklyReportViewProps> = ({
   allTasks,
   currentUser,
   onSelectDailyReport,
+  feedbacks = [],
+  onAddFeedback = () => {},
+  onDeleteFeedback = () => {},
+  onOpenLoginModal,
 }) => {
   const [isAiSynthesizing, setIsAiSynthesizing] = useState(false);
   const [weeklyReportState, setWeeklyReportState] = useState<WeeklyReport | null>(null);
@@ -571,6 +580,18 @@ export const WeeklyReportView: React.FC<WeeklyReportViewProps> = ({
           </div>
         </TiltCard>
       </div>
+
+      {/* Viewer Evaluation & Feedback Section for Weekly Report */}
+      <ViewerEvaluationSection
+        scope="weekly"
+        targetId={`weekly_${weekNumber}_${year}`}
+        scopeTitle={`Báo Cáo Tuần ${weekNumber} (${startDateStr} - ${endDateStr})`}
+        currentUser={currentUser}
+        feedbacks={feedbacks}
+        onAddFeedback={onAddFeedback}
+        onDeleteFeedback={onDeleteFeedback}
+        onOpenLoginModal={onOpenLoginModal}
+      />
     </div>
   );
 };

@@ -12,8 +12,8 @@ import { LoginModal } from './components/LoginModal';
 import { TaskModal } from './components/TaskModal';
 import { SheetImportModal } from './components/SheetImportModal';
 import { ExportModal } from './components/ExportModal';
-import { TaskItem, DailyReport, User, ViewTab, normalizeCategory } from './types';
-import { INITIAL_USERS, INITIAL_TASKS, INITIAL_DAILY_REPORTS, formatDateStr, DEFAULT_ADMIN_AVATAR, getStoredAdminAvatar } from './mock/initialData';
+import { TaskItem, DailyReport, User, ViewTab, normalizeCategory, ViewerFeedback } from './types';
+import { INITIAL_USERS, INITIAL_TASKS, INITIAL_DAILY_REPORTS, INITIAL_FEEDBACK, formatDateStr, DEFAULT_ADMIN_AVATAR, getStoredAdminAvatar } from './mock/initialData';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<ViewTab>('daily');
@@ -119,6 +119,20 @@ export default function App() {
     return INITIAL_DAILY_REPORTS;
   });
 
+  // Viewer Feedbacks State
+  const [feedbacks, setFeedbacks] = useState<ViewerFeedback[]>(() => {
+    const saved = localStorage.getItem('3d_workreport_feedbacks');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return INITIAL_FEEDBACK;
+  });
+
   // Sync to local storage
   useEffect(() => {
     localStorage.setItem('3d_workreport_tasks', JSON.stringify(tasks));
@@ -127,6 +141,51 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('3d_workreport_daily_reports', JSON.stringify(dailyReports));
   }, [dailyReports]);
+
+  useEffect(() => {
+    localStorage.setItem('3d_workreport_feedbacks', JSON.stringify(feedbacks));
+  }, [feedbacks]);
+
+  // Load and synchronize shared data from server
+  useEffect(() => {
+    fetch('/api/shared/data')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.tasks && Array.isArray(data.tasks) && data.tasks.length > 0) {
+          setTasks(
+            data.tasks.map((t: TaskItem) => ({
+              ...t,
+              category: normalizeCategory(t.category),
+            }))
+          );
+        } else {
+          // If server is empty, seed initial data to server so all visitors can see!
+          fetch('/api/shared/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tasks, dailyReports }),
+          }).catch(console.warn);
+        }
+
+        if (data.dailyReports && Array.isArray(data.dailyReports) && data.dailyReports.length > 0) {
+          setDailyReports(data.dailyReports);
+        }
+
+        if (data.feedbacks && Array.isArray(data.feedbacks) && data.feedbacks.length > 0) {
+          setFeedbacks(data.feedbacks);
+        }
+      })
+      .catch(console.warn);
+  }, []);
+
+  // Helper to sync tasks and reports to server
+  const syncServerData = (updatedTasks: TaskItem[], updatedReports: DailyReport[]) => {
+    fetch('/api/shared/data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tasks: updatedTasks, dailyReports: updatedReports }),
+    }).catch(console.warn);
+  };
 
   // Modals state
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -143,20 +202,23 @@ export default function App() {
   const handleSaveTask = (task: TaskItem) => {
     setTasks((prev) => {
       const exists = prev.some((t) => t.id === task.id);
-      if (exists) {
-        return prev.map((t) => (t.id === task.id ? task : t));
-      }
-      return [task, ...prev];
+      const nextTasks = exists ? prev.map((t) => (t.id === task.id ? task : t)) : [task, ...prev];
+      syncServerData(nextTasks, dailyReports);
+      return nextTasks;
     });
   };
 
   const handleDeleteTask = (taskId: string) => {
-    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    setTasks((prev) => {
+      const nextTasks = prev.filter((t) => t.id !== taskId);
+      syncServerData(nextTasks, dailyReports);
+      return nextTasks;
+    });
   };
 
   const handleToggleTaskStatus = (taskId: string) => {
-    setTasks((prev) =>
-      prev.map((t) => {
+    setTasks((prev) => {
+      const nextTasks = prev.map((t) => {
         if (t.id === taskId) {
           const isDone = t.status === 'completed' || t.completionPercent >= 100;
           return {
@@ -166,19 +228,67 @@ export default function App() {
           };
         }
         return t;
-      })
-    );
+      });
+      syncServerData(nextTasks, dailyReports);
+      return nextTasks;
+    });
   };
 
   const handleImportTasks = (newTasks: TaskItem[]) => {
-    setTasks((prev) => [...newTasks, ...prev]);
+    setTasks((prev) => {
+      const nextTasks = [...newTasks, ...prev];
+      syncServerData(nextTasks, dailyReports);
+      return nextTasks;
+    });
   };
 
   const handleSaveDailyReport = (newReport: DailyReport) => {
     setDailyReports((prev) => {
       const filtered = prev.filter((r) => r.date !== newReport.date);
-      return [newReport, ...filtered];
+      const nextReports = [newReport, ...filtered];
+      syncServerData(tasks, nextReports);
+      return nextReports;
     });
+  };
+
+  // Feedback Operations
+  const handleAddFeedback = async (newFb: Omit<ViewerFeedback, 'id' | 'createdAt'>) => {
+    const feedbackItem: ViewerFeedback = {
+      ...newFb,
+      id: `fb_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
+      createdAt: new Date().toISOString(),
+    };
+
+    setFeedbacks((prev) => [feedbackItem, ...prev]);
+
+    try {
+      const res = await fetch('/api/shared/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feedback: feedbackItem }),
+      });
+      const data = await res.json();
+      if (data.feedbacks && Array.isArray(data.feedbacks)) {
+        setFeedbacks(data.feedbacks);
+      }
+    } catch (e) {
+      console.warn('Could not post feedback to server:', e);
+    }
+  };
+
+  const handleDeleteFeedback = async (id: string) => {
+    setFeedbacks((prev) => prev.filter((f) => f.id !== id));
+    try {
+      const res = await fetch(`/api/shared/feedback/${id}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (data.feedbacks && Array.isArray(data.feedbacks)) {
+        setFeedbacks(data.feedbacks);
+      }
+    } catch (e) {
+      console.warn('Could not delete feedback from server:', e);
+    }
   };
 
   const handleOpenTaskModalForEdit = (task?: TaskItem) => {
@@ -231,6 +341,10 @@ export default function App() {
                 onSaveReport={handleSaveDailyReport}
                 onToggleTaskStatus={handleToggleTaskStatus}
                 onDeleteTask={handleDeleteTask}
+                feedbacks={feedbacks}
+                onAddFeedback={handleAddFeedback}
+                onDeleteFeedback={handleDeleteFeedback}
+                onOpenLoginModal={() => setIsLoginOpen(true)}
               />
             )}
 
@@ -242,6 +356,10 @@ export default function App() {
                 allTasks={tasks}
                 currentUser={currentUser}
                 onSelectDailyReport={handleSelectDailyReportFromWeekly}
+                feedbacks={feedbacks}
+                onAddFeedback={handleAddFeedback}
+                onDeleteFeedback={handleDeleteFeedback}
+                onOpenLoginModal={() => setIsLoginOpen(true)}
               />
             )}
 
@@ -250,6 +368,11 @@ export default function App() {
                 selectedDate={selectedDate}
                 allTasks={tasks}
                 dailyReports={dailyReports}
+                currentUser={currentUser}
+                feedbacks={feedbacks}
+                onAddFeedback={handleAddFeedback}
+                onDeleteFeedback={handleDeleteFeedback}
+                onOpenLoginModal={() => setIsLoginOpen(true)}
               />
             )}
 
@@ -258,6 +381,11 @@ export default function App() {
                 selectedDate={selectedDate}
                 allTasks={tasks}
                 dailyReports={dailyReports}
+                currentUser={currentUser}
+                feedbacks={feedbacks}
+                onAddFeedback={handleAddFeedback}
+                onDeleteFeedback={handleDeleteFeedback}
+                onOpenLoginModal={() => setIsLoginOpen(true)}
               />
             )}
 
@@ -265,6 +393,11 @@ export default function App() {
               <YearlyReportView
                 allTasks={tasks}
                 dailyReports={dailyReports}
+                currentUser={currentUser}
+                feedbacks={feedbacks}
+                onAddFeedback={handleAddFeedback}
+                onDeleteFeedback={handleDeleteFeedback}
+                onOpenLoginModal={() => setIsLoginOpen(true)}
               />
             )}
 

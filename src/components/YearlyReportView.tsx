@@ -1,17 +1,28 @@
 import React, { useState } from 'react';
 import { Award, Calendar, Clock, Layers, Target, Trophy, Sparkles, CheckCircle2, Zap } from 'lucide-react';
-import { TaskItem, DailyReport } from '../types';
+import { TaskItem, DailyReport, User, ViewerFeedback } from '../types';
 import { TiltCard } from './TiltCard';
 import { MetricCard3D } from './MetricCard3D';
+import { ViewerEvaluationSection } from './ViewerEvaluationSection';
 
 interface YearlyReportViewProps {
   allTasks: TaskItem[];
   dailyReports: DailyReport[];
+  currentUser?: User | null;
+  feedbacks?: ViewerFeedback[];
+  onAddFeedback?: (feedback: Omit<ViewerFeedback, 'id' | 'createdAt'>) => Promise<void> | void;
+  onDeleteFeedback?: (id: string) => Promise<void> | void;
+  onOpenLoginModal?: () => void;
 }
 
 export const YearlyReportView: React.FC<YearlyReportViewProps> = ({
   allTasks,
   dailyReports,
+  currentUser = null,
+  feedbacks = [],
+  onAddFeedback = () => {},
+  onDeleteFeedback = () => {},
+  onOpenLoginModal,
 }) => {
   const [selectedYear, setSelectedYear] = useState<number>(2026);
 
@@ -190,6 +201,18 @@ export const YearlyReportView: React.FC<YearlyReportViewProps> = ({
           ))}
         </div>
       </TiltCard>
+
+      {/* Viewer Evaluation & Feedback Section for Yearly Report */}
+      <ViewerEvaluationSection
+        scope="yearly"
+        targetId={`yearly_${selectedYear}`}
+        scopeTitle={`Báo Cáo Năm ${selectedYear}`}
+        currentUser={currentUser}
+        feedbacks={feedbacks}
+        onAddFeedback={onAddFeedback}
+        onDeleteFeedback={onDeleteFeedback}
+        onOpenLoginModal={onOpenLoginModal}
+      />
     </div>
   );
 };

@@ -15,20 +15,31 @@ import {
   ArrowUpRight,
   BarChart2
 } from 'lucide-react';
-import { TaskItem, DailyReport } from '../types';
+import { TaskItem, DailyReport, User, ViewerFeedback } from '../types';
 import { TiltCard } from './TiltCard';
 import { MetricCard3D } from './MetricCard3D';
+import { ViewerEvaluationSection } from './ViewerEvaluationSection';
 
 interface QuarterlyReportViewProps {
   selectedDate: string;
   allTasks: TaskItem[];
   dailyReports: DailyReport[];
+  currentUser?: User | null;
+  feedbacks?: ViewerFeedback[];
+  onAddFeedback?: (feedback: Omit<ViewerFeedback, 'id' | 'createdAt'>) => Promise<void> | void;
+  onDeleteFeedback?: (id: string) => Promise<void> | void;
+  onOpenLoginModal?: () => void;
 }
 
 export const QuarterlyReportView: React.FC<QuarterlyReportViewProps> = ({
   selectedDate,
   allTasks,
   dailyReports,
+  currentUser = null,
+  feedbacks = [],
+  onAddFeedback = () => {},
+  onDeleteFeedback = () => {},
+  onOpenLoginModal,
 }) => {
   const d = new Date(selectedDate);
   const currentMonth = d.getMonth() + 1; // 1 - 12
@@ -357,6 +368,18 @@ export const QuarterlyReportView: React.FC<QuarterlyReportViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Viewer Evaluation & Feedback Section for Quarterly Report */}
+      <ViewerEvaluationSection
+        scope="quarterly"
+        targetId={`quarterly_${selectedQuarter}_${selectedYear}`}
+        scopeTitle={quarterName}
+        currentUser={currentUser}
+        feedbacks={feedbacks}
+        onAddFeedback={onAddFeedback}
+        onDeleteFeedback={onDeleteFeedback}
+        onOpenLoginModal={onOpenLoginModal}
+      />
     </div>
   );
 };

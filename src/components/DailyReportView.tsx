@@ -22,9 +22,10 @@ import {
   Zap,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { DailyReport, TaskItem, User, TASK_CATEGORIES } from '../types';
+import { DailyReport, TaskItem, User, TASK_CATEGORIES, ViewerFeedback } from '../types';
 import { TiltCard } from './TiltCard';
 import { MetricCard3D } from './MetricCard3D';
+import { ViewerEvaluationSection } from './ViewerEvaluationSection';
 
 interface DailyReportViewProps {
   selectedDate: string;
@@ -37,6 +38,10 @@ interface DailyReportViewProps {
   onSaveReport: (report: DailyReport) => void;
   onToggleTaskStatus: (taskId: string) => void;
   onDeleteTask: (taskId: string) => void;
+  feedbacks?: ViewerFeedback[];
+  onAddFeedback?: (feedback: Omit<ViewerFeedback, 'id' | 'createdAt'>) => Promise<void> | void;
+  onDeleteFeedback?: (id: string) => Promise<void> | void;
+  onOpenLoginModal?: () => void;
 }
 
 export const DailyReportView: React.FC<DailyReportViewProps> = ({
@@ -50,6 +55,10 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
   onSaveReport,
   onToggleTaskStatus,
   onDeleteTask,
+  feedbacks = [],
+  onAddFeedback = () => {},
+  onDeleteFeedback = () => {},
+  onOpenLoginModal,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -715,6 +724,18 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
           </div>
         )}
       </div>
+
+      {/* Viewer Evaluation & Feedback Section */}
+      <ViewerEvaluationSection
+        scope="daily"
+        targetId={`daily_${selectedDate}`}
+        scopeTitle={`Báo Cáo Ngày ${selectedDate}`}
+        currentUser={currentUser}
+        feedbacks={feedbacks}
+        onAddFeedback={onAddFeedback}
+        onDeleteFeedback={onDeleteFeedback}
+        onOpenLoginModal={onOpenLoginModal}
+      />
     </div>
   );
 };

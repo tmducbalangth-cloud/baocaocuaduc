@@ -91,6 +91,108 @@ app.get('/api/user/avatar', (req, res) => {
   }
 });
 
+// Shared Storage for Tasks, Reports, and Viewer Feedbacks
+const dataDir = path.join(process.cwd(), 'data');
+const sharedDataFile = path.join(dataDir, 'shared_data.json');
+
+function getSharedData(): { tasks: any[] | null; dailyReports: any[] | null; feedbacks: any[] } {
+  try {
+    if (fs.existsSync(sharedDataFile)) {
+      const content = fs.readFileSync(sharedDataFile, 'utf-8');
+      return JSON.parse(content);
+    }
+  } catch (err) {
+    console.error('Error reading shared data:', err);
+  }
+  return { tasks: null, dailyReports: null, feedbacks: [] };
+}
+
+function saveSharedData(data: { tasks?: any[]; dailyReports?: any[]; feedbacks?: any[] }) {
+  try {
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    const current = getSharedData();
+    const updated = {
+      tasks: data.tasks !== undefined ? data.tasks : current.tasks,
+      dailyReports: data.dailyReports !== undefined ? data.dailyReports : current.dailyReports,
+      feedbacks: data.feedbacks !== undefined ? data.feedbacks : current.feedbacks,
+      lastUpdated: new Date().toISOString(),
+    };
+    fs.writeFileSync(sharedDataFile, JSON.stringify(updated, null, 2), 'utf-8');
+    return updated;
+  } catch (err) {
+    console.error('Error saving shared data:', err);
+    throw err;
+  }
+}
+
+// API: Get Shared Data (Tasks, Daily Reports, Feedbacks)
+app.get('/api/shared/data', (req, res) => {
+  try {
+    const data = getSharedData();
+    res.json(data);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API: Save Shared Data (Admin creates / updates tasks or reports)
+app.post('/api/shared/data', (req, res) => {
+  try {
+    const { tasks, dailyReports } = req.body;
+    const updated = saveSharedData({ tasks, dailyReports });
+    res.json({ success: true, updated });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API: Get Feedbacks
+app.get('/api/shared/feedback', (req, res) => {
+  try {
+    const data = getSharedData();
+    res.json({ feedbacks: data.feedbacks || [] });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API: Submit Viewer Feedback / Evaluation
+app.post('/api/shared/feedback', (req, res) => {
+  try {
+    const { feedback } = req.body;
+    if (!feedback || !feedback.comment) {
+      return res.status(400).json({ error: 'Nội dung nhận xét không được để trống' });
+    }
+    const current = getSharedData();
+    const feedbacks = current.feedbacks || [];
+    const newFeedback = {
+      ...feedback,
+      id: feedback.id || `fb_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
+      createdAt: feedback.createdAt || new Date().toISOString(),
+    };
+    const updatedFeedbacks = [newFeedback, ...feedbacks];
+    saveSharedData({ feedbacks: updatedFeedbacks });
+    res.json({ success: true, feedback: newFeedback, feedbacks: updatedFeedbacks });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API: Delete Feedback (Admin Moderation)
+app.delete('/api/shared/feedback/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const current = getSharedData();
+    const feedbacks = (current.feedbacks || []).filter((f: any) => f.id !== id);
+    saveSharedData({ feedbacks });
+    res.json({ success: true, feedbacks });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // API: Daily Report AI Analysis & Redesign
 app.post('/api/ai/analyze-daily', async (req, res) => {
   try {

@@ -201,3 +201,17 @@ export interface YearlyReport {
 }
 
 export type ViewTab = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'sheet';
+
+export interface ViewerFeedback {
+  id: string;
+  scope: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'task';
+  targetId: string; // e.g. 'daily_2026-09-02' or 'weekly_36_2026' or 'monthly_9_2026' or 'yearly_2026'
+  userName: string;
+  userRole: UserRole;
+  userAvatar: string;
+  userTitle?: string;
+  rating: number; // 1 - 5 stars
+  tag?: string; // Quick tag e.g. "Tiến độ xuất sắc"
+  comment: string;
+  createdAt: string; // ISO string
+}

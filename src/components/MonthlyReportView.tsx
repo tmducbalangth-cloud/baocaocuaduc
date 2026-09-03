@@ -1,19 +1,30 @@
 import React, { useState } from 'react';
 import { Calendar, TrendingUp, Award, Layers, Clock, Target, CheckCircle2, Sparkles, Zap } from 'lucide-react';
-import { TaskItem, DailyReport } from '../types';
+import { TaskItem, DailyReport, User, ViewerFeedback } from '../types';
 import { TiltCard } from './TiltCard';
 import { MetricCard3D } from './MetricCard3D';
+import { ViewerEvaluationSection } from './ViewerEvaluationSection';
 
 interface MonthlyReportViewProps {
   selectedDate: string;
   allTasks: TaskItem[];
   dailyReports: DailyReport[];
+  currentUser?: User | null;
+  feedbacks?: ViewerFeedback[];
+  onAddFeedback?: (feedback: Omit<ViewerFeedback, 'id' | 'createdAt'>) => Promise<void> | void;
+  onDeleteFeedback?: (id: string) => Promise<void> | void;
+  onOpenLoginModal?: () => void;
 }
 
 export const MonthlyReportView: React.FC<MonthlyReportViewProps> = ({
   selectedDate,
   allTasks,
   dailyReports,
+  currentUser = null,
+  feedbacks = [],
+  onAddFeedback = () => {},
+  onDeleteFeedback = () => {},
+  onOpenLoginModal,
 }) => {
   const d = new Date(selectedDate);
   const [selectedMonth, setSelectedMonth] = useState<number>(d.getMonth() + 1);
@@ -234,6 +245,18 @@ export const MonthlyReportView: React.FC<MonthlyReportViewProps> = ({
           </div>
         </TiltCard>
       </div>
+
+      {/* Viewer Evaluation & Feedback Section for Monthly Report */}
+      <ViewerEvaluationSection
+        scope="monthly"
+        targetId={`monthly_${selectedMonth}_${selectedYear}`}
+        scopeTitle={`Báo Cáo Tháng ${selectedMonth}/${selectedYear}`}
+        currentUser={currentUser}
+        feedbacks={feedbacks}
+        onAddFeedback={onAddFeedback}
+        onDeleteFeedback={onDeleteFeedback}
+        onOpenLoginModal={onOpenLoginModal}
+      />
     </div>
   );
 };

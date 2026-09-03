@@ -1,4 +1,4 @@
-import { DailyReport, TaskItem, User } from '../types';
+import { DailyReport, TaskItem, User, ViewerFeedback } from '../types';
 
 export const DEFAULT_ADMIN_AVATAR = '/admin-avatar.jpg';
 
@@ -339,5 +339,73 @@ export const INITIAL_DAILY_REPORTS: DailyReport[] = [
     status: 'approved',
     createdAt: new Date(Date.now() - 86400000).toISOString(),
     updatedAt: new Date(Date.now() - 86400000).toISOString(),
+  },
+];
+
+export const INITIAL_FEEDBACK: ViewerFeedback[] = [
+  {
+    id: 'fb_1',
+    scope: 'daily',
+    targetId: `daily_${todayStr}`,
+    userName: 'Nguyễn Hồng Quân',
+    userRole: 'viewer',
+    userAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80',
+    userTitle: 'Giám Sát Vận Hành',
+    rating: 5,
+    tag: 'Tiến độ xuất sắc',
+    comment: 'Báo cáo công việc hôm nay của anh Đức rất chi tiết, các chỉ số KPI rõ ràng và tiến độ hoàn thành 100% rất ấn tượng!',
+    createdAt: new Date(Date.now() - 3600000).toISOString(),
+  },
+  {
+    id: 'fb_2',
+    scope: 'daily',
+    targetId: `daily_${todayStr}`,
+    userName: 'Lê Thùy Dung',
+    userRole: 'viewer',
+    userAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80',
+    userTitle: 'Trưởng Ban Kiểm Soát',
+    rating: 5,
+    tag: 'Đạt chuẩn KPI',
+    comment: 'Các đầu việc Marketing và bóc tách bảng tính tự động hoạt động rất mượt mà. Đánh giá cao tính minh bạch của số liệu.',
+    createdAt: new Date(Date.now() - 7200000).toISOString(),
+  },
+  {
+    id: 'fb_3',
+    scope: 'weekly',
+    targetId: 'weekly_all',
+    userName: 'Trần Đình Trọng',
+    userRole: 'viewer',
+    userAvatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=200&auto=format&fit=crop&q=80',
+    userTitle: 'Đối Tác Chiến Lược',
+    rating: 5,
+    tag: 'Đột phá & Sáng tạo',
+    comment: 'Bản tổng hợp tuần này cho thấy năng suất vượt trội. Các biểu đồ 3D trực quan giúp người xem nắm bắt tiến độ dự án rất nhanh.',
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
+  },
+  {
+    id: 'fb_4',
+    scope: 'monthly',
+    targetId: 'monthly_all',
+    userName: 'Hoàng Minh Tuấn',
+    userRole: 'viewer',
+    userAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80',
+    userTitle: 'Thành Viên Hội Đồng',
+    rating: 5,
+    tag: 'Rất hài lòng',
+    comment: 'Các mục tiêu OKR tháng đều bám sát kế hoạch. Ban điều hành và anh Đức đã làm việc rất tận tâm.',
+    createdAt: new Date(Date.now() - 172800000).toISOString(),
+  },
+  {
+    id: 'fb_5',
+    scope: 'yearly',
+    targetId: 'yearly_all',
+    userName: 'Phạm Thu Trang',
+    userRole: 'viewer',
+    userAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+    userTitle: 'Cố Vấn Quản Trị',
+    rating: 5,
+    tag: 'Tiến độ xuất sắc',
+    comment: 'Báo cáo năm thể hiện bức tranh toàn cảnh rất xuất sắc. Chúc mừng anh Đức và toàn thể Ba Làng TH!',
+    createdAt: new Date(Date.now() - 259200000).toISOString(),
   },
 ];
