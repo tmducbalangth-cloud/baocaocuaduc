@@ -217,6 +217,79 @@ export interface ViewerFeedback {
   createdAt: string; // ISO string
 }
 
+export interface ChannelLinkConfig {
+  channelName: string;
+  channelUrl: string;
+  clipUrlsText?: string;
+  lastScannedAt?: string;
+}
+
+export interface AnalyzedClip {
+  id: string;
+  title: string;
+  url?: string;
+  postDate?: string;
+  views: string | number;
+  likes: string | number; // Tim
+  comments: string | number;
+  shares: string | number;
+  channelName?: string;
+  score: number; // 0 - 100
+  hookEvaluation: {
+    score: number; // 1 - 10
+    strengths: string;
+    weaknesses: string;
+    suggestion: string;
+  };
+  topicEvaluation: {
+    topic: string;
+    relevance: string;
+    suggestion: string;
+  };
+  expressionEvaluation: {
+    acting: string;
+    facialExpression: string; // Biểu cảm
+    voicePacing: string; // Giọng điệu
+    suggestion: string;
+  };
+  editEvaluation: {
+    videoPacing: string; // Nhịp cắt
+    visualsAndColor: string; // Màu sắc & góc máy
+    soundAndSFX: string; // Âm thanh & hiệu ứng
+    suggestion: string;
+  };
+  overallVerdict: string;
+}
+
+export interface ChannelStrategicReview {
+  summary: string;
+  channelName: string;
+  totalViews: string;
+  totalLikes: string;
+  totalFollowersGained: string;
+  totalEngagement: string;
+  hookStrategy: {
+    assessment: string;
+    actionableTips: string[];
+    sampleHooks: string[];
+  };
+  topicStrategy: {
+    assessment: string;
+    recommendedTopics: string[];
+    topicsToAvoid: string[];
+  };
+  expressionStrategy: {
+    assessment: string;
+    facialTips: string[];
+    bodyAndVoiceTips: string[];
+  };
+  editingStrategy: {
+    assessment: string;
+    editingTips: string[];
+    audioAndVisualTips: string[];
+  };
+}
+
 export interface ChannelMetrics {
   views: string; // e.g. "215,000"
   followers: string; // e.g. "+3,600"
@@ -224,6 +297,9 @@ export interface ChannelMetrics {
   engagement: string; // e.g. "18,800"
   conversionOrOrders?: string; // e.g. "45 đơn hàng"
   activeChannels: string[]; // e.g. ["TikTok Ba Làng Tuyến Hòa", "Fan Ba Làng TH"]
+  channelLinks?: ChannelLinkConfig[];
+  analyzedClips?: AnalyzedClip[];
+  channelStrategicReview?: ChannelStrategicReview;
   note?: string;
 }
 
@@ -246,6 +322,8 @@ export interface WeeklySelfReview {
     nextWeekActionPlan: string[];
   };
   formattedDocument?: string; // Bài nhận xét đầy đủ có thể chỉnh sửa trực tiếp và sao chép
+  channelStrategicReview?: ChannelStrategicReview;
+  analyzedClips?: AnalyzedClip[];
   updatedAt: string;
 }
 
