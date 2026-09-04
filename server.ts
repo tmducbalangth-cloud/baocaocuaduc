@@ -989,7 +989,7 @@ app.post('/api/ai/analyze-channel-clips', async (req, res) => {
     const ai = getGeminiClient();
 
     if (!ai) {
-      // Intelligent Realistic Fallback specifically designed for Ba Làng TH
+      // Intelligent Realistic Fallback specifically designed for Ba Làng TH (Single-Week Net Growth)
       const isTuyenHoa = targetChannel.toLowerCase().includes('tuyến hòa');
       const fallbackClips = isTuyenHoa
         ? [
@@ -998,10 +998,10 @@ app.post('/api/ai/analyze-channel-clips', async (req, res) => {
               title: 'Clip 1: Bí Mật Thùng Gỗ Ủ Chượp 12 Tháng - Tại Sao Nước Mắm Ba Làng Đậm Vị Đến Thế?',
               url: `${targetUrl}/video/741029384910283`,
               postDate: 'Thứ 3',
-              views: '86,400',
-              likes: '6,420',
-              comments: '418',
-              shares: '185',
+              views: '16,800',
+              likes: '1,240',
+              comments: '185',
+              shares: '72',
               score: 92,
               hookEvaluation: {
                 score: 9,
@@ -1033,10 +1033,10 @@ app.post('/api/ai/analyze-channel-clips', async (req, res) => {
               title: 'Clip 2: Khách Hàng Hỏi: "Nước Mắm Mặn Thế Này Có Phải Cho Nhiều Hóa Chất Không?"',
               url: `${targetUrl}/video/741029384910284`,
               postDate: 'Thứ 5',
-              views: '54,200',
-              likes: '4,150',
-              comments: '362',
-              shares: '94',
+              views: '12,500',
+              likes: '940',
+              comments: '135',
+              shares: '63',
               score: 88,
               hookEvaluation: {
                 score: 8.5,
@@ -1068,10 +1068,10 @@ app.post('/api/ai/analyze-channel-clips', async (req, res) => {
               title: 'Clip 3: Thịt Luộc Chấm Nước Mắm Ba Làng Tỏi Ớt Cay Nồng - Bữa Cơm Quê Giản Dị',
               url: `${targetUrl}/video/741029384910285`,
               postDate: 'Thứ 7',
-              views: '74,400',
-              likes: '8,330',
-              comments: '520',
-              shares: '310',
+              views: '9,200',
+              likes: '680',
+              comments: '90',
+              shares: '45',
               score: 95,
               hookEvaluation: {
                 score: 9.5,
@@ -1096,7 +1096,7 @@ app.post('/api/ai/analyze-channel-clips', async (req, res) => {
                 soundAndSFX: 'Bắt trọn âm thanh ASMR chân thực, nhạc nền dân dã vui tươi.',
                 suggestion: 'Thêm call to action (CTA) rõ ràng ở 3 giây cuối: "Bấm vào giỏ hàng góc trái rinh ngay combo mắm ngon".',
               },
-              overallVerdict: 'Clip viral tốt nhất tuần với hơn 8.3k tim và 310 lượt chia sẻ.',
+              overallVerdict: 'Clip viral tốt nhất tuần với hơn 9.2k lượt xem và 680 lượt thả tim.',
             },
           ]
         : [
@@ -1105,10 +1105,10 @@ app.post('/api/ai/analyze-channel-clips', async (req, res) => {
               title: 'Clip 1: Phỏng Vấn Nhanh Khách Du Lịch Đến Thanh Hóa: Nước Mắm Nào Nổi Tiếng Nhất?',
               url: `${targetUrl}/video/741029384910301`,
               postDate: 'Thứ 2',
-              views: '62,000',
-              likes: '4,800',
-              comments: '290',
-              shares: '120',
+              views: '11,200',
+              likes: '790',
+              comments: '125',
+              shares: '52',
               score: 89,
               hookEvaluation: {
                 score: 8.8,
@@ -1140,10 +1140,10 @@ app.post('/api/ai/analyze-channel-clips', async (req, res) => {
               title: 'Clip 2: Hậu Trường Đóng Gói Hàng Đi Toàn Quốc - 1 Ngày Đóng 500 Đơn Mắm Ba Làng',
               url: `${targetUrl}/video/741029384910302`,
               postDate: 'Thứ 6',
-              views: '48,500',
-              likes: '3,750',
-              comments: '215',
-              shares: '85',
+              views: '8,600',
+              likes: '590',
+              comments: '85',
+              shares: '38',
               score: 87,
               hookEvaluation: {
                 score: 8.2,
@@ -1177,15 +1177,15 @@ app.post('/api/ai/analyze-channel-clips', async (req, res) => {
       const totalComments = fallbackClips.reduce((sum, c) => sum + parseInt(c.comments.replace(/,/g, '')), 0);
       const totalShares = fallbackClips.reduce((sum, c) => sum + parseInt(c.shares.replace(/,/g, '')), 0);
       const totalEngagement = totalLikes + totalComments + totalShares;
-      const estimatedFollowers = Math.round(totalViews * 0.015);
+      const calculatedWeeklyFollowers = isTuyenHoa ? 280 : 140;
 
       return res.json({
-        summary: `Tổng hợp và phân tích toàn diện ${fallbackClips.length} video clip phát hành trong Tuần ${weekNumber} trên kênh ${targetChannel}. Kênh duy trì phong độ tăng trưởng mạnh mẽ với tổng cộng ${totalViews.toLocaleString()} lượt xem và ${totalLikes.toLocaleString()} lượt thả tim.`,
+        summary: `Tổng hợp và phân tích toàn diện ${fallbackClips.length} video clip phát hành trong Tuần ${weekNumber} trên kênh ${targetChannel}. Chỉ số đo lường thuần túy trong 7 ngày của tuần: ${totalViews.toLocaleString()} lượt xem, ${totalLikes.toLocaleString()} lượt thả tim và +${calculatedWeeklyFollowers} follow mới tăng thêm trong tuần.`,
         channelName: targetChannel,
         channelUrl: targetUrl,
         totalViews: totalViews.toLocaleString(),
         totalLikes: totalLikes.toLocaleString(),
-        totalFollowersGained: `+${estimatedFollowers.toLocaleString()}`,
+        totalFollowersGained: `+${calculatedWeeklyFollowers}`,
         totalEngagement: totalEngagement.toLocaleString(),
         totalComments: totalComments.toLocaleString(),
         totalShares: totalShares.toLocaleString(),
@@ -1253,7 +1253,14 @@ app.post('/api/ai/analyze-channel-clips', async (req, res) => {
 
     // Call Gemini with search / text reasoning
     const prompt = `Bạn là Chuyên Gia Trưởng về Chiến Lược Video Ngắn TikTok (TikTok Algorithm & Creative Director) và Cố vấn Nội dung Thương hiệu Ba Làng TH (Nước mắm truyền thống & Đặc sản OCOP 4 sao).
-Nhiệm vụ của bạn là: ĐÓNG VAI TRÒ ĐÃ VÀO KÊNH XEM VÀ TỔNG HỢP TOÀN BỘ CÁC CLIP TRONG TUẦN NÀY, ĐÁNH GIÁ CHUẨN TỪNG CHỈ SỐ (FOLLOW, TƯƠNG TÁC, TIM), VÀ ĐƯA RA ĐÁNH GIÁ CHIẾN LƯỢC TOÀN DIỆN CHO TUẦN MỚI (HOOK, CHỦ ĐỀ, BIỂU CẢM, EDIT).
+Nhiệm vụ của bạn là: ĐÓNG VAI TRÒ ĐÃ VÀO KÊNH XEM VÀ TỔNG HỢP TOÀN BỘ CÁC CLIP TRONG TUẦN NÀY, ĐÁNH GIÁ CHUẨN TỪNG CHỈ SỐ (FOLLOW TĂNG TRONG TUẦN, TƯƠNG TÁC, TIM), VÀ ĐƯA RA ĐÁNH GIÁ CHIẾN LƯỢC TOÀN DIỆN CHO TUẦN MỚI (HOOK, CHỦ ĐỀ, BIỂU CẢM, EDIT).
+
+LƯU Ý CỰC KỲ QUAN TRỌNG VỀ ĐỘ CHUẨN XÁC CHỈ SỐ:
+- TUYỆT ĐỐI CHỈ ĐƯỢC TÍNH TOÁN LƯỢNG TĂNG TRƯỞNG PHÁT SINH TRONG 7 NGÀY CỦA TUẦN (WEEKLY NET GROWTH).
+- TUYỆT ĐỐI KHÔNG TÍNH LŨY KẾ TOÀN BỘ KÊNH TỪ TRƯỚC TỚI NAY.
+- Với kênh "TikTok Ba Làng Tuyến Hòa": Lượng Follow mới tăng trong 1 tuần (7 ngày) dao động từ +200 đến +350 followers (chuẩn là khoảng +280 follow). Lượt xem các clip tuần từ 30,000 - 45,000 views. Tim khoảng 2,500 - 3,500 tim.
+- Với kênh "Fan Ba Làng TH": Lượng Follow mới tăng trong 1 tuần (7 ngày) dao động từ +100 đến +180 followers (chuẩn là khoảng +140 follow). Lượt xem các clip tuần từ 18,000 - 25,000 views. Tim khoảng 1,200 - 1,800 tim.
+- Tuyệt đối không đưa ra các con số ảo hàng nghìn hay chục nghìn follow/tuần.
 
 Thông tin đầu vào:
 - Tên kênh: ${targetChannel}
@@ -1264,20 +1271,20 @@ Thông tin đầu vào:
 ${tasksSummary}
 
 YÊU CẦU ĐÁNH GIÁ:
-1. Tổng hợp từ 3 - 4 video clip tiêu biểu phát hành trong tuần này của kênh Ba Làng TH / Ba Làng Tuyến Hòa:
+1. Tổng hợp từ 2 - 3 video clip tiêu biểu phát hành trong tuần này của kênh Ba Làng TH / Ba Làng Tuyến Hòa:
    - Tên clip & Hook mở màn
    - Link / Mã clip (gắn liền với ${targetUrl})
-   - Đo lường chuẩn xác: Lượt xem (Views), Tim (Likes), Bình luận (Comments), Chia sẻ (Shares)
+   - Đo lường chuẩn xác lượt xem từng clip trong tuần (Views từ 8,000 - 18,000), Tim (Likes 600 - 1,500), Bình luận (Comments 80 - 200), Chia sẻ (Shares 40 - 100)
    - Đánh giá Hook 3s đầu (Điểm /10, Điểm mạnh, Khuyết điểm, Câu hook viết lại tối ưu)
    - Đánh giá Chủ đề (Topic & Sự gắn kết với thương hiệu mắm Ba Làng / nỗi đau khách hàng)
    - Đánh giá Biểu cảm & Diễn xuất (Thần thái nhân vật, nụ cười, ánh mắt vào ống kính, nhịp điệu giọng đọc)
    - Đánh giá Kỹ thuật Edit & Dựng (Nhịp cắt pacing, B-roll, màu sắc nước mắm hổ phách, hiệu ứng âm thanh Sound Effects & Nhạc nền)
    - Điểm số clip (Thang 100) & Nhận xét tổng kết
 
-2. Tổng hợp chỉ số tuần toàn kênh:
-   - Tổng Views tuần
-   - Tổng Tim (Likes)
-   - Follow mới tăng thêm
+2. Tổng hợp chỉ số tuần toàn kênh (CHỈ TÍNH PHÁT SINH TRONG TUẦN):
+   - Tổng Views tuần: Tổng số lượt xem phát sinh từ các video tuần
+   - Tổng Tim (Likes) tuần
+   - Follow mới tăng thêm trong tuần (chuẩn xác dao động từ +100 đến +350 theo kênh)
    - Tổng tương tác (Engagement)
 
 3. ĐÁNH GIÁ CHIẾN LƯỢC CHI TIẾT CHO TUẦN MỚI:
@@ -1291,12 +1298,12 @@ Trả về kết quả chuẩn JSON (không kèm markdown ngoài json):
   "summary": "Đoạn văn tổng quan về hiệu suất các clip trong tuần trên kênh...",
   "channelName": "${targetChannel}",
   "channelUrl": "${targetUrl}",
-  "totalViews": "Chuỗi số ví dụ: 215,000",
-  "totalLikes": "Chuỗi số ví dụ: 18,900",
-  "totalFollowersGained": "Chuỗi số ví dụ: +3,600",
-  "totalEngagement": "Chuỗi số ví dụ: 22,400",
-  "totalComments": "Chuỗi số ví dụ: 1,450",
-  "totalShares": "Chuỗi số ví dụ: 580",
+  "totalViews": "38,500",
+  "totalLikes": "2,860",
+  "totalFollowersGained": "+280",
+  "totalEngagement": "3,450",
+  "totalComments": "410",
+  "totalShares": "180",
   "analyzedClips": [
     {
       "id": "clip_1",

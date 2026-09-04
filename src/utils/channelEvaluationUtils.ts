@@ -14,16 +14,16 @@ export interface ScannedChannelRecord {
   scannedAt: string;
 }
 
-// Benchmark chuẩn mực cho kênh Ba Làng Tuyến Hòa (Kênh Thương Hiệu & OCOP 4 Sao)
+// Benchmark chuẩn mực cho kênh Ba Làng Tuyến Hòa (Kênh Thương Hiệu & OCOP 4 Sao) - Đo lường phát sinh trong 1 tuần (7 ngày)
 export const BENCHMARK_BALANG_TUYENHOA: ScannedChannelRecord = {
   channelName: 'TikTok Ba Làng Tuyến Hòa',
   channelUrl: 'https://www.tiktok.com/@balangtuyenhoa',
-  totalViews: '215,000',
-  totalLikes: '18,900',
-  totalFollowersGained: '+3,600',
-  totalEngagement: '22,400',
-  totalComments: '1,450',
-  totalShares: '580',
+  totalViews: '38,500',
+  totalLikes: '2,860',
+  totalFollowersGained: '+280',
+  totalEngagement: '3,450',
+  totalComments: '410',
+  totalShares: '180',
   scannedAt: new Date().toISOString(),
   clips: [
     {
@@ -31,10 +31,10 @@ export const BENCHMARK_BALANG_TUYENHOA: ScannedChannelRecord = {
       title: 'Quy trình rút nỏ nước mắm cá cơm than truyền thống 12 tháng ủ chượp',
       url: 'https://www.tiktok.com/@balangtuyenhoa/video/7391823901',
       postDate: 'Thứ 2 (Đầu tuần)',
-      views: '94,500',
-      likes: '8,420',
-      comments: '580',
-      shares: '240',
+      views: '16,800',
+      likes: '1,240',
+      comments: '185',
+      shares: '72',
       channelName: 'TikTok Ba Làng Tuyến Hòa',
       score: 95,
       hookEvaluation: {
@@ -67,10 +67,10 @@ export const BENCHMARK_BALANG_TUYENHOA: ScannedChannelRecord = {
       title: 'Giải mã vì sao nước mắm truyền thống Ba Làng có độ mặn đậm đà tự nhiên',
       url: 'https://www.tiktok.com/@balangtuyenhoa/video/7391823902',
       postDate: 'Thứ 4 (Giữa tuần)',
-      views: '68,200',
-      likes: '5,860',
-      comments: '490',
-      shares: '180',
+      views: '12,500',
+      likes: '940',
+      comments: '135',
+      shares: '63',
       channelName: 'TikTok Ba Làng Tuyến Hòa',
       score: 91,
       hookEvaluation: {
@@ -103,10 +103,10 @@ export const BENCHMARK_BALANG_TUYENHOA: ScannedChannelRecord = {
       title: 'Hành trình 3 đời giữ nghề mắm Tĩnh Gia của nghệ nhân làng cổ',
       url: 'https://www.tiktok.com/@balangtuyenhoa/video/7391823903',
       postDate: 'Thứ 6 (Cuối tuần)',
-      views: '52,300',
-      likes: '4,620',
-      comments: '380',
-      shares: '160',
+      views: '9,200',
+      likes: '680',
+      comments: '90',
+      shares: '45',
       channelName: 'TikTok Ba Làng Tuyến Hòa',
       score: 92,
       hookEvaluation: {
@@ -136,12 +136,12 @@ export const BENCHMARK_BALANG_TUYENHOA: ScannedChannelRecord = {
     },
   ],
   strategicReview: {
-    summary: 'Kênh TikTok Ba Làng Tuyến Hòa khẳng định vững chắc vị thế thương hiệu truyền thống OCOP 4 sao với 215k views và +3,600 followers trong tuần. Cần tiếp tục duy trì visual hook giọt mắm hổ phách và đẩy mạnh nhịp cắt dưới 1.5s.',
+    summary: 'Kênh TikTok Ba Làng Tuyến Hòa khẳng định vững chắc vị thế thương hiệu truyền thống OCOP 4 sao với 38,500 views và +280 followers phát sinh trong tuần. Cần tiếp tục duy trì visual hook giọt mắm hổ phách và đẩy mạnh nhịp cắt dưới 1.5s.',
     channelName: 'TikTok Ba Làng Tuyến Hòa',
-    totalViews: '215,000',
-    totalLikes: '18,900',
-    totalFollowersGained: '+3,600',
-    totalEngagement: '22,400',
+    totalViews: '38,500',
+    totalLikes: '2,860',
+    totalFollowersGained: '+280',
+    totalEngagement: '3,450',
     hookStrategy: {
       assessment: 'Visual Hook rót mắm từ thùng gỗ đạt tỷ lệ giữ chân 3 giây đầu vượt 68%. Cần đưa hình ảnh giọt mắm lên ngay 1.0 giây đầu tiên trước khi cất tiếng chào.',
       actionableTips: [
@@ -195,16 +195,16 @@ export const BENCHMARK_BALANG_TUYENHOA: ScannedChannelRecord = {
   },
 };
 
-// Benchmark chuẩn mực cho kênh Fan Ba Làng TH (Kênh Ẩm Thực Đời Thường & Cộng Đồng)
+// Benchmark chuẩn mực cho kênh Fan Ba Làng TH (Kênh Ẩm Thực Đời Thường & Cộng Đồng) - Đo lường phát sinh trong 1 tuần (7 ngày)
 export const BENCHMARK_FAN_BALANG: ScannedChannelRecord = {
   channelName: 'Fan Ba Làng TH',
   channelUrl: 'https://www.tiktok.com/@fanbalangth',
-  totalViews: '110,500',
-  totalLikes: '8,550',
-  totalFollowersGained: '+1,650',
-  totalEngagement: '10,200',
-  totalComments: '780',
-  totalShares: '320',
+  totalViews: '19,800',
+  totalLikes: '1,380',
+  totalFollowersGained: '+140',
+  totalEngagement: '1,680',
+  totalComments: '210',
+  totalShares: '90',
   scannedAt: new Date().toISOString(),
   clips: [
     {
@@ -212,10 +212,10 @@ export const BENCHMARK_FAN_BALANG: ScannedChannelRecord = {
       title: 'Bếp Mẹ Nấu: Cách pha nước mắm chua ngọt chấm ốc và thịt luộc bất bại',
       url: 'https://www.tiktok.com/@fanbalangth/video/7391992001',
       postDate: 'Thứ 3 (Đầu tuần)',
-      views: '65,300',
-      likes: '5,120',
-      comments: '460',
-      shares: '210',
+      views: '11,200',
+      likes: '790',
+      comments: '125',
+      shares: '52',
       channelName: 'Fan Ba Làng TH',
       score: 93,
       hookEvaluation: {
@@ -248,10 +248,10 @@ export const BENCHMARK_FAN_BALANG: ScannedChannelRecord = {
       title: 'Hậu trường đóng gói 500 đơn nước mắm Ba Làng gửi đi toàn quốc mỗi ngày',
       url: 'https://www.tiktok.com/@fanbalangth/video/7391992002',
       postDate: 'Thứ 5 (Giữa tuần)',
-      views: '45,200',
-      likes: '3,430',
-      comments: '320',
-      shares: '110',
+      views: '8,600',
+      likes: '590',
+      comments: '85',
+      shares: '38',
       channelName: 'Fan Ba Làng TH',
       score: 90,
       hookEvaluation: {
@@ -281,12 +281,12 @@ export const BENCHMARK_FAN_BALANG: ScannedChannelRecord = {
     },
   ],
   strategicReview: {
-    summary: 'Kênh Fan Ba Làng TH hoàn thành xuất sắc vai trò kênh ẩm thực vệ tinh với 110,500 views và +1,650 followers. Tuyến nội dung "Bếp Mẹ Nấu" và hậu trường vận hành đóng gói giúp gắn kết chặt chẽ với tệp khách hàng tiêu dùng gia đình.',
+    summary: 'Kênh Fan Ba Làng TH hoàn thành xuất sắc vai trò kênh ẩm thực vệ tinh với 19,800 views và +140 followers tăng mới trong tuần. Tuyến nội dung "Bếp Mẹ Nấu" và hậu trường vận hành đóng gói giúp gắn kết chặt chẽ với tệp khách hàng tiêu dùng gia đình.',
     channelName: 'Fan Ba Làng TH',
-    totalViews: '110,500',
-    totalLikes: '8,550',
-    totalFollowersGained: '+1,650',
-    totalEngagement: '10,200',
+    totalViews: '19,800',
+    totalLikes: '1,380',
+    totalFollowersGained: '+140',
+    totalEngagement: '1,680',
     hookStrategy: {
       assessment: 'Hook món ăn bắt mắt và miếng chấm đẫm nước sốt đạt lượt lưu cực cao. Cần rút ngắn câu thoại mở màn dưới 2 giây.',
       actionableTips: [

@@ -110,42 +110,42 @@ export interface SingleChannelMetricsData {
 
 export const DEFAULT_CHANNEL_METRICS_MAP: Record<string, SingleChannelMetricsData> = {
   'TikTok Ba Làng Tuyến Hòa': {
-    views: '215,000',
-    followers: '+3,600',
-    reach: '148,000',
-    engagement: '22,400',
-    likes: '18,900',
+    views: '38,500',
+    followers: '+280',
+    reach: '28,000',
+    engagement: '3,450',
+    likes: '2,860',
     conversionOrOrders: '4 video phục vụ phiên Live, hoàn thiện đề xuất OBS',
-    note: 'Kênh thương hiệu chính & OCOP 4 sao',
+    note: 'Kênh thương hiệu chính & OCOP 4 sao (Chỉ tính phát sinh trong 7 ngày)',
   },
   'Fan Ba Làng TH': {
-    views: '110,500',
-    followers: '+1,650',
-    reach: '100,000',
-    engagement: '10,200',
-    likes: '8,550',
+    views: '19,800',
+    followers: '+140',
+    reach: '14,500',
+    engagement: '1,680',
+    likes: '1,380',
     conversionOrOrders: 'Đạt chỉ tiêu đề ra',
-    note: 'Kênh cộng đồng, ẩm thực đời thường & mẹo nấu ăn',
+    note: 'Kênh cộng đồng, ẩm thực đời thường & mẹo nấu ăn (Chỉ tính phát sinh trong 7 ngày)',
   },
   'ALL': {
-    views: '325,500',
-    followers: '+5,250',
-    reach: '248,000',
-    engagement: '32,600',
-    likes: '27,450',
-    conversionOrOrders: 'Hoàn thành và vượt chỉ tiêu toàn hệ thống 2 kênh',
-    note: 'Tổng hợp tăng trưởng toàn bộ hệ thống kênh TikTok',
+    views: '58,300',
+    followers: '+420',
+    reach: '42,500',
+    engagement: '5,130',
+    likes: '4,240',
+    conversionOrOrders: 'Hoàn thành và vượt chỉ tiêu toàn hệ thống 2 kênh trong tuần',
+    note: 'Tổng hợp tăng trưởng thuần trong 7 ngày toàn bộ hệ thống 2 kênh',
   },
 };
 
-// Mẫu dữ liệu mặc định thông minh cho các tuần của Tháng 8 năm 2026
+// Mẫu dữ liệu mặc định thông minh cho các tuần của Tháng 8 năm 2026 (Chỉ tính phát sinh thuần trong 7 ngày)
 const DEFAULT_AUGUST_REVIEWS: Record<number, Partial<WeeklySelfReview>> = {
   32: {
     channelMetrics: {
-      views: '128,500',
-      followers: '+1,850',
-      reach: '86,400',
-      engagement: '9,600',
+      views: '37,000',
+      followers: '+285',
+      reach: '27,500',
+      engagement: '3,350',
       conversionOrOrders: '4 video phục vụ phiên Live 8/8',
       activeChannels: ['TikTok Ba Làng Tuyến Hòa', 'Fan Ba Làng TH'],
       note: 'Tuần mở đầu tháng 8 tập trung quy chuẩn sản xuất và chuẩn bị chiến dịch',
@@ -160,10 +160,10 @@ const DEFAULT_AUGUST_REVIEWS: Record<number, Partial<WeeklySelfReview>> = {
   },
   33: {
     channelMetrics: {
-      views: '172,000',
-      followers: '+2,450',
-      reach: '112,000',
-      engagement: '14,300',
+      views: '47,000',
+      followers: '+350',
+      reach: '35,500',
+      engagement: '4,250',
       conversionOrOrders: 'Ban hành Đề xuất Quy tắc TikTok chuẩn',
       activeChannels: ['TikTok Ba Làng Tuyến Hòa', 'Fan Ba Làng TH', 'TikTok Sếp Huyền'],
       note: 'Đột phá tuyến nội dung nỗi đau khách hàng và kênh TT Sếp Huyền',
@@ -178,10 +178,10 @@ const DEFAULT_AUGUST_REVIEWS: Record<number, Partial<WeeklySelfReview>> = {
   },
   34: {
     channelMetrics: {
-      views: '215,000',
-      followers: '+3,600',
-      reach: '148,000',
-      engagement: '18,900',
+      views: '58,300',
+      followers: '+420',
+      reach: '42,500',
+      engagement: '5,130',
       conversionOrOrders: 'Đề xuất cáp quang & OBS phòng live được phê duyệt',
       activeChannels: ['TikTok Ba Làng Tuyến Hòa', 'Fan Ba Làng TH'],
       note: 'Khối lượng sản xuất cao nhất tháng: 19 clip quay, 16 clip dựng',
@@ -196,10 +196,10 @@ const DEFAULT_AUGUST_REVIEWS: Record<number, Partial<WeeklySelfReview>> = {
   },
   35: {
     channelMetrics: {
-      views: '285,000',
-      followers: '+4,800',
-      reach: '198,000',
-      engagement: '25,400',
+      views: '66,500',
+      followers: '+510',
+      reach: '49,800',
+      engagement: '6,080',
       conversionOrOrders: 'Chuẩn bị 2 kịch bản chào mừng 2/9 & dàn ý Live 9/9',
       activeChannels: ['TikTok Ba Làng Tuyến Hòa', 'Fan Ba Làng TH', 'Phiên Livestream'],
       note: 'Tăng tốc kịch bản chiến dịch lễ Quốc khánh 2/9 và Mega Live 9/9',
@@ -247,7 +247,15 @@ export const WeeklySelfEvaluationCard: React.FC<WeeklySelfEvaluationCardProps> =
       const saved = localStorage.getItem(localKey);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.channelMetrics) return parsed.channelMetrics;
+        if (parsed.channelMetrics) {
+          const m = parsed.channelMetrics;
+          const fNum = parseInt(String(m.followers || '').replace(/[^\d]/g, ''), 10) || 0;
+          if (fNum > 800) {
+            // Dữ liệu cũ bị sai lệch (lũy kế >800 thay vì số phát sinh tuần), tự động lấy số tuần chuẩn
+            return defaultData.channelMetrics as ChannelMetrics;
+          }
+          return m;
+        }
       }
     } catch (e) {
       console.error(e);
@@ -331,7 +339,18 @@ export const WeeklySelfEvaluationCard: React.FC<WeeklySelfEvaluationCardProps> =
   const [channelScans, setChannelScans] = useState<Record<string, ScannedChannelRecord>>(() => {
     try {
       const saved = localStorage.getItem(`weekly_channel_scans_${weekKey}`);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const fNum = parseInt(String(parsed['TikTok Ba Làng Tuyến Hòa']?.totalFollowersGained || '').replace(/[^\d]/g, ''), 10) || 0;
+        if (fNum > 800) {
+          // Reset về benchmark tuần chuẩn
+          return {
+            'TikTok Ba Làng Tuyến Hòa': BENCHMARK_BALANG_TUYENHOA,
+            'Fan Ba Làng TH': BENCHMARK_FAN_BALANG,
+          };
+        }
+        return parsed;
+      }
     } catch (e) {}
     return {
       'TikTok Ba Làng Tuyến Hòa': BENCHMARK_BALANG_TUYENHOA,
@@ -344,7 +363,15 @@ export const WeeklySelfEvaluationCard: React.FC<WeeklySelfEvaluationCardProps> =
   const [channelMetricsMap, setChannelMetricsMap] = useState<Record<string, SingleChannelMetricsData>>(() => {
     try {
       const saved = localStorage.getItem(`weekly_channel_metrics_map_${weekKey}`);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const fNum = parseInt(String(parsed['TikTok Ba Làng Tuyến Hòa']?.followers || '').replace(/[^\d]/g, ''), 10) || 0;
+        if (fNum > 800) {
+          // Dữ liệu cũ bị sai lệch (lũy kế >800 thay vì phát sinh tuần), dùng DEFAULT_CHANNEL_METRICS_MAP chuẩn
+          return DEFAULT_CHANNEL_METRICS_MAP;
+        }
+        return parsed;
+      }
     } catch (e) {}
     return DEFAULT_CHANNEL_METRICS_MAP;
   });
@@ -734,6 +761,44 @@ ${bullets}
     }
   };
 
+  // Khôi phục bộ thông số chuẩn 1 tuần cho cả 2 kênh và tổng hợp ALL
+  const handleResetToWeeklyStandardMetrics = () => {
+    setChannelMetricsMap(DEFAULT_CHANNEL_METRICS_MAP);
+    try {
+      localStorage.setItem(`weekly_channel_metrics_map_${weekKey}`, JSON.stringify(DEFAULT_CHANNEL_METRICS_MAP));
+    } catch (e) {}
+
+    const standardScans = {
+      'TikTok Ba Làng Tuyến Hòa': BENCHMARK_BALANG_TUYENHOA,
+      'Fan Ba Làng TH': BENCHMARK_FAN_BALANG,
+    };
+    setChannelScans(standardScans);
+    try {
+      localStorage.setItem(`weekly_channel_scans_${weekKey}`, JSON.stringify(standardScans));
+    } catch (e) {}
+
+    const cur = DEFAULT_CHANNEL_METRICS_MAP[activeMetricsChannel] || DEFAULT_CHANNEL_METRICS_MAP['TikTok Ba Làng Tuyến Hòa'];
+    setMetrics((prev) => ({
+      ...prev,
+      views: cur.views,
+      followers: cur.followers,
+      reach: cur.reach,
+      engagement: cur.engagement,
+      conversionOrOrders: cur.conversionOrOrders,
+    }));
+
+    if (activeMetricsChannel !== 'ALL') {
+      const scan = standardScans[activeMetricsChannel as keyof typeof standardScans];
+      if (scan) {
+        setAnalyzedClips(scan.clips);
+        setChannelStrategicReview(scan.strategicReview);
+      }
+    }
+
+    setSynthesizeNotice('✓ Đã khôi phục số liệu tăng trưởng chuẩn trong 1 tuần (Tuyến Hòa: +280 follow, 38.5k view | Fan Ba Làng: +140 follow, 19.8k view | Tổng: +420 follow)!');
+    setTimeout(() => setSynthesizeNotice(null), 5000);
+  };
+
   // Select Preset Channel
   const handleSelectChannelPreset = (ch: string) => {
     setSelectedChannel(ch);
@@ -887,11 +952,12 @@ ${bullets}
     start: string,
     end: string
   ): string => {
-    const views = scanData.totalViews || metricsData.views || '165,000';
-    const likes = scanData.totalLikes || '18,900';
-    const followers = scanData.totalFollowersGained || metricsData.followers || '+2,400';
-    const engagement = scanData.totalEngagement || metricsData.engagement || '16,200';
-    const url = scanData.channelUrl || channelLinkInput || 'https://www.tiktok.com/@balangtuyenhoa';
+    const isFanChannel = channelName.includes('Fan');
+    const views = scanData.totalViews || metricsData.views || (isFanChannel ? '19,800' : '38,500');
+    const likes = scanData.totalLikes || (isFanChannel ? '1,380' : '2,860');
+    const followers = scanData.totalFollowersGained || metricsData.followers || (isFanChannel ? '+140' : '+280');
+    const engagement = scanData.totalEngagement || metricsData.engagement || (isFanChannel ? '1,680' : '3,450');
+    const url = scanData.channelUrl || channelLinkInput || (isFanChannel ? 'https://www.tiktok.com/@fanbalangth' : 'https://www.tiktok.com/@balangtuyenhoa');
 
     const hookTip = getHookTips(scanData.strategicReview)[0] || 'Tối ưu 1.5s đầu hình ảnh nước mắm sóng sánh hoặc biểu cảm bất ngờ';
     const topicTip = getRecommendedTopics(scanData.strategicReview)[0] || 'Đẩy mạnh chuỗi series Bếp Mẹ Nấu & Giải đáp minh bạch thắc mắc khách hàng';
@@ -911,12 +977,12 @@ Xếp loại tự chấm: ${rating} (${score}/100)
 I. TỔNG QUAN TỰ ĐÁNH GIÁ:
 Trong tuần ${weekNum}, bản thân tôi đã tập trung cao độ triển khai toàn diện các hạng mục công việc được giao, bám sát mục tiêu nội dung và vận hành kênh ${channelName}. Tinh thần làm việc chủ động, trách nhiệm cao, bám sát các đầu việc từ lên ý tưởng, viết kịch bản đến quay và dựng hoàn thiện các video clip.
 
-II. BÁO CÁO & ĐO LƯỜNG CHỈ SỐ KÊNH: ${channelName.toUpperCase()}
+II. BÁO CÁO & ĐO LƯỜNG CHỈ SỐ KÊNH (TĂNG TRƯỞNG TRONG TUẦN): ${channelName.toUpperCase()}
 - Kênh phụ trách: ${channelName}
 - Link kênh: ${url}
-- Tổng lượt xem (Views): ${views}
+- Tổng lượt xem phát sinh trong tuần (Views): ${views}
 - Tổng lượt Tim (Likes): ${likes}
-- Lượt Follow mới: ${followers}
+- Lượt Follow mới tăng trong tuần: ${followers}
 - Lượt tương tác (Engagement): ${engagement}
 - Độ phủ & Chuyển đổi: Tăng trưởng đều đặn, tỷ lệ giữ chân người xem cải thiện rõ nét nhờ áp dụng các hook mở màn mới.
 
@@ -931,7 +997,7 @@ ${clipsList}
 
 III. NHỮNG ĐIỂM SÁNG & ĐỘT PHÁ ĐẠT ĐƯỢC:
 + Hoàn thành xuất sắc tiến độ sản xuất nội dung, đảm bảo lịch đăng tải định kỳ trên kênh ${channelName}.
-+ Đạt chỉ số tương tác tích cực với ${views} lượt xem và ${followers} follow mới.
++ Đạt chỉ số tương tác tích cực với ${views} lượt xem và ${followers} follow mới trong tuần.
 + Áp dụng thành công các hook hình ảnh và kỹ thuật dựng dồn dập giúp giữ chân người xem lâu hơn.
 
 IV. KHUYẾT ĐIỂM CẦN KHẮC PHỤC:
@@ -958,14 +1024,21 @@ V. CAM KẾT HÀNH ĐỘNG TUẦN TIẾP THEO:
     const c1Name = c1Scan.channelName || 'TikTok Ba Làng Tuyến Hòa';
     const c2Name = c2Scan.channelName || 'Fan Ba Làng TH';
 
-    const totalViews = metricsData.views || '313,000';
-    const totalFollowers = metricsData.followers || '+5,400';
-    const totalEngagement = metricsData.engagement || '30,700';
+    const parseNum = (val?: string) => {
+      if (!val) return 0;
+      return parseInt(String(val).replace(/[^\d]/g, ''), 10) || 0;
+    };
 
-    const c1Views = c1Scan.totalViews || '165,000';
-    const c1Likes = c1Scan.totalLikes || '19,500';
-    const c2Views = c2Scan.totalViews || '148,000';
-    const c2Likes = c2Scan.totalLikes || '18,300';
+    const c1Likes = c1Scan.totalLikes || '2,860';
+    const c2Likes = c2Scan.totalLikes || '1,380';
+    const totalLikesCalculated = (parseNum(c1Likes) + parseNum(c2Likes)).toLocaleString();
+
+    const totalViews = metricsData.views || '58,300';
+    const totalFollowers = metricsData.followers || '+420';
+    const totalEngagement = metricsData.engagement || '5,130';
+
+    const c1Views = c1Scan.totalViews || '38,500';
+    const c2Views = c2Scan.totalViews || '19,800';
 
     return `BÁO CÁO TỰ ĐÁNH GIÁ CÔNG VIỆC TRONG TUẦN ${weekNum} (${start} - ${end})
 Người thực hiện: Trịnh Minh Đức | Kênh phụ trách: ${c1Name} & ${c2Name}
@@ -974,14 +1047,14 @@ Xếp loại tự chấm: ${rating} (${score}/100)
 I. TỔNG QUAN TỰ ĐÁNH GIÁ:
 Trong tuần ${weekNum}, bản thân tôi đã vận hành song song và phát triển nội dung cho cả 2 kênh TikTok trọng điểm của Ba Làng TH (${c1Name} và ${c2Name}). Toàn bộ khối lượng kịch bản, lịch quay và dựng hậu kỳ đều được hoàn thành đúng hạn với tinh thần trách nhiệm và cam kết chất lượng cao nhất.
 
-II. BÁO CÁO & PHÂN TÍCH TỔNG HỢP CẢ 2 KÊNH TIKTOK:
-1. TỔNG SỐ LIỆU HỢP NHẤT TOÀN HỆ THỐNG:
+II. BÁO CÁO & PHÂN TÍCH TỔNG HỢP TĂNG TRƯỞNG TRONG TUẦN CẢ 2 KÊNH TIKTOK:
+1. TỔNG SỐ LIỆU TĂNG TRƯỞNG HỢP NHẤT TRONG TUẦN (7 NGÀY):
 - Tổng lượt xem (Views): ${totalViews}
-- Tổng lượt Tim (Likes): 37,800 tim
-- Tổng Follow mới: ${totalFollowers}
+- Tổng lượt Tim (Likes): ${totalLikesCalculated} tim
+- Tổng Follow mới tăng trong tuần: ${totalFollowers}
 - Tổng tương tác: ${totalEngagement}
 
-2. CHI TIẾT TỪNG KÊNH:
+2. CHI TIẾT TĂNG TRƯỞNG TỪNG KÊNH TRONG TUẦN:
 • KÊNH 1: ${c1Name.toUpperCase()}
   - Lượt xem: ${c1Views} | Lượt Tim: ${c1Likes} | Link: ${c1Scan.channelUrl || 'https://www.tiktok.com/@balangtuyenhoa'}
   - Trọng tâm nội dung: Ẩm thực gia đình "Bếp Mẹ Nấu", câu chuyện làng nghề mắm cá cơm truyền thống.
@@ -1016,7 +1089,7 @@ V. CAM KẾT HÀNH ĐỘNG TUẦN TIẾP THEO:
       channelName: selectedChannel,
       channelUrl: channelLinkInput,
       totalViews: channelMetricData.views,
-      totalLikes: channelMetricData.likes || '18,900',
+      totalLikes: channelMetricData.likes || (selectedChannel.includes('Fan') ? '1,380' : '2,860'),
       totalFollowersGained: channelMetricData.followers,
       totalEngagement: channelMetricData.engagement,
       clips: analyzedClips,
@@ -1046,7 +1119,7 @@ V. CAM KẾT HÀNH ĐỘNG TUẦN TIẾP THEO:
     const editTip = getEditingTips(currentScan.strategicReview)[0] || 'Nhịp cắt dồn dập dưới 1.5s/shot, zoom luân phiên';
 
     const singleChannelBullet = `• ĐÁNH GIÁ KÊNH & CLIP (${selectedChannel}):
-  - Chỉ số: ${updatedMetrics.views} views | ${channelMetricData.likes || currentScan.totalLikes || '18,900'} tim | ${updatedMetrics.followers} follow | ${updatedMetrics.engagement} tương tác.
+  - Chỉ số: ${updatedMetrics.views} views | ${channelMetricData.likes || currentScan.totalLikes || (selectedChannel.includes('Fan') ? '1,380' : '2,860')} tim | ${updatedMetrics.followers} follow | ${updatedMetrics.engagement} tương tác.
   - Hook 3s: ${hookTip}
   - Chủ đề: ${topicTip}
   - Biểu cảm: ${facialTip}
@@ -1060,7 +1133,7 @@ V. CAM KẾT HÀNH ĐỘNG TUẦN TIẾP THEO:
       {
         ...currentScan,
         totalViews: updatedMetrics.views,
-        totalLikes: channelMetricData.likes || currentScan.totalLikes || '18,900',
+        totalLikes: channelMetricData.likes || currentScan.totalLikes || (selectedChannel.includes('Fan') ? '1,380' : '2,860'),
         totalFollowersGained: updatedMetrics.followers,
         totalEngagement: updatedMetrics.engagement,
       },
@@ -1074,10 +1147,10 @@ V. CAM KẾT HÀNH ĐỘNG TUẦN TIẾP THEO:
 
     const updatedAiReview = {
       overallSummary: aiReviewData?.overallSummary || `Trong tuần ${weekNumber}, bản thân tôi đã tập trung cao độ vận hành và phát triển nội dung cho kênh ${selectedChannel}. Mọi đầu việc từ kịch bản, quay dựng đến đo lường số liệu đều được thực hiện nghiêm túc, bám sát định hướng.`,
-      channelAnalysis: `Kênh ${selectedChannel} ghi nhận sự tăng trưởng ổn định với ${currentScan.totalViews} lượt xem, ${currentScan.totalLikes || '18,900'} lượt tim và ${currentScan.totalFollowersGained} follow mới. Các clip áp dụng hook thị giác và nhịp cắt dồn dập đã cải thiện rõ rệt thời lượng xem trung bình.`,
+      channelAnalysis: `Kênh ${selectedChannel} ghi nhận sự tăng trưởng ổn định trong tuần với ${currentScan.totalViews} lượt xem, ${currentScan.totalLikes || (selectedChannel.includes('Fan') ? '1,380' : '2,860')} lượt tim và ${currentScan.totalFollowersGained} follow mới. Các clip áp dụng hook thị giác và nhịp cắt dồn dập đã cải thiện rõ rệt thời lượng xem trung bình.`,
       keyStrengths: aiReviewData?.keyStrengths || [
         `Hoàn thành đúng tiến độ toàn bộ video clip cho kênh ${selectedChannel}.`,
-        `Đạt ${currentScan.totalViews} lượt xem và ${currentScan.totalLikes || '18,900'} lượt tim ủng hộ.`,
+        `Đạt ${currentScan.totalViews} lượt xem và ${currentScan.totalLikes || (selectedChannel.includes('Fan') ? '1,380' : '2,860')} lượt tim ủng hộ trong tuần.`,
         `Áp dụng hiệu quả các kỹ thuật Hook 3s và nhịp dựng mới tối ưu giữ chân người xem.`
       ],
       bottlenecksAndLearnings: aiReviewData?.bottlenecksAndLearnings || [
@@ -1885,7 +1958,7 @@ V. CAM KẾT HÀNH ĐỘNG TUẦN TỚI:
               >
                 <span>Ba Làng Tuyến Hòa</span>
                 <span className="px-1 py-0.2 rounded text-[9px] bg-black/30 text-white font-mono">
-                  {channelMetricsMap['TikTok Ba Làng Tuyến Hòa']?.views || '215k'}
+                  {channelMetricsMap['TikTok Ba Làng Tuyến Hòa']?.views || '38.5k'}
                 </span>
               </button>
 
@@ -1900,7 +1973,7 @@ V. CAM KẾT HÀNH ĐỘNG TUẦN TỚI:
               >
                 <span>Fan Ba Làng TH</span>
                 <span className="px-1 py-0.2 rounded text-[9px] bg-black/30 text-white font-mono">
-                  {channelMetricsMap['Fan Ba Làng TH']?.views || '110.5k'}
+                  {channelMetricsMap['Fan Ba Làng TH']?.views || '19.8k'}
                 </span>
               </button>
 
@@ -1915,30 +1988,39 @@ V. CAM KẾT HÀNH ĐỘNG TUẦN TỚI:
               >
                 <span>📊 Tổng 2 Kênh</span>
                 <span className="px-1 py-0.2 rounded text-[9px] bg-black/30 text-white font-mono">
-                  {channelMetricsMap['ALL']?.views || '325.5k'}
+                  {channelMetricsMap['ALL']?.views || '58.3k'}
                 </span>
               </button>
             </div>
 
-            {/* Active Channel Details Bar & Quick Auto-Sum */}
-            <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-900/70 border border-slate-800 text-[11px]">
+            {/* Active Channel Details Bar & Action Controls */}
+            <div className="flex flex-wrap items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg bg-slate-900/70 border border-slate-800 text-[11px]">
               <div className="text-slate-300 flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 <span>
-                  Đang xem/sửa: <strong className="text-white">{activeMetricsChannel === 'ALL' ? 'Tổng Hợp Toàn Bộ 2 Kênh' : activeMetricsChannel}</strong>
+                  Đang xem: <strong className="text-white">{activeMetricsChannel === 'ALL' ? 'Tổng Hợp Cả 2 Kênh (7 Ngày)' : `${activeMetricsChannel} (Phát sinh tuần)`}</strong>
                 </span>
               </div>
-              {activeMetricsChannel === 'ALL' && (
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={handleResetToWeeklyStandardMetrics}
+                  className="px-2 py-0.5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[10px] text-cyan-300 font-medium flex items-center gap-1 transition-all"
+                  title="Khôi phục thông số tăng trưởng chuẩn trong 1 tuần (Tuyến Hòa: +280 follow, Fan Ba Làng: +140 follow)"
+                >
+                  <RotateCcw className="w-2.5 h-2.5 text-cyan-400" />
+                  <span>🔄 Số Chuẩn Tuần</span>
+                </button>
                 <button
                   type="button"
                   onClick={handleAutoCalculateTotalMetrics}
                   className="px-2 py-0.5 rounded-md bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-[10px] text-emerald-300 font-bold flex items-center gap-1 transition-all"
-                  title="Tự động cộng dồn số liệu từ Kênh Tuyến Hòa và Fan Ba Làng"
+                  title="Tự động cộng dồn số liệu tuần từ Kênh Tuyến Hòa và Fan Ba Làng"
                 >
                   <Zap className="w-2.5 h-2.5 text-amber-400" />
                   <span>⚡ Tính Tổng 2 Kênh</span>
                 </button>
-              )}
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -1946,43 +2028,66 @@ V. CAM KẾT HÀNH ĐỘNG TUẦN TỚI:
               <div className="space-y-1">
                 <span className="text-[11px] font-medium text-slate-300 flex items-center gap-1">
                   <Eye className="w-3.5 h-3.5 text-cyan-400" />
-                  Lượt xem (Views)
+                  Lượt xem trong tuần (Views)
                 </span>
                 <input
                   type="text"
                   value={channelMetricsMap[activeMetricsChannel]?.views ?? metrics.views}
                   onChange={(e) => handleUpdateCurrentChannelMetric('views', e.target.value)}
-                  placeholder={activeMetricsChannel === 'Fan Ba Làng TH' ? 'Vd: 110,500' : 'Vd: 215,000'}
+                  placeholder={activeMetricsChannel === 'Fan Ba Làng TH' ? 'Vd: 19,800' : (activeMetricsChannel === 'ALL' ? 'Vd: 58,300' : 'Vd: 38,500')}
                   className="w-full px-3 py-2 bg-slate-900/90 border border-slate-700/80 rounded-xl text-xs font-mono font-bold text-cyan-300 focus:outline-none focus:border-cyan-500 transition-colors"
                 />
               </div>
 
-              {/* Followers */}
+              {/* Followers with quick chips */}
               <div className="space-y-1">
                 <span className="text-[11px] font-medium text-slate-300 flex items-center gap-1">
                   <Users className="w-3.5 h-3.5 text-purple-400" />
-                  Follow mới (Followers)
+                  Follow tăng trong tuần (Followers)
                 </span>
                 <input
                   type="text"
                   value={channelMetricsMap[activeMetricsChannel]?.followers ?? metrics.followers}
                   onChange={(e) => handleUpdateCurrentChannelMetric('followers', e.target.value)}
-                  placeholder={activeMetricsChannel === 'Fan Ba Làng TH' ? 'Vd: +1,650' : 'Vd: +3,600'}
+                  placeholder={activeMetricsChannel === 'Fan Ba Làng TH' ? 'Vd: +140' : (activeMetricsChannel === 'ALL' ? 'Vd: +420' : 'Vd: +280')}
                   className="w-full px-3 py-2 bg-slate-900/90 border border-slate-700/80 rounded-xl text-xs font-mono font-bold text-purple-300 focus:outline-none focus:border-purple-500 transition-colors"
                 />
+                {/* Quick Select Chips */}
+                <div className="flex items-center gap-1 pt-0.5 flex-wrap">
+                  <span className="text-[9px] text-slate-400">Chọn nhanh:</span>
+                  {(activeMetricsChannel === 'Fan Ba Làng TH'
+                    ? ['+100', '+120', '+140', '+160', '+180']
+                    : activeMetricsChannel === 'ALL'
+                    ? ['+300', '+370', '+420', '+480', '+530']
+                    : ['+200', '+250', '+280', '+320', '+350']
+                  ).map((chip) => (
+                    <button
+                      key={chip}
+                      type="button"
+                      onClick={() => handleUpdateCurrentChannelMetric('followers', chip)}
+                      className={`px-1.5 py-0.5 rounded text-[9px] font-mono border transition-all ${
+                        (channelMetricsMap[activeMetricsChannel]?.followers || '').includes(chip.replace('+', ''))
+                          ? 'bg-purple-600/40 border-purple-400 text-white font-bold'
+                          : 'bg-slate-900 border-slate-700/60 text-slate-300 hover:border-slate-500'
+                      }`}
+                    >
+                      {chip}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Reach */}
               <div className="space-y-1">
                 <span className="text-[11px] font-medium text-slate-300 flex items-center gap-1">
                   <Radio className="w-3.5 h-3.5 text-emerald-400" />
-                  Độ phủ / Tiếp cận (Reach)
+                  Độ phủ trong tuần (Reach)
                 </span>
                 <input
                   type="text"
                   value={channelMetricsMap[activeMetricsChannel]?.reach ?? metrics.reach}
                   onChange={(e) => handleUpdateCurrentChannelMetric('reach', e.target.value)}
-                  placeholder={activeMetricsChannel === 'Fan Ba Làng TH' ? 'Vd: 100,000' : 'Vd: 148,000'}
+                  placeholder={activeMetricsChannel === 'Fan Ba Làng TH' ? 'Vd: 14,500' : (activeMetricsChannel === 'ALL' ? 'Vd: 42,500' : 'Vd: 28,000')}
                   className="w-full px-3 py-2 bg-slate-900/90 border border-slate-700/80 rounded-xl text-xs font-mono font-bold text-emerald-300 focus:outline-none focus:border-emerald-500 transition-colors"
                 />
               </div>
@@ -1991,13 +2096,13 @@ V. CAM KẾT HÀNH ĐỘNG TUẦN TỚI:
               <div className="space-y-1">
                 <span className="text-[11px] font-medium text-slate-300 flex items-center gap-1">
                   <Heart className="w-3.5 h-3.5 text-rose-400" />
-                  Lượt tương tác (Engagement)
+                  Lượt tương tác tuần (Engagement)
                 </span>
                 <input
                   type="text"
                   value={channelMetricsMap[activeMetricsChannel]?.engagement ?? metrics.engagement}
                   onChange={(e) => handleUpdateCurrentChannelMetric('engagement', e.target.value)}
-                  placeholder={activeMetricsChannel === 'Fan Ba Làng TH' ? 'Vd: 10,200' : 'Vd: 22,400'}
+                  placeholder={activeMetricsChannel === 'Fan Ba Làng TH' ? 'Vd: 1,680' : (activeMetricsChannel === 'ALL' ? 'Vd: 5,130' : 'Vd: 3,450')}
                   className="w-full px-3 py-2 bg-slate-900/90 border border-slate-700/80 rounded-xl text-xs font-mono font-bold text-rose-300 focus:outline-none focus:border-rose-500 transition-colors"
                 />
               </div>
@@ -2022,36 +2127,58 @@ V. CAM KẾT HÀNH ĐỘNG TUẦN TỚI:
             </div>
 
             {/* Quick comparison between the 2 channels */}
-            <div className="p-2 rounded-xl bg-slate-950/70 border border-slate-800/80 text-[10px] space-y-1">
+            <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800/80 text-[10px] space-y-1.5">
               <div className="text-slate-400 font-semibold flex items-center justify-between">
-                <span>Đối sánh 2 kênh TikTok tuần này:</span>
-                <span className="text-cyan-400">Click để chuyển kênh</span>
+                <span>Đối sánh tăng trưởng 2 kênh TikTok trong 1 tuần (7 ngày):</span>
+                <span className="text-cyan-400">Click ô để chuyển kênh</span>
               </div>
-              <div className="grid grid-cols-2 gap-2 pt-0.5">
+              <div className="grid grid-cols-3 gap-2 pt-0.5">
                 <div
                   onClick={() => handleSwitchChannelMetricsTab('TikTok Ba Làng Tuyến Hòa')}
-                  className={`p-1.5 rounded-lg border cursor-pointer transition-all ${
+                  className={`p-2 rounded-lg border cursor-pointer transition-all ${
                     activeMetricsChannel === 'TikTok Ba Làng Tuyến Hòa'
                       ? 'bg-pink-950/40 border-pink-500/50 text-pink-200'
                       : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700'
                   }`}
                 >
-                  <div className="font-bold truncate text-[10px]">1. Ba Làng Tuyến Hòa</div>
-                  <div className="font-mono text-[10px] text-cyan-300">
-                    {channelMetricsMap['TikTok Ba Làng Tuyến Hòa']?.views || '215k'} view • {channelMetricsMap['TikTok Ba Làng Tuyến Hòa']?.followers || '+3.6k'} follow
+                  <div className="font-bold truncate text-[10px] text-slate-200">1. Ba Làng Tuyến Hòa</div>
+                  <div className="font-mono text-[10px] text-cyan-300 mt-0.5">
+                    {channelMetricsMap['TikTok Ba Làng Tuyến Hòa']?.views || '38,500'} view
+                  </div>
+                  <div className="font-mono text-[10px] text-emerald-300 font-bold">
+                    {channelMetricsMap['TikTok Ba Làng Tuyến Hòa']?.followers || '+280'} follow/tuần
                   </div>
                 </div>
                 <div
                   onClick={() => handleSwitchChannelMetricsTab('Fan Ba Làng TH')}
-                  className={`p-1.5 rounded-lg border cursor-pointer transition-all ${
+                  className={`p-2 rounded-lg border cursor-pointer transition-all ${
                     activeMetricsChannel === 'Fan Ba Làng TH'
                       ? 'bg-purple-950/40 border-purple-500/50 text-purple-200'
                       : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700'
                   }`}
                 >
-                  <div className="font-bold truncate text-[10px]">2. Fan Ba Làng TH</div>
-                  <div className="font-mono text-[10px] text-purple-300">
-                    {channelMetricsMap['Fan Ba Làng TH']?.views || '110.5k'} view • {channelMetricsMap['Fan Ba Làng TH']?.followers || '+1.65k'} follow
+                  <div className="font-bold truncate text-[10px] text-slate-200">2. Fan Ba Làng TH</div>
+                  <div className="font-mono text-[10px] text-purple-300 mt-0.5">
+                    {channelMetricsMap['Fan Ba Làng TH']?.views || '19,800'} view
+                  </div>
+                  <div className="font-mono text-[10px] text-emerald-300 font-bold">
+                    {channelMetricsMap['Fan Ba Làng TH']?.followers || '+140'} follow/tuần
+                  </div>
+                </div>
+                <div
+                  onClick={() => handleSwitchChannelMetricsTab('ALL')}
+                  className={`p-2 rounded-lg border cursor-pointer transition-all ${
+                    activeMetricsChannel === 'ALL'
+                      ? 'bg-emerald-950/40 border-emerald-500/50 text-emerald-200'
+                      : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700'
+                  }`}
+                >
+                  <div className="font-bold truncate text-[10px] text-emerald-300">📊 Tổng 2 Kênh</div>
+                  <div className="font-mono text-[10px] text-cyan-300 mt-0.5">
+                    {channelMetricsMap['ALL']?.views || '58,300'} view
+                  </div>
+                  <div className="font-mono text-[10px] text-emerald-300 font-bold">
+                    {channelMetricsMap['ALL']?.followers || '+420'} follow/tuần
                   </div>
                 </div>
               </div>
@@ -2310,7 +2437,7 @@ V. CAM KẾT HÀNH ĐỘNG TUẦN TỚI:
                       <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
                         <div className="text-[10px] text-slate-400 flex items-center gap-1">
                           <Eye className="w-3 h-3 text-cyan-400" />
-                          <span>Views ({selectedChannel.includes('Fan') ? 'Fan Ba Làng' : 'Tuyến Hòa'})</span>
+                          <span>Views Trong Tuần ({selectedChannel.includes('Fan') ? 'Fan Ba Làng' : 'Tuyến Hòa'})</span>
                         </div>
                         <div className="text-sm font-black text-cyan-300 font-mono mt-0.5">
                           {channelMetricsMap[selectedChannel]?.views || channelScans[selectedChannel]?.totalViews || metrics.views}
@@ -2319,16 +2446,16 @@ V. CAM KẾT HÀNH ĐỘNG TUẦN TỚI:
                       <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
                         <div className="text-[10px] text-slate-400 flex items-center gap-1">
                           <Heart className="w-3 h-3 text-pink-400" />
-                          <span>Tổng Tim (Likes)</span>
+                          <span>Tim Tuần (Likes)</span>
                         </div>
                         <div className="text-sm font-black text-pink-300 font-mono mt-0.5">
-                          {channelMetricsMap[selectedChannel]?.likes || channelScans[selectedChannel]?.totalLikes || channelStrategicReview?.quickMetricsSummary?.totalLikes || '18,900'}
+                          {channelMetricsMap[selectedChannel]?.likes || channelScans[selectedChannel]?.totalLikes || channelStrategicReview?.quickMetricsSummary?.totalLikes || (selectedChannel.includes('Fan') ? '1,380' : '2,860')}
                         </div>
                       </div>
                       <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
                         <div className="text-[10px] text-slate-400 flex items-center gap-1">
                           <Users className="w-3 h-3 text-emerald-400" />
-                          <span>Follow Mới</span>
+                          <span>Follow Tăng Trong Tuần</span>
                         </div>
                         <div className="text-sm font-black text-emerald-300 font-mono mt-0.5">
                           {channelMetricsMap[selectedChannel]?.followers || channelScans[selectedChannel]?.totalFollowersGained || metrics.followers}
@@ -2337,7 +2464,7 @@ V. CAM KẾT HÀNH ĐỘNG TUẦN TỚI:
                       <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
                         <div className="text-[10px] text-slate-400 flex items-center gap-1">
                           <TrendingUp className="w-3 h-3 text-purple-400" />
-                          <span>Tương Tác</span>
+                          <span>Tương Tác Tuần</span>
                         </div>
                         <div className="text-sm font-black text-purple-300 font-mono mt-0.5">
                           {channelMetricsMap[selectedChannel]?.engagement || channelScans[selectedChannel]?.totalEngagement || metrics.engagement}
