@@ -7,10 +7,13 @@ interface MetricCard3DProps {
   title: string;
   value: string | number;
   subValue?: string;
+  subtext?: string; // alias
   trend?: string;
+  badge?: string; // alias
   trendUp?: boolean;
   icon: LucideIcon;
-  colorScheme: 'cyan' | 'purple' | 'emerald' | 'amber' | 'rose';
+  colorScheme?: 'cyan' | 'purple' | 'emerald' | 'amber' | 'rose' | 'indigo' | 'blue';
+  color?: string; // alias
   progress?: number; // 0 to 100
 }
 
@@ -19,10 +22,13 @@ export const MetricCard3D: React.FC<MetricCard3DProps> = ({
   title,
   value,
   subValue,
+  subtext,
   trend,
+  badge,
   trendUp = true,
   icon: Icon,
   colorScheme,
+  color,
   progress,
 }) => {
   const schemeStyles = {
@@ -68,12 +74,23 @@ export const MetricCard3D: React.FC<MetricCard3DProps> = ({
     },
   };
 
-  const style = schemeStyles[colorScheme];
+  const rawColor = String(colorScheme || color || 'cyan').toLowerCase();
+  const schemeKey = (
+    rawColor === 'indigo' || rawColor === 'blue'
+      ? 'purple'
+      : ['cyan', 'purple', 'emerald', 'amber', 'rose'].includes(rawColor)
+      ? rawColor
+      : 'cyan'
+  ) as 'cyan' | 'purple' | 'emerald' | 'amber' | 'rose';
+
+  const style = schemeStyles[schemeKey] || schemeStyles.cyan;
+  const displaySub = subValue || subtext;
+  const displayTrend = trend || badge;
 
   return (
     <TiltCard
       id={id}
-      glowColor={colorScheme === 'rose' ? 'default' : colorScheme}
+      glowColor={schemeKey === 'rose' ? 'default' : schemeKey}
       className={`p-5 overflow-hidden ${style.shadow}`}
     >
       <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${style.glow} rounded-full blur-2xl pointer-events-none`} />
@@ -87,9 +104,9 @@ export const MetricCard3D: React.FC<MetricCard3DProps> = ({
             <span className="text-3xl font-extrabold text-white tracking-tight font-display">
               {value}
             </span>
-            {subValue && (
+            {displaySub && (
               <span className="text-xs text-slate-400 font-medium">
-                {subValue}
+                {displaySub}
               </span>
             )}
           </div>
@@ -115,10 +132,10 @@ export const MetricCard3D: React.FC<MetricCard3DProps> = ({
         </div>
       )}
 
-      {trend && (
+      {displayTrend && (
         <div className="mt-3 flex items-center gap-1.5 text-xs">
           <span className={`font-semibold ${trendUp ? 'text-emerald-400' : 'text-rose-400'}`}>
-            {trendUp ? '▲' : '▼'} {trend}
+            {trendUp ? '▲' : '▼'} {displayTrend}
           </span>
           <span className="text-slate-400">so với kỳ trước</span>
         </div>

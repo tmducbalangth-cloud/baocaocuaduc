@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Calendar,
   Layers,
@@ -13,13 +13,40 @@ import {
   ShieldCheck,
   AlertTriangle,
   ArrowUpRight,
-  BarChart2
+  BarChart2,
+  ChevronRight,
+  Filter,
+  CheckCircle
 } from 'lucide-react';
 import { TaskItem, DailyReport, User, ViewerFeedback } from '../types';
 import { TiltCard } from './TiltCard';
 import { MetricCard3D } from './MetricCard3D';
 import { ViewerEvaluationSection } from './ViewerEvaluationSection';
 import { calculateMonthWorkHours } from '../utils/workHours';
+
+export const parseTaskDate = (dateStr?: string): { year: number; month: number; day: number } | null => {
+  if (!dateStr) return null;
+  const clean = dateStr.trim();
+  // Check ISO / YYYY-MM-DD
+  const isoMatch = clean.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if (isoMatch) {
+    return {
+      year: parseInt(isoMatch[1], 10),
+      month: parseInt(isoMatch[2], 10),
+      day: parseInt(isoMatch[3], 10),
+    };
+  }
+  // Check DD-MM-YYYY or DD/MM/YYYY
+  const dmyMatch = clean.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+  if (dmyMatch) {
+    return {
+      year: parseInt(dmyMatch[3], 10),
+      month: parseInt(dmyMatch[2], 10),
+      day: parseInt(dmyMatch[1], 10),
+    };
+  }
+  return null;
+};
 
 interface QuarterlyReportViewProps {
   selectedDate: string;
@@ -44,76 +71,106 @@ export const QuarterlyReportView: React.FC<QuarterlyReportViewProps> = ({
   onOpenLoginModal,
   onClearMockFeedbacks,
 }) => {
-  const d = new Date(selectedDate);
-  const currentMonth = d.getMonth() + 1; // 1 - 12
-  const defaultQuarter = Math.ceil(currentMonth / 3); // 1, 2, 3, or 4
+  const initialParsed = parseTaskDate(selectedDate);
+  const initialYear = initialParsed?.year || 2026;
+  const initialMonth = initialParsed?.month || 9;
+  const initialQuarter = Math.ceil(initialMonth / 3);
 
-  const [selectedQuarter, setSelectedQuarter] = useState<number>(defaultQuarter);
-  const [selectedYear, setSelectedYear] = useState<number>(d.getFullYear());
+  const [selectedQuarter, setSelectedQuarter] = useState<number>(initialQuarter);
+  const [selectedYear, setSelectedYear] = useState<number>(initialYear);
+  const [activeMonthFilter, setActiveMonthFilter] = useState<number | 'all'>('all');
+
+  // Synchronize when selectedDate changes in parent
+  useEffect(() => {
+    const parsed = parseTaskDate(selectedDate);
+    if (parsed) {
+      setSelectedYear(parsed.year);
+      setSelectedQuarter(Math.ceil(parsed.month / 3));
+    }
+  }, [selectedDate]);
 
   // Months in the selected quarter
-  const quarterMonths = [
+  const quarterMonths = useMemo(() => [
     (selectedQuarter - 1) * 3 + 1,
     (selectedQuarter - 1) * 3 + 2,
     (selectedQuarter - 1) * 3 + 3,
-  ];
+  ], [selectedQuarter]);
 
   const quarterName = `Quý ${selectedQuarter}/${selectedYear} (Tháng ${quarterMonths.join(', ')})`;
 
   // Filter tasks belonging to the 3 months of this quarter
-  const quarterTasks = allTasks.filter((t) => {
-    if (!t.date) return false;
-    const [yStr, mStr] = t.date.split('-');
-    const taskYear = parseInt(yStr);
-    const taskMonth = parseInt(mStr);
-    return taskYear === selectedYear && quarterMonths.includes(taskMonth);
-  });
+  const quarterTasks = useMemo(() => {
+    return allTasks.filter((t) => {
+      const parsed = parseTaskDate(t.date);
+      if (!parsed) return false;
+      return parsed.year === selectedYear && quarterMonths.includes(parsed.month);
+    });
+  }, [allTasks, selectedYear, quarterMonths]);
 
-  const baseTasksCount = quarterTasks.length > 0 ? quarterTasks.length : 85;
-  const baseCompletedCount = quarterTasks.length > 0
-    ? quarterTasks.filter((t) => t.status === 'completed' || t.completionPercent >= 100).length
-    : 81;
+  const hasRealTasks = quarterTasks.length > 0;
+  const baseTasksCount = quarterTasks.length;
+  const baseCompletedCount = quarterTasks.filter(
+    (t) => t.status === 'completed' || (t.completionPercent ?? 0) >= 100
+  ).length;
 
   // Tính chuẩn giờ làm việc cho từng tháng trong quý (8h/ngày, nghỉ Chủ Nhật)
-  const quarterWorkInfos = quarterMonths.map((mNum) => {
-    const tasksInMonth = quarterTasks.filter((t) => {
-      if (!t.date) return false;
-      const [, mStr] = t.date.split('-');
-      return parseInt(mStr) === mNum;
+  const quarterWorkInfos = useMemo(() => {
+    return quarterMonths.map((mNum) => {
+      const tasksInMonth = quarterTasks.filter((t) => {
+        const parsed = parseTaskDate(t.date);
+        return parsed && parsed.month === mNum;
+      });
+      const rawHours = tasksInMonth.reduce((s, t) => s + (Number(t.timeSpentHours) || 0), 0);
+      return {
+        mNum,
+        tasksInMonth,
+        workInfo: calculateMonthWorkHours(selectedYear, mNum, rawHours),
+      };
     });
-    const rawHours = tasksInMonth.reduce((s, t) => s + (Number(t.timeSpentHours) || 0), 0);
-    return {
-      mNum,
-      tasksInMonth,
-      workInfo: calculateMonthWorkHours(selectedYear, mNum, rawHours),
-    };
-  });
+  }, [quarterMonths, quarterTasks, selectedYear]);
 
   const totalQuarterStandardHours = quarterWorkInfos.reduce((s, item) => s + item.workInfo.standardWorkingHours, 0);
   const totalQuarterWorkingDays = quarterWorkInfos.reduce((s, item) => s + item.workInfo.workingDaysCount, 0);
   const totalQuarterSundays = quarterWorkInfos.reduce((s, item) => s + item.workInfo.sundaysCount, 0);
   const baseTotalHours = totalQuarterStandardHours;
 
-  const completionRate = Math.round((baseCompletedCount / baseTasksCount) * 100);
-  const efficiencyScore = 96;
+  const completionRate = baseTasksCount > 0
+    ? Math.round((baseCompletedCount / baseTasksCount) * 100)
+    : 100;
+  
+  const efficiencyScore = baseTasksCount > 0
+    ? Math.min(100, Math.round(70 + completionRate * 0.28))
+    : 95;
 
   // Monthly breakdown in the selected quarter
-  const monthlyStats = quarterWorkInfos.map((item, idx) => {
-    const count = item.tasksInMonth.length || (25 + idx * 4);
-    const done = item.tasksInMonth.filter((t) => t.status === 'completed' || t.completionPercent >= 100).length || (24 + idx * 4);
-    const rate = Math.round((done / count) * 100);
+  const monthlyStats = useMemo(() => {
+    return quarterWorkInfos.map((item, idx) => {
+      const count = item.tasksInMonth.length;
+      const done = item.tasksInMonth.filter((t) => t.status === 'completed' || (t.completionPercent ?? 0) >= 100).length;
+      const rate = count > 0 ? Math.round((done / count) * 100) : 100;
 
-    return {
-      month: `Tháng ${item.mNum}`,
-      monthNum: item.mNum,
-      tasks: count,
-      completed: done,
-      hours: item.workInfo.actualWorkingHours,
-      score: 90 + idx * 3,
-      completionRate: rate,
-      workingDays: item.workInfo.workingDaysCount,
-    };
-  });
+      return {
+        month: `Tháng ${item.mNum}`,
+        monthNum: item.mNum,
+        tasks: count,
+        completed: done,
+        hours: item.workInfo.actualWorkingHours,
+        score: count > 0 ? Math.min(100, 75 + Math.round(rate * 0.23)) : 92,
+        completionRate: rate,
+        workingDays: item.workInfo.workingDaysCount,
+        taskList: item.tasksInMonth,
+      };
+    });
+  }, [quarterWorkInfos]);
+
+  // Tasks to display in the detailed list
+  const filteredDisplayTasks = useMemo(() => {
+    if (activeMonthFilter === 'all') return quarterTasks;
+    return quarterTasks.filter((t) => {
+      const parsed = parseTaskDate(t.date);
+      return parsed && parsed.month === activeMonthFilter;
+    });
+  }, [quarterTasks, activeMonthFilter]);
 
   // Quarterly OKRs / Strategic Targets
   const quarterlyOKRs = [
@@ -134,9 +191,9 @@ export const QuarterlyReportView: React.FC<QuarterlyReportViewProps> = ({
     {
       title: 'Tăng trưởng Năng suất & Giảm Thiểu Tắc Nghẽn',
       target: 'Hiệu suất đạt ≥ 95 điểm',
-      current: 'Đạt 96/100 điểm hiệu suất trung bình',
-      progress: 98,
-      status: 'on_track' as const,
+      current: `Đạt ${efficiencyScore}/100 điểm hiệu suất trung bình`,
+      progress: efficiencyScore >= 95 ? 100 : Math.round((efficiencyScore / 95) * 100),
+      status: (efficiencyScore >= 95 ? 'completed' : 'on_track') as 'completed' | 'on_track',
     },
     {
       title: 'Mở rộng kênh phân phối Đại lý & Khách hàng Doanh nghiệp',
@@ -219,41 +276,78 @@ export const QuarterlyReportView: React.FC<QuarterlyReportViewProps> = ({
       {/* 3D Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard3D
+          id="metric-quarter-tasks"
           title="Tổng Đầu Việc Quý"
-          value={`${baseTasksCount} Tasks`}
-          subtext={`Hoàn thành ${baseCompletedCount}/${baseTasksCount} việc`}
+          value={`${baseTasksCount} Việc`}
+          subValue={`Hoàn thành ${baseCompletedCount}/${baseTasksCount} việc`}
           icon={Layers}
-          color="cyan"
-          badge="+18% vs Quý trước"
+          colorScheme="cyan"
+          progress={baseTasksCount > 0 ? completionRate : 0}
+          trend={hasRealTasks ? `${completionRate}% hoàn thành` : 'Chờ dữ liệu'}
+          trendUp={completionRate >= 80}
         />
 
         <MetricCard3D
+          id="metric-quarter-okr"
           title="Tỷ Lệ Hoàn Thành OKR"
           value={`${completionRate}%`}
-          subtext="Vượt 5% chỉ tiêu bàn giao"
+          subValue={completionRate >= 90 ? 'Vượt chỉ tiêu bàn giao' : 'Đang bám sát tiến độ'}
           icon={Target}
-          color="emerald"
-          badge="Đạt chuẩn A+"
+          colorScheme="emerald"
+          progress={completionRate}
+          trend={completionRate >= 90 ? 'Đạt chuẩn A+' : 'Đang thực hiện'}
+          trendUp={true}
         />
 
         <MetricCard3D
+          id="metric-quarter-hours"
           title="Tổng Giờ Làm Việc Quý"
           value={`${baseTotalHours}h`}
-          subtext={`Chuẩn ${baseTotalHours}h (${totalQuarterWorkingDays} ngày x 8h, nghỉ ${totalQuarterSundays} CN)`}
+          subValue={`Chuẩn ${baseTotalHours}h (${totalQuarterWorkingDays} ngày x 8h, nghỉ ${totalQuarterSundays} CN)`}
           icon={Clock}
-          color="indigo"
-          badge="100% định mức"
+          colorScheme="purple"
+          progress={100}
+          trend="100% định mức"
+          trendUp={true}
         />
 
         <MetricCard3D
+          id="metric-quarter-kpi"
           title="Chỉ Số Hiệu Suất (KPI)"
           value={`${efficiencyScore}/100`}
-          subtext="Đạt danh hiệu Xuất Sắc"
+          subValue={efficiencyScore >= 90 ? 'Đạt danh hiệu Xuất Sắc' : 'Đạt danh hiệu Tốt'}
           icon={Award}
-          color="purple"
-          badge="Top 1 Ba Làng TH"
+          colorScheme="amber"
+          progress={efficiencyScore}
+          trend="Ba Làng TH Pro"
+          trendUp={true}
         />
       </div>
+
+      {!hasRealTasks && (
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-amber-200 text-xs">
+          <div className="flex items-center gap-2.5">
+            <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
+            <div>
+              <p className="font-bold text-amber-100">
+                Chưa có đầu việc nào được ghi nhận trong Quý {selectedQuarter}/{selectedYear}
+              </p>
+              <p className="text-[11px] text-amber-300/80">
+                Các đầu việc hiện có thuộc Quý 3/2026 (Tháng 7, 8, 9). Bạn có thể chuyển nhanh sang Quý 3 để xem báo cáo đầy đủ.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              setSelectedYear(2026);
+              setSelectedQuarter(3);
+            }}
+            className="px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 font-bold hover:bg-amber-400 transition-colors shrink-0 shadow-sm text-xs cursor-pointer"
+          >
+            Xem Quý 3/2026
+          </button>
+        </div>
+      )}
 
       {/* Monthly Breakdown in Quarter & AI Strategic Review */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -274,7 +368,12 @@ export const QuarterlyReportView: React.FC<QuarterlyReportViewProps> = ({
               {monthlyStats.map((ms) => (
                 <div
                   key={ms.month}
-                  className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 hover:border-cyan-500/40 transition-all group"
+                  onClick={() => setActiveMonthFilter(activeMonthFilter === ms.monthNum ? 'all' : ms.monthNum)}
+                  className={`p-4 rounded-2xl border transition-all group cursor-pointer ${
+                    activeMonthFilter === ms.monthNum
+                      ? 'bg-cyan-950/40 border-cyan-500/60 shadow-[0_0_15px_rgba(6,182,212,0.15)]'
+                      : 'bg-slate-950/70 border-slate-800 hover:border-cyan-500/40'
+                  }`}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors">
@@ -354,6 +453,82 @@ export const QuarterlyReportView: React.FC<QuarterlyReportViewProps> = ({
               ))}
             </div>
           </div>
+
+          {/* Real Task List in Quarter */}
+          {hasRealTasks && (
+            <div className="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-3 border-b border-slate-800">
+                <div className="flex items-center gap-2.5">
+                  <Layers className="w-5 h-5 text-indigo-400" />
+                  <div>
+                    <h4 className="text-sm font-bold text-white uppercase tracking-wider font-display">
+                      Danh Sách Công Việc Trong Quý {selectedQuarter}
+                    </h4>
+                    <span className="text-xs text-slate-400">
+                      Hiển thị {filteredDisplayTasks.length} / {quarterTasks.length} đầu việc
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <button
+                    onClick={() => setActiveMonthFilter('all')}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                      activeMonthFilter === 'all'
+                        ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                        : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                    }`}
+                  >
+                    Tất cả quý
+                  </button>
+                  {quarterMonths.map((mNum) => (
+                    <button
+                      key={mNum}
+                      onClick={() => setActiveMonthFilter(mNum)}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                        activeMonthFilter === mNum
+                          ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                          : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                      }`}
+                    >
+                      Tháng {mNum}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2 max-h-96 overflow-y-auto pr-1 custom-scrollbar">
+                {filteredDisplayTasks.map((t) => (
+                  <div
+                    key={t.id}
+                    className="p-3 rounded-2xl bg-slate-950/70 border border-slate-800/80 hover:border-slate-700 flex items-start justify-between gap-3 text-xs"
+                  >
+                    <div className="space-y-1 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                          t.status === 'completed' || (t.completionPercent ?? 0) >= 100
+                            ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30'
+                            : 'bg-amber-500/10 text-amber-300 border border-amber-500/30'
+                        }`}>
+                          {t.status === 'completed' || (t.completionPercent ?? 0) >= 100 ? 'Hoàn thành' : 'Đang xử lý'}
+                        </span>
+                        <span className="font-bold text-white">{t.title}</span>
+                        <span className="text-slate-500">•</span>
+                        <span className="text-slate-400">{t.date}</span>
+                      </div>
+                      {t.description && (
+                        <p className="text-slate-400 text-[11px] line-clamp-1">{t.description}</p>
+                      )}
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="text-cyan-300 font-bold block">{t.timeSpentHours || 1}h</span>
+                      <span className="text-[10px] text-slate-500">{t.category}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* AI Quarterly Synthesis & Strategic Highlights */}

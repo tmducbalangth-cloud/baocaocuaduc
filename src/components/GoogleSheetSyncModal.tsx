@@ -70,34 +70,24 @@ export const GoogleSheetSyncModal: React.FC<GoogleSheetSyncModalProps> = ({
       idVariants.push(rawId + 'M');
     }
 
-    // Potential endpoints to read public/shared sheet
-    const endpoints: string[] = [];
-    for (const sid of idVariants) {
-      endpoints.push(
-        `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(selectedSheetTab)}`,
-        `https://docs.google.com/spreadsheets/d/${sid}/export?format=csv&sheet=${encodeURIComponent(selectedSheetTab)}`,
-        `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:csv`,
-        `https://docs.google.com/spreadsheets/d/${sid}/export?format=csv`
-      );
-    }
-
     let success = false;
     let fetchedCsvText = '';
 
-    for (const url of endpoints) {
-      try {
-        const res = await fetch(url);
-        if (res.ok) {
-          const text = await res.text();
-          if (text && text.trim().length > 10 && !text.includes('<!DOCTYPE html>')) {
-            fetchedCsvText = text;
-            success = true;
-            break;
-          }
+    try {
+      const serverRes = await fetch('/api/google-sheet/fetch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: rawId, sheetName: selectedSheetTab }),
+      });
+      if (serverRes.ok) {
+        const json = await serverRes.json();
+        if (json.csvText && json.csvText.trim().length > 10) {
+          fetchedCsvText = json.csvText;
+          success = true;
         }
-      } catch (e) {
-        console.warn('Endpoint failed:', url, e);
       }
+    } catch (err) {
+      console.warn('Server fetch Google Sheet failed:', err);
     }
 
     if (!success || !fetchedCsvText) {

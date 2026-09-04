@@ -27,6 +27,25 @@ function getGeminiClient(): GoogleGenAI | null {
   });
 }
 
+// Resilient Gemini content generator with model fallback
+async function callGeminiWithFallback(ai: GoogleGenAI, options: { contents: any; config?: any }) {
+  const models = ['gemini-3.1-flash-lite', 'gemini-3.8-flash', 'gemini-flash-latest'];
+  let lastError: any = null;
+  for (const model of models) {
+    try {
+      const res = await ai.models.generateContent({
+        ...options,
+        model,
+      });
+      return res;
+    } catch (err: any) {
+      lastError = err;
+      console.warn(`[Gemini Fallback] Model ${model} encountered issue:`, err.message || err);
+    }
+  }
+  throw lastError;
+}
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -520,8 +539,7 @@ Hãy trả về kết quả theo ĐÚNG định dạng JSON với cấu trúc sa
   }
 }`;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.7-flash',
+    const response = await callGeminiWithFallback(ai, {
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
@@ -596,8 +614,7 @@ Hãy phân tích toàn diện, đo lường cụ thể và trả về JSON theo 
   }
 }`;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.7-flash',
+    const response = await callGeminiWithFallback(ai, {
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
@@ -764,8 +781,7 @@ Trả về kết quả chuẩn JSON theo đúng định dạng sau (không chứ
   "suggestedScore": 95
 }`;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.7-flash',
+    const response = await callGeminiWithFallback(ai, {
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
@@ -780,10 +796,139 @@ Trả về kết quả chuẩn JSON theo đúng định dạng sau (không chứ
   }
 });
 
+// Helper: Extract Spreadsheet ID & GID from any Google Sheets URL
+function extractGoogleSheetInfo(input: string): { sheetId: string; gid: string } {
+  let sheetId = input.trim();
+  let gid = '0';
+
+  // Check if it's a URL
+  const matchId = input.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+  if (matchId && matchId[1]) {
+    sheetId = matchId[1];
+  }
+
+  // Check for gid in query or hash
+  const matchGid = input.match(/[?&#]gid=([0-9]+)/);
+  if (matchGid && matchGid[1]) {
+    gid = matchGid[1];
+  }
+
+  return { sheetId, gid };
+}
+
+// API: Fetch Google Sheets data as CSV cleanly on server (bypassing CORS)
+app.post('/api/google-sheet/fetch', async (req, res) => {
+  try {
+    const { url, sheetName } = req.body;
+    if (!url || typeof url !== 'string') {
+      return res.status(400).json({ error: 'Vui lòng cung cấp liên kết Google Sheets.' });
+    }
+
+    const { sheetId, gid } = extractGoogleSheetInfo(url);
+    if (!sheetId) {
+      return res.status(400).json({ error: 'Không tìm thấy ID bảng tính trong liên kết Google Sheets.' });
+    }
+
+    const endpoints: string[] = [
+      `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`,
+      `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&gid=${gid}`,
+    ];
+
+    if (sheetName) {
+      endpoints.unshift(
+        `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`,
+        `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&sheet=${encodeURIComponent(sheetName)}`
+      );
+    }
+
+    endpoints.push(
+      `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`,
+      `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv`
+    );
+
+    let csvText = '';
+    let success = false;
+    let lastError = '';
+
+    for (const endpoint of endpoints) {
+      try {
+        const response = await fetch(endpoint, {
+          redirect: 'follow',
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          },
+        });
+
+        if (response.ok) {
+          const text = await response.text();
+          // Verify it is not an HTML login or error page
+          if (
+            text &&
+            text.trim().length > 0 &&
+            !text.toLowerCase().includes('<!doctype html') &&
+            !text.toLowerCase().includes('<html') &&
+            !text.toLowerCase().includes('accounts.google.com')
+          ) {
+            csvText = text;
+            success = true;
+            break;
+          } else if (text.toLowerCase().includes('accounts.google.com') || text.toLowerCase().includes('sign in')) {
+            lastError = 'Bảng tính Google Sheets này hiện đang ở chế độ Riêng tư (Private). Vui lòng mở Google Sheet -> Bấm "Chia sẻ" (Share) -> Chuyển thành "Bất kỳ ai có đường liên kết này đều có quyền xem" (Anyone with the link can view) rồi thử lại.';
+          }
+        }
+      } catch (err: any) {
+        lastError = err.message || 'Lỗi kết nối';
+      }
+    }
+
+    if (!success) {
+      return res.status(400).json({
+        error: lastError || 'Không thể tải bảng tính từ Google Sheets. Hãy đảm bảo bạn đã mở quyền Xem công khai cho link này.',
+      });
+    }
+
+    // Count non-empty lines
+    const lineCount = csvText.split(/\r\n|\r|\n/).filter((l) => l.trim().length > 0).length;
+
+    return res.json({
+      success: true,
+      spreadsheetId: sheetId,
+      gid,
+      csvText,
+      rowCount: lineCount,
+    });
+  } catch (error: any) {
+    console.error('Error fetching Google Sheet:', error);
+    return res.status(500).json({ error: error.message || 'Lỗi máy chủ khi đọc Google Sheets' });
+  }
+});
+
 // API: Smart text/spreadsheet parser
 app.post('/api/ai/parse-tasks', async (req, res) => {
   try {
-    const { rawText, targetDate } = req.body;
+    let { rawText, targetDate, url } = req.body;
+
+    // If url provided or rawText is a Google Sheets URL, fetch CSV first
+    const potentialUrl = url || (typeof rawText === 'string' && rawText.includes('docs.google.com/spreadsheets') ? rawText.trim() : null);
+    if (potentialUrl && potentialUrl.includes('docs.google.com/spreadsheets')) {
+      try {
+        const { sheetId, gid } = extractGoogleSheetInfo(potentialUrl);
+        const fetchUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+        const sheetRes = await fetch(fetchUrl, {
+          redirect: 'follow',
+          headers: { 'User-Agent': 'Mozilla/5.0' },
+        });
+        if (sheetRes.ok) {
+          const text = await sheetRes.text();
+          if (text && !text.includes('<!DOCTYPE html>') && !text.includes('accounts.google.com')) {
+            rawText = text;
+          }
+        }
+      } catch (fetchErr) {
+        console.warn('Could not auto-fetch Google Sheet URL in parse-tasks:', fetchErr);
+      }
+    }
+
     if (!rawText) {
       return res.status(400).json({ error: 'Nội dung rawText trống' });
     }
@@ -791,52 +936,67 @@ app.post('/api/ai/parse-tasks', async (req, res) => {
     const ai = getGeminiClient();
     if (!ai) {
       // Basic line splitter fallback
-      const lines = rawText.split('\n').filter((l: string) => l.trim().length > 0);
-      const parsedTasks = lines.map((line: string, idx: number) => {
+      const lines = rawText.split(/\r\n|\r|\n/).filter((l: string) => l.trim().length > 0);
+      const parsedTasks = lines.slice(1).map((line: string, idx: number) => {
+        const parts = line.split(',');
+        const title = (parts[1] || parts[0] || '').replace(/^[-*•\d.)\s"]+|["]+$/g, '').trim();
+        const cat = (parts[3] || 'Marketing').replace(/["]/g, '').trim();
+        const qty = parseFloat(parts[4]) || 1;
         return {
           id: `task_parsed_${Date.now()}_${idx}`,
-          title: line.replace(/^[-*•\d.)\s]+/, '').trim(),
-          category: 'Công việc',
+          title: title || `Công việc ${idx + 1}`,
+          category: cat || 'Marketing',
           status: 'completed',
           priority: 'medium',
           date: targetDate || new Date().toISOString().split('T')[0],
-          timeSpentHours: 2,
+          quantity: qty,
+          timeSpentHours: Math.min(4, Math.max(1, qty * 1.2)),
           completionPercent: 100,
-          kpiMetric: 'Hoàn thành theo kế hoạch',
+          kpiMetric: `Hoàn thành ${qty} mục tiêu`,
           outcome: 'Đã hoàn thành',
         };
       });
       return res.json({ tasks: parsedTasks });
     }
 
-    const prompt = `Trích xuất và chuẩn hóa danh sách công việc từ văn bản hoặc dữ liệu bảng tính sau đây thành danh sách công việc có cấu trúc:
-Ngày mục tiêu: ${targetDate || 'Hôm nay'}
+    const prompt = `Bạn là chuyên gia phân tích dữ liệu công việc và tổng hợp báo cáo chuyên nghiệp.
+Dưới đây là dữ liệu công việc được trích xuất từ bảng tính Google Sheets hoặc ghi chú công việc:
+Ngày báo cáo mục tiêu: ${targetDate || 'Hôm nay'}
 
-Văn bản thô:
+Dữ liệu thô từ bảng tính / văn bản:
 """
 ${rawText}
 """
 
-Hãy trả về JSON:
+HƯỚNG DẪN BÓC TÁCH & TỔNG HỢP:
+1. Bóc tách từng dòng công việc thành đối tượng công việc chuẩn.
+2. Nếu bảng tính có cột ngày (ví dụ: 1/8/2026, 2/9/2026, 3/9/2026, 4/9/2026...) và các dòng kế tiếp để trống ngày, hãy kế thừa ngày của dòng liền trước đó. Chuyển đổi định dạng ngày sang chuẩn 'YYYY-MM-DD' (Ví dụ: 1/8/2026 -> 2026-08-01 hoặc 2026-09-01 tuỳ ngữ cảnh).
+3. Đặt 'timeSpentHours' hợp lý (ví dụ: 1h - 3h cho mỗi đầu việc tuỳ theo độ phức tạp hoặc số lượng công việc).
+4. Phân loại chuẩn 'category': 'Phát triển' | 'Thiết kế' | 'Kinh doanh' | 'Marketing' | 'Quản trị' | 'Hỗ trợ' | 'Khác'.
+5. Xác định 'kpiMetric' cụ thể (ví dụ: "Edit 3 video ngày 9/9, hoàn thành 100%", "Quay 1 clip bán hàng đạt chuẩn").
+6. 'outcome' đúc kết kết quả đạt được thực tế.
+7. 'completionPercent': 100 nếu đã xong, hoặc 50-80 nếu đang làm.
+
+Hãy trả về định dạng JSON thuần:
 {
   "tasks": [
     {
-      "title": "Tên công việc rõ ràng",
-      "description": "Mô tả chi tiết nếu có",
-      "category": "Phát triển" | "Thiết kế" | "Kinh doanh" | "Marketing" | "Quản trị" | "Hỗ trợ" | "Khác",
-      "status": "completed" | "in_progress" | "pending" | "blocked",
+      "title": "Tên đầu việc cụ thể, súc tích",
+      "description": "Mô tả chi tiết hoặc ghi chú nếu có",
+      "category": "Marketing",
+      "status": "completed",
       "priority": "high" | "medium" | "low",
-      "date": "${targetDate || new Date().toISOString().split('T')[0]}",
-      "timeSpentHours": 2.5, // Số giờ ước lượng hoặc trích xuất
-      "completionPercent": 100, // 0 - 100
-      "kpiMetric": "Chỉ số đo lường (ví dụ: hoàn thành 3 module, đạt 100%)",
+      "date": "YYYY-MM-DD",
+      "quantity": 1,
+      "timeSpentHours": 2.0,
+      "completionPercent": 100,
+      "kpiMetric": "Chỉ số đo lường KPI cụ thể",
       "outcome": "Kết quả thực tế đạt được"
     }
   ]
 }`;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.7-flash',
+    const response = await callGeminiWithFallback(ai, {
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
@@ -848,7 +1008,8 @@ Hãy trả về JSON:
       ...t,
       id: `task_ai_${Date.now()}_${i}`,
       date: t.date || targetDate || new Date().toISOString().split('T')[0],
-      timeSpentHours: Number(t.timeSpentHours) || 1,
+      quantity: Number(t.quantity) || 1,
+      timeSpentHours: Number(t.timeSpentHours) || 1.5,
       completionPercent: Number(t.completionPercent) || 100,
       priority: ['high', 'medium', 'low'].includes(t.priority) ? t.priority : 'medium',
       status: ['completed', 'in_progress', 'pending', 'blocked'].includes(t.status) ? t.status : 'completed',

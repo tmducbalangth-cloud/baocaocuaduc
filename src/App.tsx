@@ -627,6 +627,7 @@ export default function App() {
 
             {activeTab === 'yearly' && (
               <YearlyReportView
+                selectedDate={selectedDate}
                 allTasks={tasks}
                 dailyReports={dailyReports}
                 currentUser={currentUser}

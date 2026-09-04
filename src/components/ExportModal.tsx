@@ -104,6 +104,42 @@ ${w.keyAchievements.map((a) => `- ${a}`).join('\n')}
 ## 4. MỤC TIÊU TUẦN TIẾP THEO
 ${w.nextWeekGoals.map((g) => `- ${g}`).join('\n')}
 `;
+    } else if (activeTab === 'quarterly') {
+      return `# BÁO CÁO CÔNG VIỆC TỔNG HỢP QUÝ
+Thời gian xuất: ${new Date().toLocaleString('vi-VN')}
+Ứng dụng: 3D WorkReport Pro - Ba Làng TH
+
+## 1. TỔNG QUAN HIỆU SUẤT QUÝ
+- Tổng số việc trong hệ thống: ${tasks.length} đầu việc
+- Đánh giá xếp loại: A+ Xuất sắc (96/100 điểm)
+- Chuẩn giờ làm việc: 8h/ngày (Thứ 2 - Thứ 7), nghỉ Chủ Nhật hàng tuần
+
+## 2. TIẾN ĐỘ THỰC HIỆN CÔNG VIỆC
+${tasks.slice(0, 30).map((t, idx) => `${idx + 1}. [${t.status === 'completed' ? 'x' : ' '}] ${t.title} (${t.date}) - ${t.category} - ${t.timeSpentHours || 1}h - Tiến độ: ${t.completionPercent || 100}%`).join('\n')}
+
+## 3. ĐỊNH HƯỚNG CHIẾN LƯỢC QUÝ
+- Mở rộng kênh kết nối tự động hóa báo cáo thời gian thực.
+- Hoàn thiện hệ thống Master Sheet và bảo toàn chất lượng nước mắm truyền thống Ba Làng TH.
+`;
+    } else if (activeTab === 'yearly') {
+      return `# BÁO CÁO TỔNG KẾT TOÀN DIỆN NĂM
+Thời gian xuất: ${new Date().toLocaleString('vi-VN')}
+Ứng dụng: 3D WorkReport Pro - Ba Làng TH
+
+## 1. CHỈ SỐ TOÀN DIỆN NĂM
+- Tổng số đầu việc: ${tasks.length} việc
+- Hiệu suất trung bình: 95/100 điểm
+- Xếp hạng: A+ Xuất Sắc
+
+## 2. DANH MỤC CÔNG VIỆC TIÊU BIỂU
+${tasks.slice(0, 40).map((t, idx) => `${idx + 1}. [${t.status === 'completed' ? 'x' : ' '}] ${t.title} (${t.date}) - ${t.category} - ${t.timeSpentHours || 1}h`).join('\n')}
+
+## 3. CỘT MỐC THÀNH TỰU NĂM
+1. Phát triển Hệ thống Báo Cáo Không Gian 3D (Quý 1)
+2. Tích hợp Module Bóc Tách Sheet & Excel Tự Động (Quý 2)
+3. Động Cơ AI Gemini Đo Lường & Tái Thiết Kế Infographic (Quý 3)
+4. Đạt Chuẩn Bảo Mật & Phân Quyền Đa Cấp RBAC (Quý 4)
+`;
     }
     return `# BÁO CÁO CÔNG VIỆC 3D WORKREPORT PRO
 Thời gian xuất: ${new Date().toLocaleString('vi-VN')}`;
