@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   MessageSquare,
   Star,
@@ -10,10 +10,13 @@ import {
   Eye,
   Filter,
   User as UserIcon,
-  LogIn
+  LogIn,
+  Mail,
+  AlertCircle
 } from 'lucide-react';
 import { User, ViewerFeedback } from '../types';
 import { TiltCard } from './TiltCard';
+import { filterRealFeedbacks } from '../utils/feedbackFilter';
 
 interface ViewerEvaluationSectionProps {
   scope: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
@@ -24,6 +27,7 @@ interface ViewerEvaluationSectionProps {
   onAddFeedback: (feedback: Omit<ViewerFeedback, 'id' | 'createdAt'>) => Promise<void> | void;
   onDeleteFeedback: (id: string) => Promise<void> | void;
   onOpenLoginModal?: () => void;
+  onClearMockFeedbacks?: () => Promise<void> | void;
 }
 
 const QUICK_TAGS = [
@@ -44,6 +48,7 @@ export const ViewerEvaluationSection: React.FC<ViewerEvaluationSectionProps> = (
   onAddFeedback,
   onDeleteFeedback,
   onOpenLoginModal,
+  onClearMockFeedbacks,
 }) => {
   const [rating, setRating] = useState<number>(5);
   const [hoverRating, setHoverRating] = useState<number | null>(null);
@@ -52,12 +57,19 @@ export const ViewerEvaluationSection: React.FC<ViewerEvaluationSectionProps> = (
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [filterMode, setFilterMode] = useState<'current' | 'all'>('current');
+  const [validationError, setValidationError] = useState<string | null>(null);
 
-  // Filter feedbacks
-  const currentFeedbacks = feedbacks.filter(
-    (f) => f.scope === scope && (f.targetId === targetId || f.targetId === `${scope}_all`)
+  // Strictly filter out all mock feedbacks - only real feedbacks from authenticated accounts
+  const realFeedbacks = useMemo(() => filterRealFeedbacks(feedbacks), [feedbacks]);
+
+  const currentFeedbacks = useMemo(
+    () => realFeedbacks.filter(
+      (f) => f.scope === scope && (f.targetId === targetId || f.targetId === `${scope}_all`)
+    ),
+    [realFeedbacks, scope, targetId]
   );
-  const displayedFeedbacks = filterMode === 'current' ? currentFeedbacks : feedbacks;
+  
+  const displayedFeedbacks = filterMode === 'current' ? currentFeedbacks : realFeedbacks;
 
   // Calculate average rating
   const avgRating =
@@ -76,16 +88,28 @@ export const ViewerEvaluationSection: React.FC<ViewerEvaluationSectionProps> = (
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!comment.trim()) return;
+    setValidationError(null);
+
+    if (!currentUser) {
+      setValidationError('Vui lòng đăng nhập tài khoản để gửi đánh giá.');
+      return;
+    }
+
+    const trimmedComment = comment.trim();
+    if (trimmedComment.length < 10) {
+      setValidationError('Nội dung đánh giá thật cần tối thiểu 10 ký tự để đảm bảo chất lượng góp ý.');
+      return;
+    }
 
     setIsSubmitting(true);
     try {
-      const authorName = currentUser?.name || 'Người Xem Báo Cáo';
-      const authorRole = currentUser?.role || 'viewer';
+      const authorName = currentUser.name || 'Người Xem Đã Xác Thực';
+      const authorRole = currentUser.role || 'viewer';
       const authorAvatar =
-        currentUser?.avatar ||
+        currentUser.avatar ||
         'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80';
-      const authorTitle = currentUser?.title || 'Người Xem Báo Cáo';
+      const authorTitle = currentUser.title || 'Người Xem Báo Cáo';
+      const authorEmail = currentUser.email || `${currentUser.username}@balang.com.vn`;
 
       await onAddFeedback({
         scope,
@@ -94,16 +118,18 @@ export const ViewerEvaluationSection: React.FC<ViewerEvaluationSectionProps> = (
         userRole: authorRole,
         userAvatar: authorAvatar,
         userTitle: authorTitle,
+        userEmail: authorEmail,
         rating,
         tag: selectedTag,
-        comment: comment.trim(),
+        comment: trimmedComment,
       });
 
       setComment('');
       setShowSuccessToast(true);
-      setTimeout(() => setShowSuccessToast(false), 3500);
+      setTimeout(() => setShowSuccessToast(false), 5000);
     } catch (err) {
       console.error(err);
+      setValidationError('Có lỗi xảy ra khi gửi nhận xét. Vui lòng thử lại.');
     } finally {
       setIsSubmitting(false);
     }
@@ -148,9 +174,13 @@ export const ViewerEvaluationSection: React.FC<ViewerEvaluationSectionProps> = (
                   <Sparkles className="w-3 h-3 text-cyan-400" />
                   {scopeTitle}
                 </span>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                  100% Đánh giá thật đã xác thực
+                </span>
               </div>
               <p className="text-xs text-slate-400 mt-1">
-                Khu vực dành cho các thành viên và người xem gửi nhận xét, đánh giá kết quả & tiến độ công việc.
+                Chỉ người dùng lập tài khoản mới được gửi đánh giá. Toàn bộ đánh giá sẽ được gửi trực tiếp về Gmail Quản Trị Viên: <strong className="text-cyan-300">tmduc.balangth@gmail.com</strong>.
               </p>
             </div>
           </div>
@@ -174,7 +204,7 @@ export const ViewerEvaluationSection: React.FC<ViewerEvaluationSectionProps> = (
               <span className="text-base font-black text-cyan-400 font-display">
                 {displayedFeedbacks.length}
               </span>
-              <span className="text-[10px] text-slate-400 block">Lượt nhận xét</span>
+              <span className="text-[10px] text-slate-400 block">Đánh giá thật</span>
             </div>
           </div>
         </div>
@@ -205,16 +235,18 @@ export const ViewerEvaluationSection: React.FC<ViewerEvaluationSectionProps> = (
                       >
                         {currentUser.role === 'admin' ? (
                           <>
-                            <Shield className="w-2.5 h-2.5" /> Quản Trị Viên
+                            <Shield className="w-2.5 h-2.5" /> Quản Trị Viên (Chủ sở hữu)
                           </>
                         ) : (
                           <>
-                            <Eye className="w-2.5 h-2.5" /> Người Xem (Viewer)
+                            <Eye className="w-2.5 h-2.5" /> Người Xem Đã Xác Thực
                           </>
                         )}
                       </span>
                     </div>
-                    <span className="text-[10px] text-slate-400">{currentUser.title || 'Người Xem Báo Cáo'}</span>
+                    <span className="text-[10px] text-slate-400">
+                      {currentUser.title || 'Người Xem Báo Cáo'} • {currentUser.email || `${currentUser.username}@balang.com.vn`}
+                    </span>
                   </div>
                 </div>
 
@@ -276,53 +308,72 @@ export const ViewerEvaluationSection: React.FC<ViewerEvaluationSectionProps> = (
 
               {/* Comment Textarea */}
               <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label htmlFor={`feedback-comment-${scope}`} className="text-[11px] font-semibold text-slate-400">
+                    Nội dung nhận xét thực tế (tối thiểu 10 ký tự):
+                  </label>
+                  <span className={`text-[10px] ${comment.trim().length >= 10 ? 'text-emerald-400' : 'text-slate-500'}`}>
+                    {comment.trim().length}/500 ký tự
+                  </span>
+                </div>
                 <textarea
                   id={`feedback-comment-${scope}`}
                   rows={3}
                   value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  placeholder={`Viết nhận xét hoặc đánh giá của bạn cho ${scopeTitle}...`}
+                  onChange={(e) => {
+                    setComment(e.target.value);
+                    if (validationError) setValidationError(null);
+                  }}
+                  placeholder={`Nhập nhận xét thật, đánh giá chi tiết về tiến độ và kết quả công việc ${scopeTitle}... (Hệ thống tự động thông báo ngay về Gmail: tmduc.balangth@gmail.com)`}
                   className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl p-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all resize-none"
                   required
                 />
               </div>
 
+              {validationError && (
+                <div className="p-2 rounded-lg bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                  <span>{validationError}</span>
+                </div>
+              )}
+
               {/* Submit Button */}
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-[11px] text-slate-500">
-                  * Nhận xét sẽ được hiển thị công khai tới Quản Trị Viên (anh Đức) và mọi người xem.
-                </span>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                <div className="flex items-center gap-1.5 text-[11px] text-cyan-400 font-medium">
+                  <Mail className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                  <span>Toàn bộ đánh giá sẽ gửi thông báo trực tiếp về Gmail: <strong>tmduc.balangth@gmail.com</strong></span>
+                </div>
 
                 <button
                   type="submit"
                   id={`submit-feedback-btn-${scope}`}
-                  disabled={isSubmitting || !comment.trim()}
-                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-cyan-500/20 flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isSubmitting || comment.trim().length < 10}
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-cyan-500/20 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
                 >
                   <Send className="w-3.5 h-3.5" />
-                  <span>{isSubmitting ? 'Đang gửi...' : 'Gửi Nhận Xét'}</span>
+                  <span>{isSubmitting ? 'Đang gửi về Gmail...' : 'Gửi Đánh Giá Thật Về Gmail'}</span>
                 </button>
               </div>
             </form>
           ) : (
-            <div className="py-5 text-center">
+            <div className="py-6 text-center">
               <div className="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 mx-auto mb-3">
                 <UserIcon className="w-6 h-6" />
               </div>
               <h4 className="text-sm font-bold text-white mb-1">
-                Bạn muốn để lại nhận xét & đánh giá?
+                Chỉ chấp nhận đánh giá thật từ người tạo tài khoản
               </h4>
-              <p className="text-xs text-slate-400 max-w-md mx-auto mb-4">
-                Vui lòng đăng nhập hoặc tạo tài khoản Người Xem để gửi ý kiến đóng góp cho báo cáo này.
+              <p className="text-xs text-slate-400 max-w-lg mx-auto mb-4 leading-relaxed">
+                Để đảm bảo tính xác thực 100% và xóa bỏ hoàn toàn đánh giá ảo, bạn cần có tài khoản để gửi nhận xét. Đánh giá của bạn sẽ được lưu giữ công khai và gửi thông báo trực tiếp đến Gmail Quản Trị Viên: <strong className="text-cyan-300">tmduc.balangth@gmail.com</strong>.
               </p>
               {onOpenLoginModal && (
                 <button
                   type="button"
                   onClick={onOpenLoginModal}
-                  className="px-4 py-2 rounded-xl bg-cyan-500/20 border border-cyan-400 text-cyan-300 font-bold text-xs inline-flex items-center gap-2 hover:bg-cyan-500/30 transition-all"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-400 text-cyan-300 font-bold text-xs inline-flex items-center gap-2 hover:bg-cyan-500/30 transition-all shadow-lg shadow-cyan-500/10"
                 >
                   <LogIn className="w-4 h-4" />
-                  <span>Đăng Nhập / Đăng Ký Người Xem</span>
+                  <span>Đăng Nhập / Tạo Tài Khoản Người Xem Để Đánh Giá</span>
                 </button>
               )}
             </div>
@@ -330,43 +381,67 @@ export const ViewerEvaluationSection: React.FC<ViewerEvaluationSectionProps> = (
 
           {/* Success toast notification */}
           {showSuccessToast && (
-            <div className="mt-3 p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs flex items-center gap-2 animate-fadeIn">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>Đã gửi nhận xét thành công! Quản Trị Viên đã nhận được đánh giá của bạn.</span>
+            <div className="mt-3 p-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 animate-fadeIn">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>Đã ghi nhận đánh giá thật thành công! Thông báo đã gửi đến Gmail: <strong>tmduc.balangth@gmail.com</strong>.</span>
+              </div>
+              <a
+                href="https://mail.google.com"
+                target="_blank"
+                rel="noreferrer"
+                className="text-[11px] underline font-semibold text-emerald-200 hover:text-white"
+              >
+                Mở Gmail kiểm tra →
+              </a>
             </div>
           )}
         </div>
 
-        {/* Filter Tabs for feedback list */}
-        <div className="flex items-center justify-between gap-3 mb-4">
+        {/* Filter Tabs & Admin Controls */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-2">
             <Filter className="w-3.5 h-3.5 text-slate-400" />
-            <span className="text-xs font-bold text-slate-300">Danh sách ý kiến đóng góp:</span>
+            <span className="text-xs font-bold text-slate-300">Danh sách ý kiến đóng góp thật ({displayedFeedbacks.length}):</span>
           </div>
 
-          <div className="flex items-center gap-1.5 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
-            <button
-              type="button"
-              onClick={() => setFilterMode('current')}
-              className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
-                filterMode === 'current'
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Kỳ này ({currentFeedbacks.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilterMode('all')}
-              className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
-                filterMode === 'all'
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Tất cả ({feedbacks.length})
-            </button>
+          <div className="flex items-center gap-2 flex-wrap">
+            {currentUser?.role === 'admin' && onClearMockFeedbacks && (
+              <button
+                type="button"
+                onClick={onClearMockFeedbacks}
+                className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 transition-all flex items-center gap-1.5"
+                title="Quét và xóa sạch các đánh giá ảo trong cơ sở dữ liệu"
+              >
+                <Trash2 className="w-3 h-3 text-rose-400" />
+                <span>Xóa sạch đánh giá ảo</span>
+              </button>
+            )}
+
+            <div className="flex items-center gap-1.5 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
+              <button
+                type="button"
+                onClick={() => setFilterMode('current')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                  filterMode === 'current'
+                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Kỳ này ({currentFeedbacks.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterMode('all')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                  filterMode === 'all'
+                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Tất cả ({realFeedbacks.length})
+              </button>
+            </div>
           </div>
         </div>
 
@@ -374,8 +449,11 @@ export const ViewerEvaluationSection: React.FC<ViewerEvaluationSectionProps> = (
         {displayedFeedbacks.length === 0 ? (
           <div className="p-8 rounded-2xl bg-slate-950/40 border border-slate-800/80 text-center">
             <MessageSquare className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-            <p className="text-xs text-slate-400">
-              Chưa có nhận xét nào cho mục này. Hãy là người đầu tiên để lại đánh giá!
+            <p className="text-xs text-slate-300 font-semibold mb-1">
+              Chưa có đánh giá nào cho mục này.
+            </p>
+            <p className="text-[11px] text-slate-500 max-w-md mx-auto">
+              Hệ thống đã loại bỏ toàn bộ đánh giá ảo. Chỉ các đánh giá thật từ người dùng có tài khoản mới được ghi nhận tại đây và gửi về Gmail: tmduc.balangth@gmail.com.
             </p>
           </div>
         ) : (
@@ -416,10 +494,15 @@ export const ViewerEvaluationSection: React.FC<ViewerEvaluationSectionProps> = (
                               : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
                           }`}
                         >
-                          {fb.userRole === 'admin' ? 'Quản Trị Viên' : 'Người Xem'}
+                          {fb.userRole === 'admin' ? 'Quản Trị Viên' : 'Người Xem Xác Thực'}
                         </span>
                         {fb.userTitle && (
                           <span className="text-[10px] text-slate-400">({fb.userTitle})</span>
+                        )}
+                        {fb.userEmail && (
+                          <span className="text-[10px] text-slate-500 hidden md:inline">
+                            • {fb.userEmail}
+                          </span>
                         )}
                         <span className="text-[10px] text-slate-500 ml-auto sm:ml-0">{dateStr}</span>
                       </div>
@@ -432,8 +515,8 @@ export const ViewerEvaluationSection: React.FC<ViewerEvaluationSectionProps> = (
                               key={s}
                               className={`w-3.5 h-3.5 ${
                                 s <= (fb.rating || 5)
-                                  ? 'fill-amber-400 text-amber-400'
-                                  : 'text-slate-700'
+                                    ? 'fill-amber-400 text-amber-400'
+                                    : 'text-slate-700'
                               }`}
                             />
                           ))}
@@ -443,6 +526,10 @@ export const ViewerEvaluationSection: React.FC<ViewerEvaluationSectionProps> = (
                             {fb.tag}
                           </span>
                         )}
+                        <span className="text-[9px] font-medium text-emerald-400/80 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 flex items-center gap-1">
+                          <CheckCircle2 className="w-2.5 h-2.5" />
+                          Đã gửi Gmail
+                        </span>
                       </div>
 
                       {/* Comment text */}
@@ -476,3 +563,4 @@ export const ViewerEvaluationSection: React.FC<ViewerEvaluationSectionProps> = (
     </div>
   );
 };
+

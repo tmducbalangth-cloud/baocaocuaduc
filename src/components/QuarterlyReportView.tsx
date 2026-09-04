@@ -19,6 +19,7 @@ import { TaskItem, DailyReport, User, ViewerFeedback } from '../types';
 import { TiltCard } from './TiltCard';
 import { MetricCard3D } from './MetricCard3D';
 import { ViewerEvaluationSection } from './ViewerEvaluationSection';
+import { calculateMonthWorkHours } from '../utils/workHours';
 
 interface QuarterlyReportViewProps {
   selectedDate: string;
@@ -29,6 +30,7 @@ interface QuarterlyReportViewProps {
   onAddFeedback?: (feedback: Omit<ViewerFeedback, 'id' | 'createdAt'>) => Promise<void> | void;
   onDeleteFeedback?: (id: string) => Promise<void> | void;
   onOpenLoginModal?: () => void;
+  onClearMockFeedbacks?: () => Promise<void> | void;
 }
 
 export const QuarterlyReportView: React.FC<QuarterlyReportViewProps> = ({
@@ -40,6 +42,7 @@ export const QuarterlyReportView: React.FC<QuarterlyReportViewProps> = ({
   onAddFeedback = () => {},
   onDeleteFeedback = () => {},
   onOpenLoginModal,
+  onClearMockFeedbacks,
 }) => {
   const d = new Date(selectedDate);
   const currentMonth = d.getMonth() + 1; // 1 - 12
@@ -70,34 +73,45 @@ export const QuarterlyReportView: React.FC<QuarterlyReportViewProps> = ({
   const baseCompletedCount = quarterTasks.length > 0
     ? quarterTasks.filter((t) => t.status === 'completed' || t.completionPercent >= 100).length
     : 81;
-  const baseTotalHours = quarterTasks.length > 0
-    ? quarterTasks.reduce((s, t) => s + (Number(t.timeSpentHours) || 0), 0)
-    : 495;
 
-  const completionRate = Math.round((baseCompletedCount / baseTasksCount) * 100);
-  const efficiencyScore = 96;
-
-  // Monthly breakdown in the selected quarter
-  const monthlyStats = quarterMonths.map((mNum, idx) => {
+  // Tính chuẩn giờ làm việc cho từng tháng trong quý (8h/ngày, nghỉ Chủ Nhật)
+  const quarterWorkInfos = quarterMonths.map((mNum) => {
     const tasksInMonth = quarterTasks.filter((t) => {
       if (!t.date) return false;
       const [, mStr] = t.date.split('-');
       return parseInt(mStr) === mNum;
     });
+    const rawHours = tasksInMonth.reduce((s, t) => s + (Number(t.timeSpentHours) || 0), 0);
+    return {
+      mNum,
+      tasksInMonth,
+      workInfo: calculateMonthWorkHours(selectedYear, mNum, rawHours),
+    };
+  });
 
-    const count = tasksInMonth.length || (25 + idx * 4);
-    const done = tasksInMonth.filter((t) => t.status === 'completed' || t.completionPercent >= 100).length || (24 + idx * 4);
-    const hours = tasksInMonth.reduce((s, t) => s + (Number(t.timeSpentHours) || 0), 0) || (160 + idx * 5);
+  const totalQuarterStandardHours = quarterWorkInfos.reduce((s, item) => s + item.workInfo.standardWorkingHours, 0);
+  const totalQuarterWorkingDays = quarterWorkInfos.reduce((s, item) => s + item.workInfo.workingDaysCount, 0);
+  const totalQuarterSundays = quarterWorkInfos.reduce((s, item) => s + item.workInfo.sundaysCount, 0);
+  const baseTotalHours = totalQuarterStandardHours;
+
+  const completionRate = Math.round((baseCompletedCount / baseTasksCount) * 100);
+  const efficiencyScore = 96;
+
+  // Monthly breakdown in the selected quarter
+  const monthlyStats = quarterWorkInfos.map((item, idx) => {
+    const count = item.tasksInMonth.length || (25 + idx * 4);
+    const done = item.tasksInMonth.filter((t) => t.status === 'completed' || t.completionPercent >= 100).length || (24 + idx * 4);
     const rate = Math.round((done / count) * 100);
 
     return {
-      month: `Tháng ${mNum}`,
-      monthNum: mNum,
+      month: `Tháng ${item.mNum}`,
+      monthNum: item.mNum,
       tasks: count,
       completed: done,
-      hours: hours,
+      hours: item.workInfo.actualWorkingHours,
       score: 90 + idx * 3,
       completionRate: rate,
+      workingDays: item.workInfo.workingDaysCount,
     };
   });
 
@@ -185,6 +199,23 @@ export const QuarterlyReportView: React.FC<QuarterlyReportViewProps> = ({
         </div>
       </div>
 
+      {/* Work Schedule Standard Indicator */}
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-2xl bg-emerald-950/25 border border-emerald-500/25 text-xs text-emerald-300">
+        <div className="flex items-center gap-2">
+          <Clock className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>
+            <strong className="text-white">Quy chuẩn giờ làm việc Quý {selectedQuarter}:</strong> 8.0 tiếng/ngày (Thứ 2 - Thứ 7) • <span className="text-emerald-200 font-medium">Nghỉ mỗi Chủ Nhật hàng tuần</span>
+          </span>
+        </div>
+        <div className="flex items-center gap-3 text-[11px] text-slate-400">
+          <span>Ngày công quý: <strong className="text-emerald-400">{totalQuarterWorkingDays} ngày (8h)</strong></span>
+          <span>•</span>
+          <span>Nghỉ CN: <strong className="text-amber-400">{totalQuarterSundays} ngày</strong></span>
+          <span>•</span>
+          <span>Tổng định mức quý: <strong className="text-emerald-300">{baseTotalHours}h</strong></span>
+        </div>
+      </div>
+
       {/* 3D Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard3D
@@ -208,10 +239,10 @@ export const QuarterlyReportView: React.FC<QuarterlyReportViewProps> = ({
         <MetricCard3D
           title="Tổng Giờ Làm Việc Quý"
           value={`${baseTotalHours}h`}
-          subtext="Trung bình 165h/tháng"
+          subtext={`Chuẩn ${baseTotalHours}h (${totalQuarterWorkingDays} ngày x 8h, nghỉ ${totalQuarterSundays} CN)`}
           icon={Clock}
           color="indigo"
-          badge="Deep Work 82%"
+          badge="100% định mức"
         />
 
         <MetricCard3D
@@ -379,6 +410,7 @@ export const QuarterlyReportView: React.FC<QuarterlyReportViewProps> = ({
         onAddFeedback={onAddFeedback}
         onDeleteFeedback={onDeleteFeedback}
         onOpenLoginModal={onOpenLoginModal}
+        onClearMockFeedbacks={onClearMockFeedbacks}
       />
     </div>
   );

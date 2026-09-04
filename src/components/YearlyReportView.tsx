@@ -4,6 +4,7 @@ import { TaskItem, DailyReport, User, ViewerFeedback } from '../types';
 import { TiltCard } from './TiltCard';
 import { MetricCard3D } from './MetricCard3D';
 import { ViewerEvaluationSection } from './ViewerEvaluationSection';
+import { calculateMonthWorkHours } from '../utils/workHours';
 
 interface YearlyReportViewProps {
   allTasks: TaskItem[];
@@ -13,6 +14,7 @@ interface YearlyReportViewProps {
   onAddFeedback?: (feedback: Omit<ViewerFeedback, 'id' | 'createdAt'>) => Promise<void> | void;
   onDeleteFeedback?: (id: string) => Promise<void> | void;
   onOpenLoginModal?: () => void;
+  onClearMockFeedbacks?: () => Promise<void> | void;
 }
 
 export const YearlyReportView: React.FC<YearlyReportViewProps> = ({
@@ -23,25 +25,27 @@ export const YearlyReportView: React.FC<YearlyReportViewProps> = ({
   onAddFeedback = () => {},
   onDeleteFeedback = () => {},
   onOpenLoginModal,
+  onClearMockFeedbacks,
 }) => {
   const [selectedYear, setSelectedYear] = useState<number>(2026);
 
-  const monthsData = [
-    { name: 'Th 1', tasks: 120, hours: 168, score: 91 },
-    { name: 'Th 2', tasks: 110, hours: 160, score: 89 },
-    { name: 'Th 3', tasks: 135, hours: 176, score: 93 },
-    { name: 'Th 4', tasks: 125, hours: 165, score: 90 },
-    { name: 'Th 5', tasks: 140, hours: 180, score: 94 },
-    { name: 'Th 6', tasks: 130, hours: 170, score: 92 },
-    { name: 'Th 7', tasks: 145, hours: 182, score: 95 },
-    { name: 'Th 8', tasks: 138, hours: 178, score: 94 },
-    { name: 'Th 9', tasks: 128, hours: 168, score: 91 },
-    { name: 'Th 10', tasks: 142, hours: 175, score: 93 },
-    { name: 'Th 11', tasks: 136, hours: 172, score: 92 },
-    { name: 'Th 12', tasks: 150, hours: 185, score: 96 },
-  ];
+  // Tính chuẩn giờ làm việc 12 tháng trong năm (8h/ngày, nghỉ mỗi Chủ Nhật)
+  const monthsData = Array.from({ length: 12 }, (_, idx) => {
+    const mNum = idx + 1;
+    const mInfo = calculateMonthWorkHours(selectedYear, mNum);
+    return {
+      name: `Th ${mNum}`,
+      tasks: 120 + (idx % 4) * 8,
+      hours: mInfo.actualWorkingHours,
+      workingDays: mInfo.workingDaysCount,
+      sundays: mInfo.sundaysCount,
+      score: 90 + (idx % 5),
+    };
+  });
 
   const totalAnnualTasks = monthsData.reduce((s, m) => s + m.tasks, 0);
+  const totalAnnualWorkingDays = monthsData.reduce((s, m) => s + m.workingDays, 0);
+  const totalAnnualSundays = monthsData.reduce((s, m) => s + m.sundays, 0);
   const totalAnnualHours = monthsData.reduce((s, m) => s + m.hours, 0);
   const avgAnnualScore = Math.round(monthsData.reduce((s, m) => s + m.score, 0) / monthsData.length);
 
@@ -84,6 +88,23 @@ export const YearlyReportView: React.FC<YearlyReportViewProps> = ({
         </select>
       </div>
 
+      {/* Work Schedule Standard Indicator */}
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-2xl bg-emerald-950/25 border border-emerald-500/25 text-xs text-emerald-300">
+        <div className="flex items-center gap-2">
+          <Clock className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>
+            <strong className="text-white">Quy chuẩn giờ làm việc Năm {selectedYear}:</strong> 8.0 tiếng/ngày (Thứ 2 - Thứ 7) • <span className="text-emerald-200 font-medium">Nghỉ mỗi Chủ Nhật hàng tuần</span>
+          </span>
+        </div>
+        <div className="flex items-center gap-3 text-[11px] text-slate-400">
+          <span>Ngày công năm: <strong className="text-emerald-400">{totalAnnualWorkingDays} ngày (8h)</strong></span>
+          <span>•</span>
+          <span>Nghỉ CN: <strong className="text-amber-400">{totalAnnualSundays} ngày</strong></span>
+          <span>•</span>
+          <span>Tổng định mức năm: <strong className="text-emerald-300">{totalAnnualHours}h</strong></span>
+        </div>
+      </div>
+
       {/* 3D Annual Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard3D
@@ -112,10 +133,11 @@ export const YearlyReportView: React.FC<YearlyReportViewProps> = ({
           id="metric-year-hours"
           title="Tổng Giờ Làm Việc Năm"
           value={`${totalAnnualHours}h`}
-          subValue="Cống hiến tập trung"
+          subValue={`Chuẩn ${totalAnnualHours}h (${totalAnnualWorkingDays} ngày x 8h, nghỉ ${totalAnnualSundays} CN)`}
           icon={Clock}
           colorScheme="purple"
-          trend="+220h"
+          progress={100}
+          trend="100% định mức"
           trendUp={true}
         />
 
@@ -212,6 +234,7 @@ export const YearlyReportView: React.FC<YearlyReportViewProps> = ({
         onAddFeedback={onAddFeedback}
         onDeleteFeedback={onDeleteFeedback}
         onOpenLoginModal={onOpenLoginModal}
+        onClearMockFeedbacks={onClearMockFeedbacks}
       />
     </div>
   );

@@ -16,6 +16,7 @@ import { TaskItem, DailyReport, User, ViewTab, normalizeCategory, ViewerFeedback
 import { INITIAL_USERS, INITIAL_TASKS, INITIAL_DAILY_REPORTS, INITIAL_FEEDBACK, formatDateStr, DEFAULT_ADMIN_AVATAR, getStoredAdminAvatar } from './mock/initialData';
 import { subscribeToCloudData, saveCloudData } from './services/firestoreService';
 import { computeDailyReportForTasks } from './services/reportSyncService';
+import { filterRealFeedbacks, isMockFeedback } from './utils/feedbackFilter';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<ViewTab>('daily');
@@ -121,18 +122,22 @@ export default function App() {
     return INITIAL_DAILY_REPORTS;
   });
 
-  // Viewer Feedbacks State
+  // Viewer Feedbacks State - Chỉ lưu trữ và hiển thị đánh giá THẬT từ người dùng đã tạo tài khoản
   const [feedbacks, setFeedbacks] = useState<ViewerFeedback[]>(() => {
     const saved = localStorage.getItem('3d_workreport_feedbacks');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) {
+          const clean = filterRealFeedbacks(parsed);
+          localStorage.setItem('3d_workreport_feedbacks', JSON.stringify(clean));
+          return clean;
+        }
       } catch (e) {
         console.error(e);
       }
     }
-    return INITIAL_FEEDBACK;
+    return [];
   });
 
   // Sync to local storage
@@ -145,8 +150,23 @@ export default function App() {
   }, [dailyReports]);
 
   useEffect(() => {
-    localStorage.setItem('3d_workreport_feedbacks', JSON.stringify(feedbacks));
+    const clean = filterRealFeedbacks(feedbacks);
+    localStorage.setItem('3d_workreport_feedbacks', JSON.stringify(clean));
   }, [feedbacks]);
+
+  // Force purge any legacy mock feedbacks from client storage on startup
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('3d_workreport_feedbacks');
+      if (raw && (raw.includes('Nguyễn Hồng Quân') || raw.includes('fb_1') || raw.includes('Lê Thùy Dung') || raw.includes('Trần Đình Trọng'))) {
+        localStorage.removeItem('3d_workreport_feedbacks');
+        setFeedbacks([]);
+        fetch('/api/shared/feedback/clear-mock', { method: 'POST' }).catch(console.warn);
+      }
+    } catch (e) {
+      console.warn(e);
+    }
+  }, []);
 
   // Load and synchronize shared data from server
   useEffect(() => {
@@ -173,8 +193,10 @@ export default function App() {
           setDailyReports(data.dailyReports);
         }
 
-        if (data.feedbacks && Array.isArray(data.feedbacks) && data.feedbacks.length > 0) {
-          setFeedbacks(data.feedbacks);
+        if (data.feedbacks && Array.isArray(data.feedbacks)) {
+          const clean = filterRealFeedbacks(data.feedbacks);
+          setFeedbacks(clean);
+          localStorage.setItem('3d_workreport_feedbacks', JSON.stringify(clean));
         }
       })
       .catch(console.warn);
@@ -188,15 +210,17 @@ export default function App() {
           setTasks(cloudData.tasks);
         } else {
           // If Firestore is empty, seed it with current initial tasks and reports!
-          saveCloudData(tasks, dailyReports, feedbacks).catch(console.warn);
+          saveCloudData(tasks, dailyReports, filterRealFeedbacks(feedbacks)).catch(console.warn);
         }
 
         if (cloudData.dailyReports && Array.isArray(cloudData.dailyReports) && cloudData.dailyReports.length > 0) {
           setDailyReports(cloudData.dailyReports);
         }
 
-        if (cloudData.feedbacks && Array.isArray(cloudData.feedbacks) && cloudData.feedbacks.length > 0) {
-          setFeedbacks(cloudData.feedbacks);
+        if (cloudData.feedbacks && Array.isArray(cloudData.feedbacks)) {
+          const clean = filterRealFeedbacks(cloudData.feedbacks);
+          setFeedbacks(clean);
+          localStorage.setItem('3d_workreport_feedbacks', JSON.stringify(clean));
         }
       },
       (err) => {
@@ -206,6 +230,49 @@ export default function App() {
 
     return () => unsubscribe();
   }, []);
+
+  // Near real-time server polling synchronization: Admin edits are instantly reflected on all viewer devices
+  useEffect(() => {
+    let isCancelled = false;
+
+    const fetchLatestServerData = async () => {
+      try {
+        const res = await fetch('/api/shared/data');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (isCancelled) return;
+
+        // If current user is viewer, always keep synced with admin's latest saved data
+        if (currentUser?.role !== 'admin') {
+          if (data.tasks && Array.isArray(data.tasks)) {
+            setTasks(data.tasks.map((t: TaskItem) => ({ ...t, category: normalizeCategory(t.category) })));
+          }
+          if (data.dailyReports && Array.isArray(data.dailyReports)) {
+            setDailyReports(data.dailyReports);
+          }
+        }
+
+        // Keep feedbacks clean and synchronized for all users
+        if (data.feedbacks && Array.isArray(data.feedbacks)) {
+          const clean = filterRealFeedbacks(data.feedbacks);
+          setFeedbacks(clean);
+          localStorage.setItem('3d_workreport_feedbacks', JSON.stringify(clean));
+        }
+      } catch (err) {
+        // Silently handle transient connection errors
+      }
+    };
+
+    const pollInterval = setInterval(fetchLatestServerData, 3500);
+    const onFocus = () => fetchLatestServerData();
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      isCancelled = true;
+      clearInterval(pollInterval);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [currentUser?.role]);
 
   const [syncToastMessage, setSyncToastMessage] = useState<string | null>(null);
 
@@ -262,6 +329,7 @@ export default function App() {
 
   // Task Operations - Automatically updates DailyReport metrics, highlights & syncs to Cloud
   const handleSaveTask = (task: TaskItem) => {
+    if (currentUser?.role !== 'admin') return;
     const exists = tasks.some((t) => t.id === task.id);
     const nextTasks = exists ? tasks.map((t) => (t.id === task.id ? task : t)) : [task, ...tasks];
     const nextReports = computeDailyReportForTasks(
@@ -277,6 +345,7 @@ export default function App() {
   };
 
   const handleDeleteTask = (taskId: string) => {
+    if (currentUser?.role !== 'admin') return;
     const taskToDelete = tasks.find((t) => t.id === taskId);
     const targetDate = taskToDelete?.date || selectedDate;
     const nextTasks = tasks.filter((t) => t.id !== taskId);
@@ -293,6 +362,7 @@ export default function App() {
   };
 
   const handleToggleTaskStatus = (taskId: string) => {
+    if (currentUser?.role !== 'admin') return;
     const targetTask = tasks.find((t) => t.id === taskId);
     const targetDate = targetTask?.date || selectedDate;
     const nextTasks = tasks.map((t) => {
@@ -319,6 +389,7 @@ export default function App() {
   };
 
   const handleImportTasks = (newTasks: TaskItem[]) => {
+    if (currentUser?.role !== 'admin') return;
     const nextTasks = [...newTasks, ...tasks];
     let updatedReports = [...dailyReports];
     const affectedDates = Array.from(new Set(newTasks.map((t) => t.date)));
@@ -337,6 +408,7 @@ export default function App() {
   };
 
   const handleSaveDailyReport = (newReport: DailyReport) => {
+    if (currentUser?.role !== 'admin') return;
     setDailyReports((prev) => {
       const filtered = prev.filter((r) => r.date !== newReport.date);
       const nextReports = [newReport, ...filtered];
@@ -346,17 +418,42 @@ export default function App() {
     showSyncSuccessToast('✓ Đã lưu và đồng bộ báo cáo ngày lên Cloud vĩnh viễn!');
   };
 
-  // Feedback Operations
+  const handleUpdateTasksFromSheet = (updatedTasks: TaskItem[]) => {
+    if (currentUser?.role !== 'admin') {
+      alert('Chỉ tài khoản Quản trị viên (Admin) mới có quyền chỉnh sửa dữ liệu công việc.');
+      return;
+    }
+    setTasks(updatedTasks);
+    persistAllData(updatedTasks, dailyReports, feedbacks);
+    showSyncSuccessToast('✓ Đã lưu thay đổi bảng tính & tự động đồng bộ!');
+  };
+
+  const handleUpdateDailyReportsFromSheet = (updatedReports: DailyReport[]) => {
+    if (currentUser?.role !== 'admin') {
+      alert('Chỉ tài khoản Quản trị viên (Admin) mới có quyền chỉnh sửa báo cáo.');
+      return;
+    }
+    setDailyReports(updatedReports);
+    persistAllData(tasks, updatedReports, feedbacks);
+    showSyncSuccessToast('✓ Đã lưu thay đổi báo cáo & tự động đồng bộ!');
+  };
+
+  // Feedback Operations - Chỉ chấp nhận đánh giá thật từ người dùng đã tạo tài khoản
   const handleAddFeedback = async (newFb: Omit<ViewerFeedback, 'id' | 'createdAt'>) => {
+    if (!currentUser) return;
+    if (isMockFeedback(newFb)) return;
+
     const feedbackItem: ViewerFeedback = {
       ...newFb,
-      id: `fb_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
+      id: `real_fb_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
+      userEmail: currentUser.email || `${currentUser.username}@balang.com.vn`,
       createdAt: new Date().toISOString(),
     };
 
-    const nextFeedbacks = [feedbackItem, ...feedbacks];
+    const nextFeedbacks = [feedbackItem, ...filterRealFeedbacks(feedbacks)];
     setFeedbacks(nextFeedbacks);
     persistAllData(tasks, dailyReports, nextFeedbacks);
+    localStorage.setItem('3d_workreport_feedbacks', JSON.stringify(nextFeedbacks));
 
     try {
       const res = await fetch('/api/shared/feedback', {
@@ -366,7 +463,9 @@ export default function App() {
       });
       const data = await res.json();
       if (data.feedbacks && Array.isArray(data.feedbacks)) {
-        setFeedbacks(data.feedbacks);
+        const clean = filterRealFeedbacks(data.feedbacks);
+        setFeedbacks(clean);
+        localStorage.setItem('3d_workreport_feedbacks', JSON.stringify(clean));
       }
     } catch (e) {
       console.warn('Could not post feedback to server:', e);
@@ -374,9 +473,11 @@ export default function App() {
   };
 
   const handleDeleteFeedback = async (id: string) => {
-    const nextFeedbacks = feedbacks.filter((f) => f.id !== id);
+    if (currentUser?.role !== 'admin') return;
+    const nextFeedbacks = filterRealFeedbacks(feedbacks.filter((f) => f.id !== id));
     setFeedbacks(nextFeedbacks);
     persistAllData(tasks, dailyReports, nextFeedbacks);
+    localStorage.setItem('3d_workreport_feedbacks', JSON.stringify(nextFeedbacks));
 
     try {
       const res = await fetch(`/api/shared/feedback/${id}`, {
@@ -384,14 +485,45 @@ export default function App() {
       });
       const data = await res.json();
       if (data.feedbacks && Array.isArray(data.feedbacks)) {
-        setFeedbacks(data.feedbacks);
+        const clean = filterRealFeedbacks(data.feedbacks);
+        setFeedbacks(clean);
+        localStorage.setItem('3d_workreport_feedbacks', JSON.stringify(clean));
       }
     } catch (e) {
       console.warn('Could not delete feedback from server:', e);
     }
   };
 
+  const handleClearMockFeedbacks = async () => {
+    if (currentUser?.role !== 'admin') return;
+    const clean = filterRealFeedbacks(feedbacks);
+    setFeedbacks(clean);
+    persistAllData(tasks, dailyReports, clean);
+    localStorage.setItem('3d_workreport_feedbacks', JSON.stringify(clean));
+    try {
+      await fetch('/api/shared/feedback/clear-mock', { method: 'POST' });
+    } catch (e) {
+      console.warn(e);
+    }
+    showSyncSuccessToast('✓ Đã xóa sạch toàn bộ đánh giá ảo trong hệ thống!');
+  };
+
+  const handleClearAllFeedbacks = async () => {
+    if (currentUser?.role !== 'admin') return;
+    if (!confirm('Bạn có chắc muốn xóa toàn bộ đánh giá trong hệ thống?')) return;
+    setFeedbacks([]);
+    persistAllData(tasks, dailyReports, []);
+    localStorage.setItem('3d_workreport_feedbacks', JSON.stringify([]));
+    try {
+      await fetch('/api/shared/feedback/clear-all', { method: 'POST' });
+    } catch (e) {
+      console.warn(e);
+    }
+    showSyncSuccessToast('✓ Đã xóa toàn bộ đánh giá thành công!');
+  };
+
   const handleOpenTaskModalForEdit = (task?: TaskItem) => {
+    if (currentUser?.role !== 'admin') return;
     setTaskToEdit(task || null);
     setIsTaskModalOpen(true);
   };
@@ -445,6 +577,7 @@ export default function App() {
                 onAddFeedback={handleAddFeedback}
                 onDeleteFeedback={handleDeleteFeedback}
                 onOpenLoginModal={() => setIsLoginOpen(true)}
+                onClearMockFeedbacks={handleClearMockFeedbacks}
               />
             )}
 
@@ -460,6 +593,7 @@ export default function App() {
                 onAddFeedback={handleAddFeedback}
                 onDeleteFeedback={handleDeleteFeedback}
                 onOpenLoginModal={() => setIsLoginOpen(true)}
+                onClearMockFeedbacks={handleClearMockFeedbacks}
               />
             )}
 
@@ -473,6 +607,7 @@ export default function App() {
                 onAddFeedback={handleAddFeedback}
                 onDeleteFeedback={handleDeleteFeedback}
                 onOpenLoginModal={() => setIsLoginOpen(true)}
+                onClearMockFeedbacks={handleClearMockFeedbacks}
               />
             )}
 
@@ -486,6 +621,7 @@ export default function App() {
                 onAddFeedback={handleAddFeedback}
                 onDeleteFeedback={handleDeleteFeedback}
                 onOpenLoginModal={() => setIsLoginOpen(true)}
+                onClearMockFeedbacks={handleClearMockFeedbacks}
               />
             )}
 
@@ -498,6 +634,7 @@ export default function App() {
                 onAddFeedback={handleAddFeedback}
                 onDeleteFeedback={handleDeleteFeedback}
                 onOpenLoginModal={() => setIsLoginOpen(true)}
+                onClearMockFeedbacks={handleClearMockFeedbacks}
               />
             )}
 
@@ -506,8 +643,8 @@ export default function App() {
                 allTasks={tasks}
                 dailyReports={dailyReports}
                 currentUser={currentUser}
-                onUpdateTasks={setTasks}
-                onUpdateDailyReports={setDailyReports}
+                onUpdateTasks={handleUpdateTasksFromSheet}
+                onUpdateDailyReports={handleUpdateDailyReportsFromSheet}
               />
             )}
           </main>
@@ -560,6 +697,7 @@ export default function App() {
         onDelete={handleDeleteTask}
         taskToEdit={taskToEdit}
         selectedDate={selectedDate}
+        isAdmin={currentUser?.role === 'admin'}
       />
 
       <SheetImportModal

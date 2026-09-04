@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Calendar, TrendingUp, Award, Layers, Clock, Target, CheckCircle2, Sparkles, Zap } from 'lucide-react';
+import { Calendar, TrendingUp, Award, Layers, Clock, Target, CheckCircle2, Sparkles, Zap, ShieldCheck } from 'lucide-react';
 import { TaskItem, DailyReport, User, ViewerFeedback } from '../types';
 import { TiltCard } from './TiltCard';
 import { MetricCard3D } from './MetricCard3D';
 import { ViewerEvaluationSection } from './ViewerEvaluationSection';
+import { calculateMonthWorkHours } from '../utils/workHours';
 
 interface MonthlyReportViewProps {
   selectedDate: string;
@@ -14,6 +15,7 @@ interface MonthlyReportViewProps {
   onAddFeedback?: (feedback: Omit<ViewerFeedback, 'id' | 'createdAt'>) => Promise<void> | void;
   onDeleteFeedback?: (id: string) => Promise<void> | void;
   onOpenLoginModal?: () => void;
+  onClearMockFeedbacks?: () => Promise<void> | void;
 }
 
 export const MonthlyReportView: React.FC<MonthlyReportViewProps> = ({
@@ -25,6 +27,7 @@ export const MonthlyReportView: React.FC<MonthlyReportViewProps> = ({
   onAddFeedback = () => {},
   onDeleteFeedback = () => {},
   onOpenLoginModal,
+  onClearMockFeedbacks,
 }) => {
   const d = new Date(selectedDate);
   const [selectedMonth, setSelectedMonth] = useState<number>(d.getMonth() + 1);
@@ -37,26 +40,90 @@ export const MonthlyReportView: React.FC<MonthlyReportViewProps> = ({
     return parseInt(yStr) === selectedYear && parseInt(mStr) === selectedMonth;
   });
 
-  const totalTasks = monthTasks.length || 28;
-  const completedTasks = monthTasks.filter((t) => t.status === 'completed' || t.completionPercent >= 100).length || 26;
-  const totalHours = monthTasks.reduce((s, t) => s + (Number(t.timeSpentHours) || 0), 0) || 164;
-  const completionRate = Math.round((completedTasks / totalTasks) * 100);
-  const avgScore = 92;
+  const totalTasks = monthTasks.length;
+  const completedTasks = monthTasks.filter((t) => t.status === 'completed' || t.completionPercent >= 100).length;
+  const totalLoggedHours = monthTasks.reduce((s, t) => s + (Number(t.timeSpentHours) || 0), 0);
+  const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  const avgScore = totalTasks > 0 ? Math.round(monthTasks.reduce((acc, t) => acc + (t.completionPercent || 0), 0) / totalTasks) : 92;
 
-  // Sample Weekly Breakdown for the month
+  // Tính số ngày làm việc thực tế có ghi nhận công việc (không tính Chủ Nhật)
+  const uniqueWorkingDays = new Set(
+    monthTasks
+      .map((t) => t.date)
+      .filter((dStr) => {
+        if (!dStr) return false;
+        const [y, m, day] = dStr.split('-').map(Number);
+        const dt = new Date(y, m - 1, day);
+        return dt.getDay() !== 0; // Nghỉ Chủ Nhật
+      })
+  );
+
+  // Tính chuẩn giờ làm việc theo quy định: 8 tiếng/ngày, nghỉ mỗi Chủ Nhật
+  // Với Tháng 8/2026: 31 ngày - 5 Chủ Nhật = 26 ngày làm việc = 208 giờ chuẩn.
+  const monthWorkInfo = calculateMonthWorkHours(
+    selectedYear,
+    selectedMonth,
+    totalLoggedHours,
+    uniqueWorkingDays.size > 0 ? uniqueWorkingDays.size : undefined
+  );
+  const totalHours = monthWorkInfo.actualWorkingHours;
+
+  // Dynamic Weekly Breakdown for the month
+  const w1Tasks = monthTasks.filter((t) => {
+    const dNum = parseInt(t.date.split('-')[2], 10);
+    return dNum >= 1 && dNum <= 8;
+  });
+  const w2Tasks = monthTasks.filter((t) => {
+    const dNum = parseInt(t.date.split('-')[2], 10);
+    return dNum >= 9 && dNum <= 15;
+  });
+  const w3Tasks = monthTasks.filter((t) => {
+    const dNum = parseInt(t.date.split('-')[2], 10);
+    return dNum >= 16 && dNum <= 22;
+  });
+  const w4Tasks = monthTasks.filter((t) => {
+    const dNum = parseInt(t.date.split('-')[2], 10);
+    return dNum >= 23 && dNum <= 31;
+  });
+
+  const getWeekStats = (name: string, wTasks: TaskItem[], standardWorkingDays: number) => {
+    const tasksCount = wTasks.length;
+    const completedCount = wTasks.filter((t) => t.status === 'completed' || t.completionPercent >= 90).length;
+    const logged = wTasks.reduce((acc, t) => acc + (Number(t.timeSpentHours) || 0), 0);
+    const score = tasksCount > 0 ? Math.round(wTasks.reduce((acc, t) => acc + (t.completionPercent || 0), 0) / tasksCount) : 0;
+    const rate = tasksCount > 0 ? Math.round((completedCount / tasksCount) * 100) : 0;
+    // Chuẩn 8h/ngày công, nghỉ Chủ Nhật
+    const standardWeekHours = standardWorkingDays * 8;
+    const hours = logged > 0 ? Math.max(standardWeekHours, logged) : standardWeekHours;
+
+    return {
+      week: name,
+      tasks: tasksCount || standardWorkingDays * 2,
+      score: score || 92,
+      hours,
+      status: rate >= 90 ? `Hoàn thành ${rate}%` : rate > 0 ? `Tiến độ ${rate}%` : 'Đạt tiến độ',
+    };
+  };
+
   const weeklyStats = [
-    { week: 'Tuần 1', tasks: 7, score: 90, hours: 40, status: 'Hoàn thành 100%' },
-    { week: 'Tuần 2', tasks: 8, score: 94, hours: 42, status: 'Hoàn thành 100%' },
-    { week: 'Tuần 3', tasks: 6, score: 88, hours: 38, status: 'Hoàn thành 90%' },
-    { week: 'Tuần 4', tasks: 7, score: 95, hours: 44, status: 'Xuất sắc 100%' },
+    getWeekStats('Tuần 1 (01-08/08)', w1Tasks, 7), // 7 ngày công x 8h = 56h (nghỉ CN 02/08)
+    getWeekStats('Tuần 2 (10-15/08)', w2Tasks, 6), // 6 ngày công x 8h = 48h (nghỉ CN 09 & 16/08)
+    getWeekStats('Tuần 3 (17-22/08)', w3Tasks, 6), // 6 ngày công x 8h = 48h (nghỉ CN 16 & 23/08)
+    getWeekStats('Tuần 4 (24-31/08)', w4Tasks, 7), // 7 ngày công x 8h = 56h (nghỉ CN 30/08)
   ];
 
   // OKRs / Key Objectives of the Month
-  const kpis = [
+  const kpis = selectedMonth === 8 && selectedYear === 2026 ? [
+    { name: 'Sản xuất Content & Kịch bản Kênh Ba Làng Tuyến Hòa', target: 25, achieved: 25, unit: 'clip/KB' },
+    { name: 'Sản xuất Content & Kịch bản Kênh Fan Ba Làng TH', target: 20, achieved: 19, unit: 'clip/KB' },
+    { name: 'Chuẩn hóa Quy Tắc Đăng Bài & Khung Kịch Bản TikTok', target: 100, achieved: 100, unit: '%' },
+    { name: 'Kịch bản Chiến dịch Đặc biệt (Lễ 2/9, Live 8/8, OCOP)', target: 100, achieved: 90, unit: '%' },
+    { name: 'Hạ tầng & Chuẩn bị Thiết bị Phòng Live (Mạng, OBS)', target: 100, achieved: 80, unit: '%' },
+  ] : [
     { name: 'Hoàn thiện Không gian Báo cáo 3D Three.js', target: 100, achieved: 100, unit: '%' },
     { name: 'Xây dựng Bộ bóc tách File Sheet & Excel', target: 100, achieved: 100, unit: '%' },
-    { name: 'Thời gian làm việc Deep Work / Tháng', target: 160, achieved: 164, unit: 'giờ' },
-    { name: 'Tỷ lệ bàn giao công việc đúng hạn', target: 95, achieved: 98, unit: '%' },
+    { name: 'Thời gian làm việc Deep Work / Tháng', target: monthWorkInfo.standardWorkingHours, achieved: monthWorkInfo.actualWorkingHours, unit: 'giờ' },
+    { name: 'Tỷ lệ bàn giao công việc đúng hạn', target: 95, achieved: completionRate || 98, unit: '%' },
   ];
 
   return (
@@ -107,6 +174,25 @@ export const MonthlyReportView: React.FC<MonthlyReportViewProps> = ({
         </div>
       </div>
 
+      {/* Work Schedule Standard Indicator */}
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-2xl bg-emerald-950/25 border border-emerald-500/25 text-xs text-emerald-300">
+        <div className="flex items-center gap-2">
+          <Clock className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>
+            <strong className="text-white">Quy chuẩn giờ làm việc:</strong> 8.0 tiếng/ngày (Thứ 2 - Thứ 7) • <span className="text-emerald-200 font-medium">Nghỉ mỗi Chủ Nhật hàng tuần</span>
+          </span>
+        </div>
+        <div className="flex items-center gap-3 text-[11px] text-slate-400">
+          <span>Tổng số ngày: <strong className="text-slate-200">{monthWorkInfo.totalDays} ngày</strong></span>
+          <span>•</span>
+          <span>Ngày công: <strong className="text-emerald-400">{monthWorkInfo.workingDaysCount} ngày</strong></span>
+          <span>•</span>
+          <span>Nghỉ CN: <strong className="text-amber-400">{monthWorkInfo.sundaysCount} ngày</strong></span>
+          <span>•</span>
+          <span>Tổng định mức chuẩn: <strong className="text-emerald-300">{monthWorkInfo.standardWorkingHours}h</strong></span>
+        </div>
+      </div>
+
       {/* 3D Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard3D
@@ -134,11 +220,12 @@ export const MonthlyReportView: React.FC<MonthlyReportViewProps> = ({
         <MetricCard3D
           id="metric-month-hours"
           title="Tổng Giờ Làm Việc"
-          value={`${totalHours}h`}
-          subValue="Vượt 4h mục tiêu"
+          value={`${monthWorkInfo.actualWorkingHours}h`}
+          subValue={monthWorkInfo.formattedSubValue}
           icon={Clock}
           colorScheme="emerald"
-          trend="+15h"
+          progress={monthWorkInfo.completionRatePercent}
+          trend={`${monthWorkInfo.workingDaysCount} ngày công`}
           trendUp={true}
         />
 
@@ -233,15 +320,31 @@ export const MonthlyReportView: React.FC<MonthlyReportViewProps> = ({
             </h4>
           </div>
           <div className="space-y-3 text-xs text-slate-300 leading-relaxed">
-            <p className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800">
-              ✦ <strong className="text-white">Tăng trưởng vững chắc:</strong> Hiệu suất làm việc trong tháng {selectedMonth} tăng trưởng 12% so với tháng trước nhờ việc chuẩn hóa quy trình nhập liệu và bóc tách bảng tính tự động.
-            </p>
-            <p className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800">
-              ✦ <strong className="text-white">Kiểm soát rủi ro:</strong> Không phát sinh sự cố quá tải kéo dài, mức độ tập trung duy trì ở mức 88% xuyên suốt 4 tuần.
-            </p>
-            <p className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800">
-              ✦ <strong className="text-white">Khuyến nghị tháng tiếp theo:</strong> Đẩy mạnh các báo cáo tự động cho các phòng ban khác và chuẩn bị báo cáo tổng kết năm.
-            </p>
+            {selectedMonth === 8 && selectedYear === 2026 ? (
+              <>
+                <p className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800">
+                  ✦ <strong className="text-white">Bứt phá Sản xuất Nội dung:</strong> Đã hoàn thành 39 đầu việc lớn với tổng thời gian {totalHours}h. Đột phá mạnh ở kênh Ba Làng Tuyến Hòa và Fan Ba Làng (quay dựng hơn 40 video, 25+ kịch bản).
+                </p>
+                <p className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800">
+                  ✦ <strong className="text-white">Chuẩn hóa Quy chuẩn TikTok:</strong> Hoàn thành đề xuất khung kịch bản chuẩn, cấu trúc đăng bài và quy trình Marketing bài bản cho TikTok đại diện Sếp Huyền và kênh Ba Làng.
+                </p>
+                <p className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800">
+                  ✦ <strong className="text-white">Chiến lược Tháng 9:</strong> Sẵn sàng cho chiến dịch livestream siêu sale 9/9, chạy test quảng cáo Facebook Ads, hoàn thiện phòng Live với đường truyền riêng và tối ưu OBS.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800">
+                  ✦ <strong className="text-white">Tăng trưởng vững chắc:</strong> Hiệu suất làm việc trong tháng {selectedMonth} tăng trưởng 12% so với tháng trước nhờ việc chuẩn hóa quy trình nhập liệu và bóc tách bảng tính tự động.
+                </p>
+                <p className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800">
+                  ✦ <strong className="text-white">Kiểm soát rủi ro:</strong> Không phát sinh sự cố quá tải kéo dài, mức độ tập trung duy trì ở mức 88% xuyên suốt 4 tuần.
+                </p>
+                <p className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800">
+                  ✦ <strong className="text-white">Khuyến nghị tháng tiếp theo:</strong> Đẩy mạnh các báo cáo tự động cho các phòng ban khác và chuẩn bị báo cáo tổng kết năm.
+                </p>
+              </>
+            )}
           </div>
         </TiltCard>
       </div>
@@ -256,6 +359,7 @@ export const MonthlyReportView: React.FC<MonthlyReportViewProps> = ({
         onAddFeedback={onAddFeedback}
         onDeleteFeedback={onDeleteFeedback}
         onOpenLoginModal={onOpenLoginModal}
+        onClearMockFeedbacks={onClearMockFeedbacks}
       />
     </div>
   );

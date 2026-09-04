@@ -49,7 +49,7 @@ export const MasterSheetView: React.FC<MasterSheetViewProps> = ({
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('all');
   const [copiedNotice, setCopiedNotice] = useState(false);
   const [saveFeedback, setSaveFeedback] = useState('');
-  const [googleSheetUrl, setGoogleSheetUrl] = useState('https://docs.google.com/spreadsheets/d/1_ba_lang_th_work_reports_master');
+  const [googleSheetUrl, setGoogleSheetUrl] = useState('https://docs.google.com/spreadsheets/d/1HIUQGi_Sd1ewWa6pvuBkc3xqFGURC8be3CiIS-fi4XM/edit');
   const [showSyncModal, setShowSyncModal] = useState(false);
 
   const isAdmin = currentUser?.role === 'admin';

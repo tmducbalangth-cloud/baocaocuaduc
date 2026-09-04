@@ -21,6 +21,9 @@ import { DailyReport, TaskItem, User, WeeklyReport, ViewerFeedback } from '../ty
 import { TiltCard } from './TiltCard';
 import { MetricCard3D } from './MetricCard3D';
 import { ViewerEvaluationSection } from './ViewerEvaluationSection';
+import { WeeklySelfEvaluationCard } from './WeeklySelfEvaluationCard';
+import { calculateWeekWorkHours, calculateDayWorkHours, STANDARD_DAILY_HOURS } from '../utils/workHours';
+import { DatePickerPopover } from './DatePickerPopover';
 
 interface WeeklyReportViewProps {
   selectedDate: string;
@@ -33,6 +36,7 @@ interface WeeklyReportViewProps {
   onAddFeedback?: (feedback: Omit<ViewerFeedback, 'id' | 'createdAt'>) => Promise<void> | void;
   onDeleteFeedback?: (id: string) => Promise<void> | void;
   onOpenLoginModal?: () => void;
+  onClearMockFeedbacks?: () => Promise<void> | void;
 }
 
 // Helpers for Week calculations
@@ -78,6 +82,7 @@ export const WeeklyReportView: React.FC<WeeklyReportViewProps> = ({
   onAddFeedback = () => {},
   onDeleteFeedback = () => {},
   onOpenLoginModal,
+  onClearMockFeedbacks,
 }) => {
   const [isAiSynthesizing, setIsAiSynthesizing] = useState(false);
   const [weeklyReportState, setWeeklyReportState] = useState<WeeklyReport | null>(null);
@@ -95,16 +100,28 @@ export const WeeklyReportView: React.FC<WeeklyReportViewProps> = ({
   // Compute Weekly Aggregated Metrics
   const totalTasks = weekTasks.length;
   const completedTasks = weekTasks.filter((t) => t.status === 'completed' || t.completionPercent >= 100).length;
-  const totalHours = weekTasks.reduce((sum, t) => sum + (Number(t.timeSpentHours) || 0), 0);
+  const totalLoggedHours = weekTasks.reduce((sum, t) => sum + (Number(t.timeSpentHours) || 0), 0);
   const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+  // Tính chuẩn giờ làm việc tuần: 8h/ngày, làm Thứ 2 -> Thứ 7, nghỉ mỗi Chủ Nhật
+  const workingDaysInWeek = weekDays.filter((wd) => {
+    const d = new Date(wd.dateStr);
+    return d.getDay() !== 0; // Exclude Sunday
+  }).length;
+  const standardWeekHours = workingDaysInWeek * STANDARD_DAILY_HOURS; // Ví dụ 6 ngày x 8h = 48h
+  const actualWeekHours = totalLoggedHours > 0 ? Math.max(standardWeekHours, totalLoggedHours) : standardWeekHours;
+  const totalHours = actualWeekHours;
 
   // Day-by-Day statistics
   const dayStats = weekDays.map((wd) => {
     const dayTasksList = weekTasks.filter((t) => t.date === wd.dateStr);
     const dayReport = dailyReports.find((r) => r.date === wd.dateStr);
     const completed = dayTasksList.filter((t) => t.status === 'completed' || t.completionPercent >= 100).length;
-    const hours = dayTasksList.reduce((s, t) => s + (Number(t.timeSpentHours) || 0), 0);
+    const loggedHours = dayTasksList.reduce((s, t) => s + (Number(t.timeSpentHours) || 0), 0);
     const score = dayReport?.productivityScore || (dayTasksList.length > 0 ? Math.min(100, Math.round((completed / dayTasksList.length) * 60 + 35)) : 0);
+    
+    // Tính toán chuẩn theo ngày (Chủ Nhật nghỉ, Thứ 2-7 chuẩn 8h)
+    const dayWork = calculateDayWorkHours(wd.dateStr, loggedHours > 0 ? loggedHours : undefined);
 
     return {
       day: wd.dayName,
@@ -112,7 +129,10 @@ export const WeeklyReportView: React.FC<WeeklyReportViewProps> = ({
       score,
       completedCount: completed,
       totalCount: dayTasksList.length,
-      hours,
+      hours: dayWork.actualHours,
+      standardHours: dayWork.standardHours,
+      isSunday: dayWork.isSunday,
+      statusText: dayWork.statusText,
     };
   });
 
@@ -120,6 +140,91 @@ export const WeeklyReportView: React.FC<WeeklyReportViewProps> = ({
   const avgScore = activeDays.length > 0
     ? Math.round(activeDays.reduce((s, d) => s + d.score, 0) / activeDays.length)
     : 88;
+
+  // August 2026 week details resolver from Google Sheet data
+  const augWeekInfo = React.useMemo(() => {
+    const isW1 = (weekNumber === 32 || (startDateStr >= '2026-08-01' && startDateStr <= '2026-08-09'));
+    const isW2 = (weekNumber === 33 || (startDateStr >= '2026-08-10' && startDateStr <= '2026-08-16'));
+    const isW3 = (weekNumber === 34 || (startDateStr >= '2026-08-17' && startDateStr <= '2026-08-23'));
+    const isW4 = (weekNumber === 35 || (startDateStr >= '2026-08-24' && startDateStr <= '2026-08-31'));
+
+    if (isW1) {
+      return {
+        label: 'Tuần 1 (01/08 - 08/08)',
+        rating: 'Xuất sắc (A)',
+        summary: `Báo cáo Tuần 1: Hoàn thành ${completedTasks}/${totalTasks} công việc (${totalHours}h). Tập trung quay 12 clip Ba Làng & Fan Ba Làng, lên kế hoạch content Facebook Ads và kịch bản video phiên live 8/8.`,
+        achievements: [
+          'Quay hoàn tất 12 video content định kỳ (4 clip Ba Làng Tuyến Hòa, 8 clip Fan Ba Làng).',
+          'Soạn thảo hoàn thành 8 kịch bản kênh Fan Ba Làng TH.',
+          'Lên kế hoạch content và chuẩn bị chiến dịch quảng cáo Facebook tuần tới.',
+          'Sản xuất và dựng hoàn thiện 4 video phục vụ phiên livestream ngày 8/8.'
+        ],
+        nextGoals: [
+          'Lên kế hoạch chạy quảng cáo cho facebook trong tuần tới.',
+          'Viết kịch bản kênh Fan Ba Làng TH.',
+          'Hoàn thiện kịch bản kênh Ocop 4 Sao (Deadline T6).'
+        ]
+      };
+    }
+    if (isW2) {
+      return {
+        label: 'Tuần 2 (10/08 - 15/08)',
+        rating: 'Xuất sắc (A+)',
+        summary: `Báo cáo Tuần 2: Hoàn thành ${completedTasks}/${totalTasks} công việc (${totalHours}h). Đột phá sản xuất 10 kịch bản (kênh TT sếp Huyền, Seri nỗi đau KH) và ban hành Đề xuất Quy tắc TikTok chuẩn.`,
+        achievements: [
+          'Quay 12 clip content Ba Làng Tuyến Hòa và Fan Ba Làng.',
+          'Hoàn thành 6 kịch bản tuyến Seri nỗi đau khách hàng & 2 kịch bản kênh TT sếp Huyền.',
+          'Dựng hoàn thiện 9 video clip mới và tái dựng 2 clip cũ tối ưu giữ chân người xem.',
+          'Ban hành bộ tài liệu Đề Xuất Quy Tắc TikTok và đánh giá kênh TikTok cũ.'
+        ],
+        nextGoals: [
+          'Tập trung lên kịch bản kênh TT Đại diện sếp Huyền.',
+          'Kịch Bản kênh Fan Ba Làng TH.',
+          'Kịch Bản kênh Ba Làng Tuyến Hoà.'
+        ]
+      };
+    }
+    if (isW3) {
+      return {
+        label: 'Tuần 3 (17/08 - 22/08)',
+        rating: 'Xuất sắc (A)',
+        summary: `Báo cáo Tuần 3: Hoàn thành ${completedTasks}/${totalTasks} công việc (${totalHours}h). Sản xuất khối lượng lớn 19 clip quay, 9 kịch bản và 16 video dựng; hoàn thiện đề xuất hạ tầng phòng Live.`,
+        achievements: [
+          'Quay khối lượng lớn: 8 content Ba Làng Tuyến Hòa và 11 content Fan Ba Làng.',
+          'Dựng và hoàn thiện 16 video cho 2 kênh Ba Làng Tuyến Hòa và Fan Ba Làng.',
+          'Họp giao ban đầu tuần, thống nhất kế hoạch xây kênh theo tuyến nỗi đau khách hàng.',
+          'Lập đề xuất lắp đặt đường truyền cáp quang riêng và khảo sát thiết bị OBS cho phòng Live.'
+        ],
+        nextGoals: [
+          'Lên Kế Hoạch Cụ thể Quay dựng cho kênh Bán hàng (Deadline Chiều T2).',
+          'Lên kịch bản Kênh bán hàng cho tuần tới.',
+          'Setup OBS, thiết bị live sau khi có thiết bị.',
+          'Thực hiện tuyến kịch bản Fan mới.',
+          'Học livestream hỗ trợ phần live cùng với anh Khắc Anh.'
+        ]
+      };
+    }
+    if (isW4) {
+      return {
+        label: 'Tuần 4 (24/08 - 31/08)',
+        rating: 'Xuất sắc (A+)',
+        summary: `Báo cáo Tuần 4: Hoàn thành ${completedTasks}/${totalTasks} công việc (${totalHours}h). Kỷ lục 13 kịch bản Ba Làng Tuyến Hòa, 2 kịch bản đại lễ 2/9, chuẩn bị kịch bản live 9/9 và clip mở bán.`,
+        achievements: [
+          'Bứt phá năng suất: Hoàn thành 13 kịch bản kênh Ba Làng Tuyến Hòa trong tuần.',
+          'Quay 9 content Ba Làng Tuyến Hòa và dựng xong 9 video hoàn chỉnh.',
+          'Hoàn thành 2 kịch bản đặc biệt chào mừng ngày Quốc Khánh 2/9.',
+          'Lên kế hoạch và dàn ý kịch bản Livestream 9/9, quay clip kênh bán hàng.'
+        ],
+        nextGoals: [
+          'Hoàn thành link báo cáo Script.',
+          'Chạy test quảng cáo Facebook Ads.',
+          'Tiếp tục sản xuất các kịch bản kênh bán hàng dựa theo phong cách diễn.',
+          'Hỗ trợ vận hành phòng Livestream.'
+        ]
+      };
+    }
+    return null;
+  }, [weekNumber, startDateStr, completedTasks, totalTasks, totalHours]);
 
   // Category Breakdown
   const categoryMap: { [key: string]: { count: number; hours: number } } = {};
@@ -233,21 +338,16 @@ export const WeeklyReportView: React.FC<WeeklyReportViewProps> = ({
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Top Controls: Week/Date/Month/Year Picker & Actions */}
-      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 p-4 rounded-3xl bg-slate-900/80 border border-slate-800/80 backdrop-blur-xl shadow-2xl">
+      <div className="relative z-30 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 p-4 rounded-3xl bg-slate-900/80 border border-slate-800/80 backdrop-blur-xl shadow-2xl">
         {/* Date / Month / Year & Week Navigator */}
         <div className="flex flex-wrap items-center gap-3">
           {/* Direct Date Picker */}
-          <div className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-slate-950/80 border border-slate-700/80 shadow-inner">
-            <Calendar className="w-4 h-4 text-cyan-400" />
-            <span className="text-xs font-semibold text-slate-400">Chọn Ngày / Tháng / Năm:</span>
-            <input
-              id="weekly-date-picker"
-              type="date"
-              value={selectedDate}
-              onChange={(e) => onDateChange(e.target.value)}
-              className="bg-transparent text-sm font-bold text-white focus:outline-none cursor-pointer"
-            />
-          </div>
+          <DatePickerPopover
+            id="weekly-date-picker"
+            value={selectedDate}
+            onChange={onDateChange}
+            label="Chọn Ngày:"
+          />
 
           {/* Week Info Badge & Stepper */}
           <div className="flex items-center gap-1 bg-slate-800/60 p-1 rounded-2xl border border-slate-700/80">
@@ -261,7 +361,7 @@ export const WeeklyReportView: React.FC<WeeklyReportViewProps> = ({
             </button>
             <div className="px-3 py-1 text-center">
               <span className="text-xs font-extrabold text-cyan-300 block font-display">
-                TUẦN {weekNumber}, {year}
+                {augWeekInfo ? augWeekInfo.label : `TUẦN ${weekNumber}, ${year}`}
               </span>
               <span className="text-[10px] text-slate-400 font-medium">
                 {startDateStr} ➔ {endDateStr}
@@ -276,23 +376,97 @@ export const WeeklyReportView: React.FC<WeeklyReportViewProps> = ({
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
+
+          {/* Quick Select August 2026 Weeks from Google Sheet */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-[11px] font-bold text-slate-400 hidden sm:inline">Xem nhanh BC T8:</span>
+            <button
+              type="button"
+              onClick={() => onDateChange('2026-08-04')}
+              className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all ${
+                startDateStr <= '2026-08-04' && endDateStr >= '2026-08-04'
+                  ? 'bg-cyan-500 text-slate-950 shadow-[0_0_12px_rgba(6,182,212,0.5)]'
+                  : 'bg-cyan-950/60 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-900/60'
+              }`}
+            >
+              Tuần 1 (01-08/08)
+            </button>
+            <button
+              type="button"
+              onClick={() => onDateChange('2026-08-11')}
+              className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all ${
+                startDateStr <= '2026-08-11' && endDateStr >= '2026-08-11'
+                  ? 'bg-purple-500 text-white shadow-[0_0_12px_rgba(168,85,247,0.5)]'
+                  : 'bg-purple-950/60 border border-purple-500/40 text-purple-300 hover:bg-purple-900/60'
+              }`}
+            >
+              Tuần 2 (10-15/08)
+            </button>
+            <button
+              type="button"
+              onClick={() => onDateChange('2026-08-18')}
+              className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all ${
+                startDateStr <= '2026-08-18' && endDateStr >= '2026-08-18'
+                  ? 'bg-indigo-500 text-white shadow-[0_0_12px_rgba(99,102,241,0.5)]'
+                  : 'bg-indigo-950/60 border border-indigo-500/40 text-indigo-300 hover:bg-indigo-900/60'
+              }`}
+            >
+              Tuần 3 (17-22/08)
+            </button>
+            <button
+              type="button"
+              onClick={() => onDateChange('2026-08-25')}
+              className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all ${
+                startDateStr <= '2026-08-25' && endDateStr >= '2026-08-25'
+                  ? 'bg-emerald-500 text-slate-950 shadow-[0_0_12px_rgba(16,185,129,0.5)]'
+                  : 'bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-900/60'
+              }`}
+            >
+              Tuần 4 (24-31/08)
+            </button>
+          </div>
         </div>
 
-        {/* AI Synthesis Action Button */}
-        <div>
+        {/* Action Buttons: Self Evaluation Anchor & AI Synthesis */}
+        <div className="flex flex-wrap items-center gap-2">
+          <a
+            href="#weekly-self-evaluation-section"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-purple-950/60 hover:bg-purple-900/80 border border-purple-500/40 text-purple-200 text-xs font-bold transition-all shadow-[0_0_15px_rgba(168,85,247,0.2)] active:scale-95"
+          >
+            <Sparkles className="w-4 h-4 text-amber-300" />
+            <span>Tự Đánh Giá Tuần (AI)</span>
+          </a>
+
           <button
             id="synthesize-weekly-btn"
             onClick={handleSynthesizeWeeklyReport}
             disabled={isAiSynthesizing}
-            className="w-full lg:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white text-xs font-extrabold shadow-[0_0_25px_rgba(168,85,247,0.4)] disabled:opacity-50 transition-all transform hover:scale-[1.02] active:scale-95"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white text-xs font-extrabold shadow-[0_0_25px_rgba(168,85,247,0.4)] disabled:opacity-50 transition-all transform hover:scale-[1.02] active:scale-95"
           >
             {isAiSynthesizing ? (
               <RefreshCw className="w-4 h-4 animate-spin" />
             ) : (
               <Sparkles className="w-4 h-4 text-purple-200 animate-pulse" />
             )}
-            <span>✨ Tổng Hợp & Tái Thiết Kế AI Tuần</span>
+            <span>✨ Tổng Hợp AI Tuần</span>
           </button>
+        </div>
+      </div>
+
+      {/* Work Schedule Standard Indicator */}
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-2xl bg-emerald-950/25 border border-emerald-500/25 text-xs text-emerald-300">
+        <div className="flex items-center gap-2">
+          <Clock className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>
+            <strong className="text-white">Quy chuẩn giờ làm việc:</strong> 8.0 tiếng/ngày (Thứ 2 - Thứ 7) • <span className="text-emerald-200 font-medium">Nghỉ mỗi Chủ Nhật</span>
+          </span>
+        </div>
+        <div className="flex items-center gap-3 text-[11px] text-slate-400">
+          <span>Ngày công tuần: <strong className="text-emerald-400">{workingDaysInWeek} ngày (8h)</strong></span>
+          <span>•</span>
+          <span>Nghỉ tuần: <strong className="text-amber-400">1 ngày (Chủ Nhật)</strong></span>
+          <span>•</span>
+          <span>Định mức giờ tuần: <strong className="text-emerald-300">{standardWeekHours}h</strong></span>
         </div>
       </div>
 
@@ -323,11 +497,12 @@ export const WeeklyReportView: React.FC<WeeklyReportViewProps> = ({
         <MetricCard3D
           id="metric-weekly-hours"
           title="Tổng Giờ Làm Việc"
-          value={`${totalHours}h`}
-          subValue="Thời gian ghi nhận"
+          value={`${actualWeekHours}h`}
+          subValue={`Chuẩn ${standardWeekHours}h (${workingDaysInWeek} ngày x 8h, nghỉ CN)`}
           icon={Clock}
           colorScheme="emerald"
-          trend="+4.5h"
+          progress={100}
+          trend="100% định mức"
           trendUp={true}
         />
 
@@ -382,10 +557,20 @@ export const WeeklyReportView: React.FC<WeeklyReportViewProps> = ({
 
                 <div className="my-2">
                   <div className="text-xl font-extrabold text-cyan-300 font-display">
-                    {hasTasks ? `${ds.score} đ` : '—'}
+                    {ds.isSunday && !hasTasks ? (
+                      <span className="text-amber-400 text-sm font-bold">Nghỉ tuần</span>
+                    ) : hasTasks ? (
+                      `${ds.score} đ`
+                    ) : (
+                      '8.0h'
+                    )}
                   </div>
                   <div className="text-[11px] text-slate-400 mt-0.5">
-                    {hasTasks ? `${ds.completedCount}/${ds.totalCount} việc (${ds.hours}h)` : 'Chưa có việc'}
+                    {ds.isSunday ? (
+                      hasTasks ? `${ds.completedCount} việc • OT ${ds.hours}h` : 'Nghỉ Chủ Nhật (0h)'
+                    ) : (
+                      hasTasks ? `${ds.completedCount}/${ds.totalCount} việc • ${ds.hours}h` : 'Chuẩn 8h/ngày'
+                    )}
                   </div>
                 </div>
 
@@ -428,7 +613,7 @@ export const WeeklyReportView: React.FC<WeeklyReportViewProps> = ({
               </div>
             </div>
             <span className="px-3 py-1 rounded-full text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">
-              {weeklyReportState?.rating || 'Xuất Sắc (A+)'}
+              {weeklyReportState?.rating || augWeekInfo?.rating || 'Xuất Sắc (A+)'}
             </span>
           </div>
 
@@ -440,6 +625,7 @@ export const WeeklyReportView: React.FC<WeeklyReportViewProps> = ({
             </p>
             <p className="text-sm text-slate-200 leading-relaxed font-medium">
               {weeklyReportState?.aiExecutiveSummary ||
+                augWeekInfo?.summary ||
                 `Báo cáo Tuần ${weekNumber} (${startDateStr} - ${endDateStr}): Đội ngũ đã thực hiện xuất sắc ${totalTasks} công việc với tổng thời gian ${totalHours}h. Năng suất duy trì đều đặn suốt tuần với điểm trung bình ${avgScore}/100. Các hạng mục kỹ thuật 3D, bóc tách bảng tính và đo lường AI đều đạt chuẩn.`}
             </p>
           </div>
@@ -480,7 +666,7 @@ export const WeeklyReportView: React.FC<WeeklyReportViewProps> = ({
                 <span>Thành Tựu Cốt Lõi</span>
               </div>
               <ul className="space-y-1.5 text-xs text-slate-300">
-                {(weeklyReportState?.keyAchievements || [
+                {(weeklyReportState?.keyAchievements || augWeekInfo?.achievements || [
                   'Thiết lập thành công giao diện 3D trực quan sống động.',
                   'Tích hợp tính năng bóc tách bảng tính Google Sheet / Excel.',
                   'Hoàn thành 100% các công việc có độ ưu tiên cao.',
@@ -499,7 +685,7 @@ export const WeeklyReportView: React.FC<WeeklyReportViewProps> = ({
                 <span>Mục Tiêu Tuần Tới</span>
               </div>
               <ul className="space-y-1.5 text-xs text-slate-300">
-                {(weeklyReportState?.nextWeekGoals || [
+                {(weeklyReportState?.nextWeekGoals || augWeekInfo?.nextGoals || [
                   'Tiếp tục tối ưu hóa hiệu năng render 3D WebGL trên mobile.',
                   'Tăng cường các chỉ số đo lường KPI theo phòng ban.',
                   'Hoàn thiện xuất báo cáo nhiều định dạng.',
@@ -581,6 +767,16 @@ export const WeeklyReportView: React.FC<WeeklyReportViewProps> = ({
         </TiltCard>
       </div>
 
+      {/* Tự Bản Thân Đánh Giá Công Việc Trong Tuần & Phân Tích Kênh (Trợ Lý AI) */}
+      <WeeklySelfEvaluationCard
+        weekNumber={weekNumber}
+        year={year}
+        startDate={startDateStr}
+        endDate={endDateStr}
+        weekTasks={weekTasks}
+        currentUser={currentUser}
+      />
+
       {/* Viewer Evaluation & Feedback Section for Weekly Report */}
       <ViewerEvaluationSection
         scope="weekly"
@@ -591,6 +787,7 @@ export const WeeklyReportView: React.FC<WeeklyReportViewProps> = ({
         onAddFeedback={onAddFeedback}
         onDeleteFeedback={onDeleteFeedback}
         onOpenLoginModal={onOpenLoginModal}
+        onClearMockFeedbacks={onClearMockFeedbacks}
       />
     </div>
   );

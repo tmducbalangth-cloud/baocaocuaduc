@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Check, Trash2, Tag, Clock, Target, CheckCircle2, Layers } from 'lucide-react';
+import { X, Check, Trash2, Tag, Clock, Target, CheckCircle2, Layers, Lock } from 'lucide-react';
 import { TaskItem, TaskCategory, TaskPriority, TaskStatus, TASK_CATEGORIES, normalizeCategory } from '../types';
 
 interface TaskModalProps {
@@ -9,6 +9,7 @@ interface TaskModalProps {
   onDelete?: (taskId: string) => void;
   taskToEdit?: TaskItem | null;
   selectedDate: string;
+  isAdmin?: boolean;
 }
 
 export const TaskModal: React.FC<TaskModalProps> = ({
@@ -18,6 +19,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   onDelete,
   taskToEdit,
   selectedDate,
+  isAdmin = true,
 }) => {
   const [title, setTitle] = useState('');
   const [taskDate, setTaskDate] = useState(selectedDate);
@@ -74,6 +76,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAdmin) return;
     if (!title.trim()) return;
 
     const tags = tagsInput
@@ -119,13 +122,28 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-800 shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
-              <CheckCircle2 className="w-5 h-5" />
+            <div className={`p-2 rounded-xl border ${
+              isAdmin
+                ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30'
+                : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+            }`}>
+              {isAdmin ? <CheckCircle2 className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white tracking-tight font-display">
-                {taskToEdit ? 'Chỉnh Sửa Công Việc' : 'Thêm Công Việc Mới'}
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-bold text-white tracking-tight font-display">
+                  {isAdmin
+                    ? taskToEdit
+                      ? 'Chỉnh Sửa Công Việc'
+                      : 'Thêm Công Việc Mới'
+                    : 'Chi Tiết Công Việc'}
+                </h2>
+                {!isAdmin && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30">
+                    Chỉ xem (Đã khóa)
+                  </span>
+                )}
+              </div>
               <span className="text-xs text-slate-400">
                 Ngày thực hiện: <span className="text-cyan-300 font-semibold">{selectedDate}</span>
               </span>
@@ -142,6 +160,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="overflow-y-auto flex-1 my-4 pr-1 space-y-4">
+          <fieldset disabled={!isAdmin} className="space-y-4 border-0 p-0 m-0 min-w-0">
           {/* Title and Date in Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="sm:col-span-2">
@@ -415,46 +434,66 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               className="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400"
             />
           </div>
+          </fieldset>
 
           {/* Actions */}
           <div className="flex items-center justify-between pt-4 border-t border-slate-800">
-            {taskToEdit && onDelete ? (
-              <button
-                type="button"
-                id="delete-task-btn"
-                onClick={() => {
-                  if (confirm('Bạn có chắc muốn xóa công việc này?')) {
-                    onDelete(taskToEdit.id);
-                    onClose();
-                  }
-                }}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-400 hover:bg-rose-500/10 border border-rose-500/30 transition-colors"
-              >
-                <Trash2 className="w-4 h-4" />
-                <span>Xóa</span>
-              </button>
+            {!isAdmin ? (
+              <>
+                <div className="flex items-center gap-1.5 text-xs text-amber-300/90 font-medium">
+                  <Lock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span>Chế độ Người xem: Đã khóa quyền thêm/sửa/xóa đầu việc này</span>
+                </div>
+                <button
+                  type="button"
+                  id="close-readonly-task-btn"
+                  onClick={onClose}
+                  className="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition-all border border-slate-700"
+                >
+                  Đóng
+                </button>
+              </>
             ) : (
-              <div />
-            )}
+              <>
+                {taskToEdit && onDelete ? (
+                  <button
+                    type="button"
+                    id="delete-task-btn"
+                    onClick={() => {
+                      if (confirm('Bạn có chắc muốn xóa công việc này?')) {
+                        onDelete(taskToEdit.id);
+                        onClose();
+                      }
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-400 hover:bg-rose-500/10 border border-rose-500/30 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>Xóa</span>
+                  </button>
+                ) : (
+                  <div />
+                )}
 
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                id="cancel-task-btn"
-                onClick={onClose}
-                className="px-4 py-2 rounded-xl border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800 text-xs font-semibold"
-              >
-                Hủy
-              </button>
-              <button
-                type="submit"
-                id="save-task-btn"
-                className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all"
-              >
-                <Check className="w-4 h-4" />
-                <span>Lưu Công Việc</span>
-              </button>
-            </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    id="cancel-task-btn"
+                    onClick={onClose}
+                    className="px-4 py-2 rounded-xl border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800 text-xs font-semibold"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    id="save-task-btn"
+                    className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>Lưu Công Việc</span>
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </form>
       </div>

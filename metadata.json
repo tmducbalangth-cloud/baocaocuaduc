@@ -1,6 +1,6 @@
 {
   "name": "BÁO CÁO CÔNG VIỆC - BA LÀNG TH",
-  "description": "Hệ thống báo cáo công việc Ngày, Tuần, Tháng, Quý, Năm - Ba Làng TH với liên kết Google Sheet ID 1JPukE8hzHZgz7_n282BRY_SGEKLEBdwo4WwmHFd4kb, phân quyền Admin/Viewer và AI đo lường hiệu suất.",
+  "description": "Hệ thống báo cáo công việc Ngày, Tuần, Tháng, Quý, Năm - Ba Làng TH với liên kết Google Sheet, công cụ AI tự đánh giá bản thân theo tuần kết hợp thông số kênh (view, follow, độ phủ), phân quyền Admin/Viewer và đo lường hiệu suất.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

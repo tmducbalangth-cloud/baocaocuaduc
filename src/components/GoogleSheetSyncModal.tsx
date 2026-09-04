@@ -29,7 +29,7 @@ interface GoogleSheetSyncModalProps {
   onImportTasks: (newTasks: TaskItem[]) => void;
 }
 
-export const USER_DEFAULT_SHEET_ID = '1JPukE8hzHZgz7_n282BRY_SGEKLEBdwo4WwmHFd4kb';
+export const USER_DEFAULT_SHEET_ID = '1HIUQGi_Sd1ewWa6pvuBkc3xqFGURC8be3CiIS-fi4XM';
 
 export const GoogleSheetSyncModal: React.FC<GoogleSheetSyncModalProps> = ({
   isOpen,
@@ -40,7 +40,7 @@ export const GoogleSheetSyncModal: React.FC<GoogleSheetSyncModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'direct_sync' | 'copy_sheets' | 'apps_script'>('direct_sync');
   const [customSheetId, setCustomSheetId] = useState(USER_DEFAULT_SHEET_ID);
-  const [selectedSheetTab, setSelectedSheetTab] = useState<'Báo Cáo Ngày' | 'Tổng Hợp Tuần' | 'Tổng Hợp Tháng' | 'Tổng Hợp Quý' | 'Tổng Hợp Năm'>('Báo Cáo Ngày');
+  const [selectedSheetTab, setSelectedSheetTab] = useState<string>('Tuần 1');
   const [webAppUrl, setWebAppUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [copiedAppScript, setCopiedAppScript] = useState(false);
@@ -471,11 +471,15 @@ function doPost(e) {
                       onChange={(e: any) => setSelectedSheetTab(e.target.value)}
                       className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400"
                     >
-                      <option value="Báo Cáo Ngày">Sheet 1: Báo Cáo Ngày (Danh sách công việc & KPI)</option>
-                      <option value="Tổng Hợp Tuần">Sheet 2: Tổng Hợp Tuần</option>
-                      <option value="Tổng Hợp Tháng">Sheet 3: Tổng Hợp Tháng</option>
-                      <option value="Tổng Hợp Quý">Sheet 4: Tổng Hợp Quý</option>
-                      <option value="Tổng Hợp Năm">Sheet 5: Tổng Hợp Năm</option>
+                      <option value="Tuần 1">Tuần 1 (Báo Cáo Tuần 1 Tháng 8)</option>
+                      <option value="Tuần 2">Tuần 2 (Báo Cáo Tuần 2 Tháng 8)</option>
+                      <option value="Tuần 3">Tuần 3 (Báo Cáo Tuần 3 Tháng 8)</option>
+                      <option value="Tuần 4">Tuần 4 (Báo Cáo Tuần 4 Tháng 8)</option>
+                      <option value="Báo Cáo Ngày">Báo Cáo Ngày (Toàn bộ công việc & KPI)</option>
+                      <option value="Tổng Hợp Tuần">Tổng Hợp Tuần</option>
+                      <option value="Tổng Hợp Tháng">Tổng Hợp Tháng</option>
+                      <option value="Tổng Hợp Quý">Tổng Hợp Quý</option>
+                      <option value="Tổng Hợp Năm">Tổng Hợp Năm</option>
                     </select>
                   </div>
                 </div>

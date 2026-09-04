@@ -1,0 +1,2423 @@
+import { TaskItem, DailyReport } from "../types";
+
+export const AUGUST_TASKS: TaskItem[] = [
+  {
+    "id": "t8_w1_01",
+    "date": "2026-08-03",
+    "title": "Quay content Kênh Ba làng tuyến hòa",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "high",
+    "quantity": 4,
+    "timeSpentHours": 4,
+    "completionPercent": 100,
+    "kpiMetric": "4 clip content (100%)",
+    "outcome": "Đã quay đủ 4 content định kỳ hằng ngày",
+    "description": "Quay content Kênh Ba Làng Tuyến Hòa - Định kỳ hằng ngày",
+    "tags": [
+      "Marketing",
+      "Quay Clip",
+      "Ba Làng Tuyến Hòa"
+    ]
+  },
+  {
+    "id": "t8_w1_02",
+    "date": "2026-08-03",
+    "title": "Lên Kế hoạch content",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "medium",
+    "quantity": 1,
+    "timeSpentHours": 3,
+    "completionPercent": 100,
+    "kpiMetric": "100% Kế hoạch - Theo dõi ADS",
+    "outcome": "Đã hoàn thành bảng kế hoạch content Facebook và phân bổ chiến dịch",
+    "description": "Lên Kế hoạch content Facebook - Theo dõi ADS",
+    "tags": [
+      "Marketing",
+      "FaceBook",
+      "Kế hoạch ADS"
+    ]
+  },
+  {
+    "id": "t8_w1_03",
+    "date": "2026-08-04",
+    "title": "Quay content Kênh Fan ba làng",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "high",
+    "quantity": 8,
+    "timeSpentHours": 6,
+    "completionPercent": 100,
+    "kpiMetric": "8 clip content (100%)",
+    "outcome": "Đã quay 8 clip content kênh Fan Ba Làng",
+    "description": "Quay content Kênh Fan Ba Làng - Định kỳ hằng ngày",
+    "tags": [
+      "Marketing",
+      "Quay Clip",
+      "Fan Ba Làng"
+    ]
+  },
+  {
+    "id": "t8_w1_04",
+    "date": "2026-08-04",
+    "title": "Kịch Bản kênh Fan Ba Làng TH",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "high",
+    "quantity": 8,
+    "timeSpentHours": 5,
+    "completionPercent": 100,
+    "kpiMetric": "8 kịch bản (100%)",
+    "outcome": "Đã viết đủ 8 kịch bản kênh Fan Ba Làng TH",
+    "description": "Kịch Bản kênh Fan Ba Làng TH - Định kỳ hằng ngày",
+    "tags": [
+      "Marketing",
+      "Kịch bản",
+      "Fan Ba Làng TH"
+    ]
+  },
+  {
+    "id": "t8_w1_05",
+    "date": "2026-08-05",
+    "title": "Edit kênh Fan Ba Làng",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "high",
+    "quantity": 5,
+    "timeSpentHours": 5,
+    "completionPercent": 100,
+    "kpiMetric": "5 video hoàn chỉnh (100%)",
+    "outcome": "Đã dựng xong và xuất 5 clip kênh Fan Ba Làng",
+    "description": "Edit kênh Fan Ba Làng - Định kỳ hằng ngày",
+    "tags": [
+      "Marketing",
+      "Dựng Video",
+      "Fan Ba Làng"
+    ]
+  },
+  {
+    "id": "t8_w1_06",
+    "date": "2026-08-05",
+    "title": "Lên kế hoạch chạy quảng cáo cho facebook trong tuần tới",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "medium",
+    "quantity": 1,
+    "timeSpentHours": 3,
+    "completionPercent": 100,
+    "kpiMetric": "100% Kế hoạch - Theo dõi ADS",
+    "outcome": "Đã thiết lập kế hoạch chạy quảng cáo FB cho tuần tiếp theo",
+    "description": "Lên kế hoạch chạy quảng cáo cho facebook trong tuần tới - Kế hoạch & Theo dõi ADS",
+    "tags": [
+      "Marketing",
+      "FaceBook",
+      "Chạy Ads"
+    ]
+  },
+  {
+    "id": "t8_w1_07",
+    "date": "2026-08-06",
+    "title": "Edit kênh Ocop 4sao",
+    "category": "Marketing",
+    "status": "pending",
+    "priority": "medium",
+    "quantity": 0,
+    "timeSpentHours": 1,
+    "completionPercent": 0,
+    "kpiMetric": "0% (Chờ kịch bản duyệt)",
+    "outcome": "Tạm dừng dựng do chờ duyệt kịch bản OCOP",
+    "description": "Edit kênh Ocop 4sao - Định kỳ hằng ngày (Chưa có kịch bản)",
+    "tags": [
+      "Marketing",
+      "Dựng Video",
+      "Ocop 4 Sao"
+    ]
+  },
+  {
+    "id": "t8_w1_08",
+    "date": "2026-08-07",
+    "title": "Quay content live ngày 8/8",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "high",
+    "quantity": 4,
+    "timeSpentHours": 4,
+    "completionPercent": 100,
+    "kpiMetric": "4 content live (100%)",
+    "outcome": "Hoàn tất quay 4 content chuẩn bị phiên live ngày 8/8",
+    "description": "Quay content live ngày 8/8 - Hằng ngày",
+    "tags": [
+      "Marketing",
+      "Quay Clip",
+      "Live 8/8"
+    ]
+  },
+  {
+    "id": "t8_w1_09",
+    "date": "2026-08-07",
+    "title": "Kịch Bản kênh Ocop 4 Sao",
+    "category": "Marketing",
+    "status": "in_progress",
+    "priority": "medium",
+    "quantity": 1,
+    "timeSpentHours": 4,
+    "completionPercent": 80,
+    "kpiMetric": "Đức - Kênh Ocop KB (Deadline T6)",
+    "outcome": "Hoàn thiện bản nháp kịch bản OCOP nộp thứ 6",
+    "description": "Kịch Bản kênh Ocop 4 Sao - Đức phụ trách Kênh Ocop KB (Deadline T6 Hàng tuần)",
+    "tags": [
+      "Marketing",
+      "Kịch bản",
+      "Ocop 4 Sao"
+    ]
+  },
+  {
+    "id": "t8_w1_10",
+    "date": "2026-08-08",
+    "title": "Edit kịch bản live 8/8",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "high",
+    "quantity": 4,
+    "timeSpentHours": 4,
+    "completionPercent": 100,
+    "kpiMetric": "4 kịch bản video live (100%)",
+    "outcome": "Đã dựng xong 4 kịch bản video cho phiên livestream 8/8",
+    "description": "Edit kịch bản dựng video phục vụ livestream 8/8",
+    "tags": [
+      "Marketing",
+      "Dựng Video",
+      "Live 8/8"
+    ]
+  },
+  {
+    "id": "t8_w2_01",
+    "date": "2026-08-10",
+    "title": "Quay content Kênh Ba làng tuyến hòa",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "high",
+    "quantity": 4,
+    "timeSpentHours": 4,
+    "completionPercent": 100,
+    "kpiMetric": "4 clip content (100%)",
+    "outcome": "Đã hoàn thành 4 clip content quay định kỳ hằng ngày",
+    "description": "Quay content Kênh Ba làng tuyến hòa - Định kỳ hằng ngày",
+    "tags": [
+      "Marketing",
+      "Quay Clip",
+      "Ba Làng Tuyến Hòa"
+    ]
+  },
+  {
+    "id": "t8_w2_02",
+    "date": "2026-08-11",
+    "title": "Quay content Kênh Fan ba làng",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "high",
+    "quantity": 8,
+    "timeSpentHours": 6,
+    "completionPercent": 100,
+    "kpiMetric": "8 clip content (100%)",
+    "outcome": "Quay xong 8 clip kênh Fan Ba Làng",
+    "description": "Quay content Kênh Fan Ba Làng - Định kỳ hằng ngày",
+    "tags": [
+      "Marketing",
+      "Quay Clip",
+      "Fan Ba Làng"
+    ]
+  },
+  {
+    "id": "t8_w2_03",
+    "date": "2026-08-11",
+    "title": "Kịch bản kênh TT Đại diện sếp Huyền",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "high",
+    "quantity": 2,
+    "timeSpentHours": 3,
+    "completionPercent": 100,
+    "kpiMetric": "2 kịch bản - KB kênh Sếp Huyền (100%)",
+    "outcome": "Hoàn thành 2 kịch bản TikTok đại diện sếp Huyền",
+    "description": "Kịch bản kênh TikTok Đại diện sếp Huyền - Đã gửi link KB kênh Sếp Huyền",
+    "tags": [
+      "Marketing",
+      "Kịch bản",
+      "TikTok Sếp Huyền"
+    ]
+  },
+  {
+    "id": "t8_w2_04",
+    "date": "2026-08-12",
+    "title": "Quay KB kênh Ocop - KB anh Khắc Anh",
+    "category": "Marketing",
+    "status": "in_progress",
+    "priority": "medium",
+    "quantity": 2,
+    "timeSpentHours": 2,
+    "completionPercent": 25,
+    "kpiMetric": "25% (KB chưa duyệt)",
+    "outcome": "Đã quay phần mở đầu, tạm dừng vì kịch bản anh Khắc Anh chưa duyệt",
+    "description": "Quay KB kênh Ocop - Kịch bản anh Khắc Anh (Ghi chú: KB chưa duyệt)",
+    "tags": [
+      "Marketing",
+      "Quay Clip",
+      "Ocop"
+    ]
+  },
+  {
+    "id": "t8_w2_05",
+    "date": "2026-08-12",
+    "title": "Kịch Bản kênh Fan Ba Làng TH",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "medium",
+    "quantity": 2,
+    "timeSpentHours": 3,
+    "completionPercent": 100,
+    "kpiMetric": "2 kịch bản (100%)",
+    "outcome": "Đã hoàn thành 2 kịch bản mới cho kênh Fan Ba Làng TH",
+    "description": "Kịch Bản kênh Fan Ba Làng TH - Định kỳ hằng ngày",
+    "tags": [
+      "Marketing",
+      "Kịch bản",
+      "Fan Ba Làng TH"
+    ]
+  },
+  {
+    "id": "t8_w2_06",
+    "date": "2026-08-13",
+    "title": "Kịch Bản kênh Ba Làng Tuyến Hoà",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "high",
+    "quantity": 6,
+    "timeSpentHours": 5,
+    "completionPercent": 100,
+    "kpiMetric": "6 kịch bản - Seri nỗi đau khách hàng (100%)",
+    "outcome": "Hoàn thành 6 kịch bản xuất sắc thuộc tuyến Seri nỗi đau khách hàng",
+    "description": "Kịch Bản kênh Ba Làng Tuyến Hoà - Seri nỗi đau khách hàng, định kỳ hằng ngày",
+    "tags": [
+      "Marketing",
+      "Kịch bản",
+      "Seri Nỗi Đau KH"
+    ]
+  },
+  {
+    "id": "t8_w2_07",
+    "date": "2026-08-13",
+    "title": "Edit kênh Fan Ba Làng",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "high",
+    "quantity": 5,
+    "timeSpentHours": 5,
+    "completionPercent": 100,
+    "kpiMetric": "5 video dựng (100%)",
+    "outcome": "Dựng và chỉnh màu hoàn tất 5 clip kênh Fan Ba Làng",
+    "description": "Edit kênh Fan Ba Làng - Định kỳ hằng ngày",
+    "tags": [
+      "Marketing",
+      "Dựng Video",
+      "Fan Ba Làng"
+    ]
+  },
+  {
+    "id": "t8_w2_08",
+    "date": "2026-08-14",
+    "title": "Edit kênh Ba Làng Tuyến Hoà",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "high",
+    "quantity": 4,
+    "timeSpentHours": 4,
+    "completionPercent": 100,
+    "kpiMetric": "4 video dựng (100%)",
+    "outcome": "Dựng xong 4 video sắc nét cho kênh Ba Làng Tuyến Hòa",
+    "description": "Edit kênh Ba Làng Tuyến Hoà - Định kỳ hằng ngày",
+    "tags": [
+      "Marketing",
+      "Dựng Video",
+      "Ba Làng Tuyến Hòa"
+    ]
+  },
+  {
+    "id": "t8_w2_09",
+    "date": "2026-08-14",
+    "title": "Dựng lại clip cũ",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "medium",
+    "quantity": 2,
+    "timeSpentHours": 2,
+    "completionPercent": 100,
+    "kpiMetric": "2 clip cũ tái dựng (100%)",
+    "outcome": "Cắt ghép lại 2 video cũ theo nhịp điệu ngắn mới",
+    "description": "Dựng lại clip cũ tối ưu hóa giữ chân người xem",
+    "tags": [
+      "Marketing",
+      "Dựng Video",
+      "Remake"
+    ]
+  },
+  {
+    "id": "t8_w2_10",
+    "date": "2026-08-15",
+    "title": "Đánh giá , Đề xuất kênh tiktok cũ",
+    "category": "CV ngoài",
+    "status": "completed",
+    "priority": "high",
+    "quantity": 1,
+    "timeSpentHours": 3,
+    "completionPercent": 100,
+    "kpiMetric": "Link 29072026_Họp quy trình Marketing (100%)",
+    "outcome": "Trình bày báo cáo phân tích toàn diện kênh TikTok cũ",
+    "description": "Đánh giá , Đề xuất kênh tiktok cũ - Tài liệu 29072026_Họp quy trình Marketing",
+    "tags": [
+      "CV ngoài",
+      "Đánh giá Kênh",
+      "TikTok"
+    ]
+  },
+  {
+    "id": "t8_w2_11",
+    "date": "2026-08-15",
+    "title": "Lên bộ khung kịch bản cũng như là cấu trúc đăng bài của tiktok",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "high",
+    "quantity": 1,
+    "timeSpentHours": 3,
+    "completionPercent": 100,
+    "kpiMetric": "Tài liệu Đề Xuất Quy Tắc TikTok (100%)",
+    "outcome": "Xây dựng quy chuẩn khung kịch bản 3s đầu và cấu trúc đăng bài chuẩn thuật toán",
+    "description": "Lên bộ khung kịch bản cũng như là cấu trúc đăng bài của tiktok - Đề Xuất Quy Tắc TikTok",
+    "tags": [
+      "Marketing",
+      "Quy tắc TikTok",
+      "Khung Kịch Bản"
+    ]
+  },
+  {
+    "id": "t8_w2_12",
+    "date": "2026-08-15",
+    "title": "Ý tưởng kênh TT Đại diện sếp Huyền",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "medium",
+    "quantity": 1,
+    "timeSpentHours": 2,
+    "completionPercent": 100,
+    "kpiMetric": "1 bộ ý tưởng (100%)",
+    "outcome": "Đã duyệt bộ ý tưởng phát triển kênh TikTok thương hiệu cá nhân sếp Huyền",
+    "description": "Ý tưởng phát triển kênh TikTok Đại diện sếp Huyền",
+    "tags": [
+      "Marketing",
+      "Ý Tưởng",
+      "TikTok Sếp Huyền"
+    ]
+  },
+  {
+    "id": "t8_w3_01",
+    "date": "2026-08-17",
+    "title": "Quay content Kênh Ba làng Tuyến Hòa",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "high",
+    "quantity": 8,
+    "timeSpentHours": 6,
+    "completionPercent": 90,
+    "kpiMetric": "8 content (90%)",
+    "outcome": "Quay đạt 90% khối lượng 8 content kênh Ba Làng Tuyến Hòa",
+    "description": "Quay content Kênh Ba làng Tuyến Hòa - Khối lượng lớn 8 video",
+    "tags": [
+      "Marketing",
+      "Quay Clip",
+      "Ba Làng Tuyến Hòa"
+    ]
+  },
+  {
+    "id": "t8_w3_02",
+    "date": "2026-08-17",
+    "title": "Họp giao ban đầu tuần",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "medium",
+    "quantity": 1,
+    "timeSpentHours": 2,
+    "completionPercent": 100,
+    "kpiMetric": "Hoàn thành 100% mục tiêu",
+    "outcome": "Đã xong: Họp triển khai kế hoạch trong tuần & phát triển tuyến nỗi đau khách hàng",
+    "description": "- Họp triển khai kế hoạch trong tuần\\n- Phát triển kế hoạch xây kênh theo tuyến nỗi đau khách hàng",
+    "tags": [
+      "Marketing",
+      "Họp"
+    ]
+  },
+  {
+    "id": "t8_w3_03",
+    "date": "2026-08-18",
+    "title": "Quay content Kênh Fan Ba Làng",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "high",
+    "quantity": 11,
+    "timeSpentHours": 7,
+    "completionPercent": 90,
+    "kpiMetric": "11 content (90%)",
+    "outcome": "Đã quay 11 content kênh Fan Ba Làng (đạt 90%)",
+    "description": "Quay content Kênh Fan Ba Làng - Khối lượng lớn 11 clip theo dạng Q&A và giải trí",
+    "tags": [
+      "Marketing",
+      "Quay Clip",
+      "Fan Ba Làng"
+    ]
+  },
+  {
+    "id": "t8_w3_04",
+    "date": "2026-08-19",
+    "title": "Kịch Bản kênh Fan Ba Làng TH",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "high",
+    "quantity": 3,
+    "timeSpentHours": 4,
+    "completionPercent": 90,
+    "kpiMetric": "3 kịch bản (90%)",
+    "outcome": "Soạn thảo 3 kịch bản kênh Fan Ba Làng TH đạt 90%",
+    "description": "Kịch Bản kênh Fan Ba Làng TH",
+    "tags": [
+      "Marketing",
+      "Kịch bản",
+      "Fan Ba Làng TH"
+    ]
+  },
+  {
+    "id": "t8_w3_05",
+    "date": "2026-08-20",
+    "title": "Kịch Bản kênh Ba Làng Tuyến Hoà",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "high",
+    "quantity": 6,
+    "timeSpentHours": 5,
+    "completionPercent": 90,
+    "kpiMetric": "6 kịch bản (90%)",
+    "outcome": "Hoàn thành 6 kịch bản kênh Ba Làng Tuyến Hòa đạt 90%",
+    "description": "Kịch Bản kênh Ba Làng Tuyến Hoà",
+    "tags": [
+      "Marketing",
+      "Kịch bản",
+      "Ba Làng Tuyến Hòa"
+    ]
+  },
+  {
+    "id": "t8_w3_06",
+    "date": "2026-08-20",
+    "title": "Edit kênh Fan Ba Làng",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "high",
+    "quantity": 8,
+    "timeSpentHours": 6,
+    "completionPercent": 90,
+    "kpiMetric": "8 video edit (90%)",
+    "outcome": "Dựng và chỉnh sửa 8 clip kênh Fan Ba Làng đạt 90%",
+    "description": "Edit dựng video kênh Fan Ba Làng",
+    "tags": [
+      "Marketing",
+      "Dựng Video",
+      "Fan Ba Làng"
+    ]
+  },
+  {
+    "id": "t8_w3_07",
+    "date": "2026-08-21",
+    "title": "Edit kênh Ba Làng Tuyến Hoà",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "high",
+    "quantity": 8,
+    "timeSpentHours": 6,
+    "completionPercent": 90,
+    "kpiMetric": "8 video edit (90%)",
+    "outcome": "Dựng xong 8 video kênh Ba Làng Tuyến Hòa đạt 90%",
+    "description": "Edit dựng video kênh Ba Làng Tuyến Hoà",
+    "tags": [
+      "Marketing",
+      "Dựng Video",
+      "Ba Làng Tuyến Hòa"
+    ]
+  },
+  {
+    "id": "t8_w3_08",
+    "date": "2026-08-21",
+    "title": "Mua thêm đường truyền riêng cho Livestream",
+    "category": "Hỗ trợ",
+    "status": "in_progress",
+    "priority": "high",
+    "quantity": 1,
+    "timeSpentHours": 2,
+    "completionPercent": 50,
+    "kpiMetric": "Đề xuất lắp mạng phòng Live (50%)",
+    "outcome": "Đã khảo sát và làm đề xuất lắp mạng cáp quang riêng phòng Live, cần trước ngày 25/8",
+    "description": "Mua thêm đường truyền riêng cho Livestream - Đề xuất lắp mạng phòng Live (Cần trước ngày 25/8)",
+    "tags": [
+      "Hỗ trợ",
+      "Đề Xuất",
+      "Livestream"
+    ]
+  },
+  {
+    "id": "t8_w3_09",
+    "date": "2026-08-22",
+    "title": "Thiết bị Máy tính - Edit Video - Setup Live OBS",
+    "category": "Hỗ trợ",
+    "status": "in_progress",
+    "priority": "medium",
+    "quantity": 1,
+    "timeSpentHours": 2,
+    "completionPercent": 25,
+    "kpiMetric": "25% (Đang khảo sát giá)",
+    "outcome": "Đang tham khảo giá thành linh kiện máy tính và phần mềm OBS để đưa ra mức giá hợp lý nhất",
+    "description": "Thiết bị Máy tính - Edit Video - Setup Live OBS (Đang tham khảo giá thành để đưa ra mức giá hợp lý nhất)",
+    "tags": [
+      "Hỗ trợ",
+      "Thiết bị",
+      "Setup OBS"
+    ]
+  },
+  {
+    "id": "t8_w4_01",
+    "date": "2026-08-24",
+    "title": "Quay content Kênh Ba làng Tuyến Hòa",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "high",
+    "quantity": 9,
+    "timeSpentHours": 6,
+    "completionPercent": 90,
+    "kpiMetric": "9 content (90%)",
+    "outcome": "Quay xong 9 content kênh Ba Làng Tuyến Hòa đạt 90%",
+    "description": "Quay content Kênh Ba làng Tuyến Hòa",
+    "tags": [
+      "Marketing",
+      "Quay Clip",
+      "Ba Làng Tuyến Hòa"
+    ]
+  },
+  {
+    "id": "t8_w4_02",
+    "date": "2026-08-25",
+    "title": "Quay content Kênh Fan Ba Làng",
+    "category": "Marketing",
+    "status": "in_progress",
+    "priority": "medium",
+    "quantity": 0,
+    "timeSpentHours": 2,
+    "completionPercent": 25,
+    "kpiMetric": "25% tiến độ",
+    "outcome": "Tạm dừng để tập trung quay kịch bản kênh Ba Làng Tuyến Hòa và kịch bản lễ 2/9",
+    "description": "Quay content Kênh Fan Ba Làng",
+    "tags": [
+      "Marketing",
+      "Quay Clip",
+      "Fan Ba Làng"
+    ]
+  },
+  {
+    "id": "t8_w4_03",
+    "date": "2026-08-26",
+    "title": "Kịch Bản kênh Fan Ba Làng TH",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "medium",
+    "quantity": 1,
+    "timeSpentHours": 2,
+    "completionPercent": 100,
+    "kpiMetric": "1 kịch bản (100%)",
+    "outcome": "Đã hoàn thành 1 kịch bản chất lượng cao",
+    "description": "Kịch Bản kênh Fan Ba Làng TH",
+    "tags": [
+      "Marketing",
+      "Kịch bản",
+      "Fan Ba Làng TH"
+    ]
+  },
+  {
+    "id": "t8_w4_04",
+    "date": "2026-08-27",
+    "title": "Kịch Bản kênh Ba Làng Tuyến Hoà",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "high",
+    "quantity": 13,
+    "timeSpentHours": 7,
+    "completionPercent": 100,
+    "kpiMetric": "13 kịch bản (100%)",
+    "outcome": "Bứt phá hoàn thành xuất sắc 13 kịch bản kênh Ba Làng Tuyến Hòa",
+    "description": "Kịch Bản kênh Ba Làng Tuyến Hoà - Năng suất cao nhất tháng",
+    "tags": [
+      "Marketing",
+      "Kịch bản",
+      "Ba Làng Tuyến Hòa"
+    ]
+  },
+  {
+    "id": "t8_w4_05",
+    "date": "2026-08-28",
+    "title": "Edit kênh Fan Ba Làng",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "high",
+    "quantity": 3,
+    "timeSpentHours": 4,
+    "completionPercent": 100,
+    "kpiMetric": "3 video edit (100%)",
+    "outcome": "Dựng và xuất hoàn tất 3 clip kênh Fan Ba Làng",
+    "description": "Edit kênh Fan Ba Làng",
+    "tags": [
+      "Marketing",
+      "Dựng Video",
+      "Fan Ba Làng"
+    ]
+  },
+  {
+    "id": "t8_w4_06",
+    "date": "2026-08-29",
+    "title": "Edit kênh Ba Làng Tuyến Hoà",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "high",
+    "quantity": 6,
+    "timeSpentHours": 6,
+    "completionPercent": 100,
+    "kpiMetric": "6 video dựng (Deadline: 9, 100%)",
+    "outcome": "Hoàn tất 6 video; tiến hành dựng bổ sung vào Chủ Nhật",
+    "description": "Edit kênh Ba Làng Tuyến Hoà - Ghi chú: Bổ sung vào CN",
+    "tags": [
+      "Marketing",
+      "Dựng Video",
+      "Ba Làng Tuyến Hòa"
+    ]
+  },
+  {
+    "id": "t8_w4_07",
+    "date": "2026-08-30",
+    "title": "Kịch bản 2/9",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "high",
+    "quantity": 2,
+    "timeSpentHours": 3,
+    "completionPercent": 90,
+    "kpiMetric": "2 kịch bản đại lễ 2/9 (90%)",
+    "outcome": "Hoàn thành 2 kịch bản đặc biệt chào mừng ngày Quốc Khánh 2/9",
+    "description": "Kịch bản thêm - Kịch bản chào mừng ngày lễ 2/9",
+    "tags": [
+      "Marketing",
+      "Kịch bản",
+      "Lễ 2/9"
+    ]
+  },
+  {
+    "id": "t8_w4_08",
+    "date": "2026-08-31",
+    "title": "Kịch bản live 9/9",
+    "category": "Marketing",
+    "status": "pending",
+    "priority": "medium",
+    "quantity": 1,
+    "timeSpentHours": 1,
+    "completionPercent": 0,
+    "kpiMetric": "0% (Chuẩn bị)",
+    "outcome": "Đã lên dàn ý khung kịch bản live sự kiện siêu sale 9/9",
+    "description": "Kịch bản thêm - Kịch bản live 9/9 chuẩn bị cho tháng 9",
+    "tags": [
+      "Marketing",
+      "Kịch bản",
+      "Live 9/9"
+    ]
+  },
+  {
+    "id": "t8_w4_09",
+    "date": "2026-08-31",
+    "title": "Quay Clip Kênh Bán Hàng",
+    "category": "Marketing",
+    "status": "completed",
+    "priority": "high",
+    "quantity": 1,
+    "timeSpentHours": 2,
+    "completionPercent": 100,
+    "kpiMetric": "1 clip hoàn thành",
+    "outcome": "Quay video clip kênh bán hàng chuyển tiếp sang đầu tháng 9",
+    "description": "Quay clip Kênh Bán Hàng phục vụ chiến dịch mở bán",
+    "tags": [
+      "Marketing",
+      "Quay Clip",
+      "Kênh Bán Hàng"
+    ]
+  }
+];
+
+export const AUGUST_DAILY_REPORTS: DailyReport[] = [
+  {
+    "id": "report_2026-08-03",
+    "date": "2026-08-03",
+    "author": "Trịnh Minh Đức",
+    "status": "approved",
+    "tasks": [
+      {
+        "id": "t8_w1_01",
+        "date": "2026-08-03",
+        "title": "Quay content Kênh Ba làng tuyến hòa",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "high",
+        "quantity": 4,
+        "timeSpentHours": 4,
+        "completionPercent": 100,
+        "kpiMetric": "4 clip content (100%)",
+        "outcome": "Đã quay đủ 4 content định kỳ hằng ngày",
+        "description": "Quay content Kênh Ba Làng Tuyến Hòa - Định kỳ hằng ngày",
+        "tags": [
+          "Marketing",
+          "Quay Clip",
+          "Ba Làng Tuyến Hòa"
+        ]
+      },
+      {
+        "id": "t8_w1_02",
+        "date": "2026-08-03",
+        "title": "Lên Kế hoạch content",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "medium",
+        "quantity": 1,
+        "timeSpentHours": 3,
+        "completionPercent": 100,
+        "kpiMetric": "100% Kế hoạch - Theo dõi ADS",
+        "outcome": "Đã hoàn thành bảng kế hoạch content Facebook và phân bổ chiến dịch",
+        "description": "Lên Kế hoạch content Facebook - Theo dõi ADS",
+        "tags": [
+          "Marketing",
+          "FaceBook",
+          "Kế hoạch ADS"
+        ]
+      }
+    ],
+    "productivityScore": 95,
+    "evaluationGrade": "A+",
+    "summary": "Báo cáo Ngày 2026-08-03: Hoàn thành 2/2 đầu việc trọng tâm với 7h làm việc tập trung. Tiến độ bám sát kế hoạch tháng 8 đề ra.",
+    "highlights": [
+      "Hoàn thành: Quay content Kênh Ba làng tuyến hòa",
+      "Hoàn thành: Lên Kế hoạch content"
+    ],
+    "bottlenecks": [],
+    "aiAnalysis": {
+      "strengths": [
+        "Hoàn thành 2/2 mục tiêu với chất lượng cao.",
+        "Duy trì 7 giờ làm việc chuyên sâu."
+      ],
+      "improvements": [
+        "Tiếp tục đẩy nhanh khâu duyệt kịch bản để tránh nghẽn tiến độ dựng clip."
+      ],
+      "workloadScore": 8,
+      "burnoutRisk": "Thấp",
+      "recommendations": [
+        "Bám sát kế hoạch nội dung tuần tiếp theo.",
+        "Tối ưu quy trình quay và chuẩn bị phòng Livestream."
+      ],
+      "infographicSummary": "Hiệu suất đạt 95/100 điểm (A+). Hoàn thành 2/2 đầu việc."
+    },
+    "userNotes": "",
+    "createdAt": "2026-08-03T18:00:00.000Z",
+    "updatedAt": "2026-08-03T19:00:00.000Z"
+  },
+  {
+    "id": "report_2026-08-04",
+    "date": "2026-08-04",
+    "author": "Trịnh Minh Đức",
+    "status": "approved",
+    "tasks": [
+      {
+        "id": "t8_w1_03",
+        "date": "2026-08-04",
+        "title": "Quay content Kênh Fan ba làng",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "high",
+        "quantity": 8,
+        "timeSpentHours": 6,
+        "completionPercent": 100,
+        "kpiMetric": "8 clip content (100%)",
+        "outcome": "Đã quay 8 clip content kênh Fan Ba Làng",
+        "description": "Quay content Kênh Fan Ba Làng - Định kỳ hằng ngày",
+        "tags": [
+          "Marketing",
+          "Quay Clip",
+          "Fan Ba Làng"
+        ]
+      },
+      {
+        "id": "t8_w1_04",
+        "date": "2026-08-04",
+        "title": "Kịch Bản kênh Fan Ba Làng TH",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "high",
+        "quantity": 8,
+        "timeSpentHours": 5,
+        "completionPercent": 100,
+        "kpiMetric": "8 kịch bản (100%)",
+        "outcome": "Đã viết đủ 8 kịch bản kênh Fan Ba Làng TH",
+        "description": "Kịch Bản kênh Fan Ba Làng TH - Định kỳ hằng ngày",
+        "tags": [
+          "Marketing",
+          "Kịch bản",
+          "Fan Ba Làng TH"
+        ]
+      }
+    ],
+    "productivityScore": 95,
+    "evaluationGrade": "A+",
+    "summary": "Báo cáo Ngày 2026-08-04: Hoàn thành 2/2 đầu việc trọng tâm với 11h làm việc tập trung. Tiến độ bám sát kế hoạch tháng 8 đề ra.",
+    "highlights": [
+      "Hoàn thành: Quay content Kênh Fan ba làng",
+      "Hoàn thành: Kịch Bản kênh Fan Ba Làng TH"
+    ],
+    "bottlenecks": [],
+    "aiAnalysis": {
+      "strengths": [
+        "Hoàn thành 2/2 mục tiêu với chất lượng cao.",
+        "Duy trì 11 giờ làm việc chuyên sâu."
+      ],
+      "improvements": [
+        "Tiếp tục đẩy nhanh khâu duyệt kịch bản để tránh nghẽn tiến độ dựng clip."
+      ],
+      "workloadScore": 10,
+      "burnoutRisk": "Thấp",
+      "recommendations": [
+        "Bám sát kế hoạch nội dung tuần tiếp theo.",
+        "Tối ưu quy trình quay và chuẩn bị phòng Livestream."
+      ],
+      "infographicSummary": "Hiệu suất đạt 95/100 điểm (A+). Hoàn thành 2/2 đầu việc."
+    },
+    "userNotes": "",
+    "createdAt": "2026-08-04T18:00:00.000Z",
+    "updatedAt": "2026-08-04T19:00:00.000Z"
+  },
+  {
+    "id": "report_2026-08-05",
+    "date": "2026-08-05",
+    "author": "Trịnh Minh Đức",
+    "status": "approved",
+    "tasks": [
+      {
+        "id": "t8_w1_05",
+        "date": "2026-08-05",
+        "title": "Edit kênh Fan Ba Làng",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "high",
+        "quantity": 5,
+        "timeSpentHours": 5,
+        "completionPercent": 100,
+        "kpiMetric": "5 video hoàn chỉnh (100%)",
+        "outcome": "Đã dựng xong và xuất 5 clip kênh Fan Ba Làng",
+        "description": "Edit kênh Fan Ba Làng - Định kỳ hằng ngày",
+        "tags": [
+          "Marketing",
+          "Dựng Video",
+          "Fan Ba Làng"
+        ]
+      },
+      {
+        "id": "t8_w1_06",
+        "date": "2026-08-05",
+        "title": "Lên kế hoạch chạy quảng cáo cho facebook trong tuần tới",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "medium",
+        "quantity": 1,
+        "timeSpentHours": 3,
+        "completionPercent": 100,
+        "kpiMetric": "100% Kế hoạch - Theo dõi ADS",
+        "outcome": "Đã thiết lập kế hoạch chạy quảng cáo FB cho tuần tiếp theo",
+        "description": "Lên kế hoạch chạy quảng cáo cho facebook trong tuần tới - Kế hoạch & Theo dõi ADS",
+        "tags": [
+          "Marketing",
+          "FaceBook",
+          "Chạy Ads"
+        ]
+      }
+    ],
+    "productivityScore": 95,
+    "evaluationGrade": "A+",
+    "summary": "Báo cáo Ngày 2026-08-05: Hoàn thành 2/2 đầu việc trọng tâm với 8h làm việc tập trung. Tiến độ bám sát kế hoạch tháng 8 đề ra.",
+    "highlights": [
+      "Hoàn thành: Edit kênh Fan Ba Làng",
+      "Hoàn thành: Lên kế hoạch chạy quảng cáo cho facebook trong tuần tới"
+    ],
+    "bottlenecks": [],
+    "aiAnalysis": {
+      "strengths": [
+        "Hoàn thành 2/2 mục tiêu với chất lượng cao.",
+        "Duy trì 8 giờ làm việc chuyên sâu."
+      ],
+      "improvements": [
+        "Tiếp tục đẩy nhanh khâu duyệt kịch bản để tránh nghẽn tiến độ dựng clip."
+      ],
+      "workloadScore": 10,
+      "burnoutRisk": "Thấp",
+      "recommendations": [
+        "Bám sát kế hoạch nội dung tuần tiếp theo.",
+        "Tối ưu quy trình quay và chuẩn bị phòng Livestream."
+      ],
+      "infographicSummary": "Hiệu suất đạt 95/100 điểm (A+). Hoàn thành 2/2 đầu việc."
+    },
+    "userNotes": "",
+    "createdAt": "2026-08-05T18:00:00.000Z",
+    "updatedAt": "2026-08-05T19:00:00.000Z"
+  },
+  {
+    "id": "report_2026-08-06",
+    "date": "2026-08-06",
+    "author": "Trịnh Minh Đức",
+    "status": "approved",
+    "tasks": [
+      {
+        "id": "t8_w1_07",
+        "date": "2026-08-06",
+        "title": "Edit kênh Ocop 4sao",
+        "category": "Marketing",
+        "status": "pending",
+        "priority": "medium",
+        "quantity": 0,
+        "timeSpentHours": 1,
+        "completionPercent": 0,
+        "kpiMetric": "0% (Chờ kịch bản duyệt)",
+        "outcome": "Tạm dừng dựng do chờ duyệt kịch bản OCOP",
+        "description": "Edit kênh Ocop 4sao - Định kỳ hằng ngày (Chưa có kịch bản)",
+        "tags": [
+          "Marketing",
+          "Dựng Video",
+          "Ocop 4 Sao"
+        ]
+      }
+    ],
+    "productivityScore": 75,
+    "evaluationGrade": "B+",
+    "summary": "Báo cáo Ngày 2026-08-06: Hoàn thành 0/1 đầu việc trọng tâm với 1h làm việc tập trung. Tiến độ bám sát kế hoạch tháng 8 đề ra.",
+    "highlights": [],
+    "bottlenecks": [
+      "Chưa duyệt / nghẽn: Edit kênh Ocop 4sao (Edit kênh Ocop 4sao - Định kỳ hằng ngày (Chưa có kịch bản))"
+    ],
+    "aiAnalysis": {
+      "strengths": [
+        "Hoàn thành 0/1 mục tiêu với chất lượng cao.",
+        "Duy trì 1 giờ làm việc chuyên sâu."
+      ],
+      "improvements": [
+        "Tiếp tục đẩy nhanh khâu duyệt kịch bản để tránh nghẽn tiến độ dựng clip."
+      ],
+      "workloadScore": 4,
+      "burnoutRisk": "Thấp",
+      "recommendations": [
+        "Bám sát kế hoạch nội dung tuần tiếp theo.",
+        "Tối ưu quy trình quay và chuẩn bị phòng Livestream."
+      ],
+      "infographicSummary": "Hiệu suất đạt 75/100 điểm (B+). Hoàn thành 0/1 đầu việc."
+    },
+    "userNotes": "",
+    "createdAt": "2026-08-06T18:00:00.000Z",
+    "updatedAt": "2026-08-06T19:00:00.000Z"
+  },
+  {
+    "id": "report_2026-08-07",
+    "date": "2026-08-07",
+    "author": "Trịnh Minh Đức",
+    "status": "approved",
+    "tasks": [
+      {
+        "id": "t8_w1_08",
+        "date": "2026-08-07",
+        "title": "Quay content live ngày 8/8",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "high",
+        "quantity": 4,
+        "timeSpentHours": 4,
+        "completionPercent": 100,
+        "kpiMetric": "4 content live (100%)",
+        "outcome": "Hoàn tất quay 4 content chuẩn bị phiên live ngày 8/8",
+        "description": "Quay content live ngày 8/8 - Hằng ngày",
+        "tags": [
+          "Marketing",
+          "Quay Clip",
+          "Live 8/8"
+        ]
+      },
+      {
+        "id": "t8_w1_09",
+        "date": "2026-08-07",
+        "title": "Kịch Bản kênh Ocop 4 Sao",
+        "category": "Marketing",
+        "status": "in_progress",
+        "priority": "medium",
+        "quantity": 1,
+        "timeSpentHours": 4,
+        "completionPercent": 80,
+        "kpiMetric": "Đức - Kênh Ocop KB (Deadline T6)",
+        "outcome": "Hoàn thiện bản nháp kịch bản OCOP nộp thứ 6",
+        "description": "Kịch Bản kênh Ocop 4 Sao - Đức phụ trách Kênh Ocop KB (Deadline T6 Hàng tuần)",
+        "tags": [
+          "Marketing",
+          "Kịch bản",
+          "Ocop 4 Sao"
+        ]
+      }
+    ],
+    "productivityScore": 75,
+    "evaluationGrade": "B+",
+    "summary": "Báo cáo Ngày 2026-08-07: Hoàn thành 1/2 đầu việc trọng tâm với 8h làm việc tập trung. Tiến độ bám sát kế hoạch tháng 8 đề ra.",
+    "highlights": [
+      "Hoàn thành: Quay content live ngày 8/8"
+    ],
+    "bottlenecks": [],
+    "aiAnalysis": {
+      "strengths": [
+        "Hoàn thành 1/2 mục tiêu với chất lượng cao.",
+        "Duy trì 8 giờ làm việc chuyên sâu."
+      ],
+      "improvements": [
+        "Tiếp tục đẩy nhanh khâu duyệt kịch bản để tránh nghẽn tiến độ dựng clip."
+      ],
+      "workloadScore": 10,
+      "burnoutRisk": "Thấp",
+      "recommendations": [
+        "Bám sát kế hoạch nội dung tuần tiếp theo.",
+        "Tối ưu quy trình quay và chuẩn bị phòng Livestream."
+      ],
+      "infographicSummary": "Hiệu suất đạt 75/100 điểm (B+). Hoàn thành 1/2 đầu việc."
+    },
+    "userNotes": "",
+    "createdAt": "2026-08-07T18:00:00.000Z",
+    "updatedAt": "2026-08-07T19:00:00.000Z"
+  },
+  {
+    "id": "report_2026-08-08",
+    "date": "2026-08-08",
+    "author": "Trịnh Minh Đức",
+    "status": "approved",
+    "tasks": [
+      {
+        "id": "t8_w1_10",
+        "date": "2026-08-08",
+        "title": "Edit kịch bản live 8/8",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "high",
+        "quantity": 4,
+        "timeSpentHours": 4,
+        "completionPercent": 100,
+        "kpiMetric": "4 kịch bản video live (100%)",
+        "outcome": "Đã dựng xong 4 kịch bản video cho phiên livestream 8/8",
+        "description": "Edit kịch bản dựng video phục vụ livestream 8/8",
+        "tags": [
+          "Marketing",
+          "Dựng Video",
+          "Live 8/8"
+        ]
+      }
+    ],
+    "productivityScore": 95,
+    "evaluationGrade": "A+",
+    "summary": "Báo cáo Ngày 2026-08-08: Hoàn thành 1/1 đầu việc trọng tâm với 4h làm việc tập trung. Tiến độ bám sát kế hoạch tháng 8 đề ra.",
+    "highlights": [
+      "Hoàn thành: Edit kịch bản live 8/8"
+    ],
+    "bottlenecks": [],
+    "aiAnalysis": {
+      "strengths": [
+        "Hoàn thành 1/1 mục tiêu với chất lượng cao.",
+        "Duy trì 4 giờ làm việc chuyên sâu."
+      ],
+      "improvements": [
+        "Tiếp tục đẩy nhanh khâu duyệt kịch bản để tránh nghẽn tiến độ dựng clip."
+      ],
+      "workloadScore": 5,
+      "burnoutRisk": "Thấp",
+      "recommendations": [
+        "Bám sát kế hoạch nội dung tuần tiếp theo.",
+        "Tối ưu quy trình quay và chuẩn bị phòng Livestream."
+      ],
+      "infographicSummary": "Hiệu suất đạt 95/100 điểm (A+). Hoàn thành 1/1 đầu việc."
+    },
+    "userNotes": "",
+    "createdAt": "2026-08-08T18:00:00.000Z",
+    "updatedAt": "2026-08-08T19:00:00.000Z"
+  },
+  {
+    "id": "report_2026-08-10",
+    "date": "2026-08-10",
+    "author": "Trịnh Minh Đức",
+    "status": "approved",
+    "tasks": [
+      {
+        "id": "t8_w2_01",
+        "date": "2026-08-10",
+        "title": "Quay content Kênh Ba làng tuyến hòa",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "high",
+        "quantity": 4,
+        "timeSpentHours": 4,
+        "completionPercent": 100,
+        "kpiMetric": "4 clip content (100%)",
+        "outcome": "Đã hoàn thành 4 clip content quay định kỳ hằng ngày",
+        "description": "Quay content Kênh Ba làng tuyến hòa - Định kỳ hằng ngày",
+        "tags": [
+          "Marketing",
+          "Quay Clip",
+          "Ba Làng Tuyến Hòa"
+        ]
+      }
+    ],
+    "productivityScore": 95,
+    "evaluationGrade": "A+",
+    "summary": "Báo cáo Ngày 2026-08-10: Hoàn thành 1/1 đầu việc trọng tâm với 4h làm việc tập trung. Tiến độ bám sát kế hoạch tháng 8 đề ra.",
+    "highlights": [
+      "Hoàn thành: Quay content Kênh Ba làng tuyến hòa"
+    ],
+    "bottlenecks": [],
+    "aiAnalysis": {
+      "strengths": [
+        "Hoàn thành 1/1 mục tiêu với chất lượng cao.",
+        "Duy trì 4 giờ làm việc chuyên sâu."
+      ],
+      "improvements": [
+        "Tiếp tục đẩy nhanh khâu duyệt kịch bản để tránh nghẽn tiến độ dựng clip."
+      ],
+      "workloadScore": 5,
+      "burnoutRisk": "Thấp",
+      "recommendations": [
+        "Bám sát kế hoạch nội dung tuần tiếp theo.",
+        "Tối ưu quy trình quay và chuẩn bị phòng Livestream."
+      ],
+      "infographicSummary": "Hiệu suất đạt 95/100 điểm (A+). Hoàn thành 1/1 đầu việc."
+    },
+    "userNotes": "",
+    "createdAt": "2026-08-10T18:00:00.000Z",
+    "updatedAt": "2026-08-10T19:00:00.000Z"
+  },
+  {
+    "id": "report_2026-08-11",
+    "date": "2026-08-11",
+    "author": "Trịnh Minh Đức",
+    "status": "approved",
+    "tasks": [
+      {
+        "id": "t8_w2_02",
+        "date": "2026-08-11",
+        "title": "Quay content Kênh Fan ba làng",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "high",
+        "quantity": 8,
+        "timeSpentHours": 6,
+        "completionPercent": 100,
+        "kpiMetric": "8 clip content (100%)",
+        "outcome": "Quay xong 8 clip kênh Fan Ba Làng",
+        "description": "Quay content Kênh Fan Ba Làng - Định kỳ hằng ngày",
+        "tags": [
+          "Marketing",
+          "Quay Clip",
+          "Fan Ba Làng"
+        ]
+      },
+      {
+        "id": "t8_w2_03",
+        "date": "2026-08-11",
+        "title": "Kịch bản kênh TT Đại diện sếp Huyền",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "high",
+        "quantity": 2,
+        "timeSpentHours": 3,
+        "completionPercent": 100,
+        "kpiMetric": "2 kịch bản - KB kênh Sếp Huyền (100%)",
+        "outcome": "Hoàn thành 2 kịch bản TikTok đại diện sếp Huyền",
+        "description": "Kịch bản kênh TikTok Đại diện sếp Huyền - Đã gửi link KB kênh Sếp Huyền",
+        "tags": [
+          "Marketing",
+          "Kịch bản",
+          "TikTok Sếp Huyền"
+        ]
+      }
+    ],
+    "productivityScore": 95,
+    "evaluationGrade": "A+",
+    "summary": "Báo cáo Ngày 2026-08-11: Hoàn thành 2/2 đầu việc trọng tâm với 9h làm việc tập trung. Tiến độ bám sát kế hoạch tháng 8 đề ra.",
+    "highlights": [
+      "Hoàn thành: Quay content Kênh Fan ba làng",
+      "Hoàn thành: Kịch bản kênh TT Đại diện sếp Huyền"
+    ],
+    "bottlenecks": [],
+    "aiAnalysis": {
+      "strengths": [
+        "Hoàn thành 2/2 mục tiêu với chất lượng cao.",
+        "Duy trì 9 giờ làm việc chuyên sâu."
+      ],
+      "improvements": [
+        "Tiếp tục đẩy nhanh khâu duyệt kịch bản để tránh nghẽn tiến độ dựng clip."
+      ],
+      "workloadScore": 10,
+      "burnoutRisk": "Thấp",
+      "recommendations": [
+        "Bám sát kế hoạch nội dung tuần tiếp theo.",
+        "Tối ưu quy trình quay và chuẩn bị phòng Livestream."
+      ],
+      "infographicSummary": "Hiệu suất đạt 95/100 điểm (A+). Hoàn thành 2/2 đầu việc."
+    },
+    "userNotes": "",
+    "createdAt": "2026-08-11T18:00:00.000Z",
+    "updatedAt": "2026-08-11T19:00:00.000Z"
+  },
+  {
+    "id": "report_2026-08-12",
+    "date": "2026-08-12",
+    "author": "Trịnh Minh Đức",
+    "status": "approved",
+    "tasks": [
+      {
+        "id": "t8_w2_04",
+        "date": "2026-08-12",
+        "title": "Quay KB kênh Ocop - KB anh Khắc Anh",
+        "category": "Marketing",
+        "status": "in_progress",
+        "priority": "medium",
+        "quantity": 2,
+        "timeSpentHours": 2,
+        "completionPercent": 25,
+        "kpiMetric": "25% (KB chưa duyệt)",
+        "outcome": "Đã quay phần mở đầu, tạm dừng vì kịch bản anh Khắc Anh chưa duyệt",
+        "description": "Quay KB kênh Ocop - Kịch bản anh Khắc Anh (Ghi chú: KB chưa duyệt)",
+        "tags": [
+          "Marketing",
+          "Quay Clip",
+          "Ocop"
+        ]
+      },
+      {
+        "id": "t8_w2_05",
+        "date": "2026-08-12",
+        "title": "Kịch Bản kênh Fan Ba Làng TH",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "medium",
+        "quantity": 2,
+        "timeSpentHours": 3,
+        "completionPercent": 100,
+        "kpiMetric": "2 kịch bản (100%)",
+        "outcome": "Đã hoàn thành 2 kịch bản mới cho kênh Fan Ba Làng TH",
+        "description": "Kịch Bản kênh Fan Ba Làng TH - Định kỳ hằng ngày",
+        "tags": [
+          "Marketing",
+          "Kịch bản",
+          "Fan Ba Làng TH"
+        ]
+      }
+    ],
+    "productivityScore": 75,
+    "evaluationGrade": "B+",
+    "summary": "Báo cáo Ngày 2026-08-12: Hoàn thành 1/2 đầu việc trọng tâm với 5h làm việc tập trung. Tiến độ bám sát kế hoạch tháng 8 đề ra.",
+    "highlights": [
+      "Hoàn thành: Kịch Bản kênh Fan Ba Làng TH"
+    ],
+    "bottlenecks": [
+      "Chưa duyệt / nghẽn: Quay KB kênh Ocop - KB anh Khắc Anh (Quay KB kênh Ocop - Kịch bản anh Khắc Anh (Ghi chú: KB chưa duyệt))"
+    ],
+    "aiAnalysis": {
+      "strengths": [
+        "Hoàn thành 1/2 mục tiêu với chất lượng cao.",
+        "Duy trì 5 giờ làm việc chuyên sâu."
+      ],
+      "improvements": [
+        "Tiếp tục đẩy nhanh khâu duyệt kịch bản để tránh nghẽn tiến độ dựng clip."
+      ],
+      "workloadScore": 6,
+      "burnoutRisk": "Thấp",
+      "recommendations": [
+        "Bám sát kế hoạch nội dung tuần tiếp theo.",
+        "Tối ưu quy trình quay và chuẩn bị phòng Livestream."
+      ],
+      "infographicSummary": "Hiệu suất đạt 75/100 điểm (B+). Hoàn thành 1/2 đầu việc."
+    },
+    "userNotes": "",
+    "createdAt": "2026-08-12T18:00:00.000Z",
+    "updatedAt": "2026-08-12T19:00:00.000Z"
+  },
+  {
+    "id": "report_2026-08-13",
+    "date": "2026-08-13",
+    "author": "Trịnh Minh Đức",
+    "status": "approved",
+    "tasks": [
+      {
+        "id": "t8_w2_06",
+        "date": "2026-08-13",
+        "title": "Kịch Bản kênh Ba Làng Tuyến Hoà",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "high",
+        "quantity": 6,
+        "timeSpentHours": 5,
+        "completionPercent": 100,
+        "kpiMetric": "6 kịch bản - Seri nỗi đau khách hàng (100%)",
+        "outcome": "Hoàn thành 6 kịch bản xuất sắc thuộc tuyến Seri nỗi đau khách hàng",
+        "description": "Kịch Bản kênh Ba Làng Tuyến Hoà - Seri nỗi đau khách hàng, định kỳ hằng ngày",
+        "tags": [
+          "Marketing",
+          "Kịch bản",
+          "Seri Nỗi Đau KH"
+        ]
+      },
+      {
+        "id": "t8_w2_07",
+        "date": "2026-08-13",
+        "title": "Edit kênh Fan Ba Làng",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "high",
+        "quantity": 5,
+        "timeSpentHours": 5,
+        "completionPercent": 100,
+        "kpiMetric": "5 video dựng (100%)",
+        "outcome": "Dựng và chỉnh màu hoàn tất 5 clip kênh Fan Ba Làng",
+        "description": "Edit kênh Fan Ba Làng - Định kỳ hằng ngày",
+        "tags": [
+          "Marketing",
+          "Dựng Video",
+          "Fan Ba Làng"
+        ]
+      }
+    ],
+    "productivityScore": 95,
+    "evaluationGrade": "A+",
+    "summary": "Báo cáo Ngày 2026-08-13: Hoàn thành 2/2 đầu việc trọng tâm với 10h làm việc tập trung. Tiến độ bám sát kế hoạch tháng 8 đề ra.",
+    "highlights": [
+      "Hoàn thành: Kịch Bản kênh Ba Làng Tuyến Hoà",
+      "Hoàn thành: Edit kênh Fan Ba Làng"
+    ],
+    "bottlenecks": [],
+    "aiAnalysis": {
+      "strengths": [
+        "Hoàn thành 2/2 mục tiêu với chất lượng cao.",
+        "Duy trì 10 giờ làm việc chuyên sâu."
+      ],
+      "improvements": [
+        "Tiếp tục đẩy nhanh khâu duyệt kịch bản để tránh nghẽn tiến độ dựng clip."
+      ],
+      "workloadScore": 10,
+      "burnoutRisk": "Thấp",
+      "recommendations": [
+        "Bám sát kế hoạch nội dung tuần tiếp theo.",
+        "Tối ưu quy trình quay và chuẩn bị phòng Livestream."
+      ],
+      "infographicSummary": "Hiệu suất đạt 95/100 điểm (A+). Hoàn thành 2/2 đầu việc."
+    },
+    "userNotes": "",
+    "createdAt": "2026-08-13T18:00:00.000Z",
+    "updatedAt": "2026-08-13T19:00:00.000Z"
+  },
+  {
+    "id": "report_2026-08-14",
+    "date": "2026-08-14",
+    "author": "Trịnh Minh Đức",
+    "status": "approved",
+    "tasks": [
+      {
+        "id": "t8_w2_08",
+        "date": "2026-08-14",
+        "title": "Edit kênh Ba Làng Tuyến Hoà",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "high",
+        "quantity": 4,
+        "timeSpentHours": 4,
+        "completionPercent": 100,
+        "kpiMetric": "4 video dựng (100%)",
+        "outcome": "Dựng xong 4 video sắc nét cho kênh Ba Làng Tuyến Hòa",
+        "description": "Edit kênh Ba Làng Tuyến Hoà - Định kỳ hằng ngày",
+        "tags": [
+          "Marketing",
+          "Dựng Video",
+          "Ba Làng Tuyến Hòa"
+        ]
+      },
+      {
+        "id": "t8_w2_09",
+        "date": "2026-08-14",
+        "title": "Dựng lại clip cũ",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "medium",
+        "quantity": 2,
+        "timeSpentHours": 2,
+        "completionPercent": 100,
+        "kpiMetric": "2 clip cũ tái dựng (100%)",
+        "outcome": "Cắt ghép lại 2 video cũ theo nhịp điệu ngắn mới",
+        "description": "Dựng lại clip cũ tối ưu hóa giữ chân người xem",
+        "tags": [
+          "Marketing",
+          "Dựng Video",
+          "Remake"
+        ]
+      }
+    ],
+    "productivityScore": 95,
+    "evaluationGrade": "A+",
+    "summary": "Báo cáo Ngày 2026-08-14: Hoàn thành 2/2 đầu việc trọng tâm với 6h làm việc tập trung. Tiến độ bám sát kế hoạch tháng 8 đề ra.",
+    "highlights": [
+      "Hoàn thành: Edit kênh Ba Làng Tuyến Hoà",
+      "Hoàn thành: Dựng lại clip cũ"
+    ],
+    "bottlenecks": [],
+    "aiAnalysis": {
+      "strengths": [
+        "Hoàn thành 2/2 mục tiêu với chất lượng cao.",
+        "Duy trì 6 giờ làm việc chuyên sâu."
+      ],
+      "improvements": [
+        "Tiếp tục đẩy nhanh khâu duyệt kịch bản để tránh nghẽn tiến độ dựng clip."
+      ],
+      "workloadScore": 7,
+      "burnoutRisk": "Thấp",
+      "recommendations": [
+        "Bám sát kế hoạch nội dung tuần tiếp theo.",
+        "Tối ưu quy trình quay và chuẩn bị phòng Livestream."
+      ],
+      "infographicSummary": "Hiệu suất đạt 95/100 điểm (A+). Hoàn thành 2/2 đầu việc."
+    },
+    "userNotes": "",
+    "createdAt": "2026-08-14T18:00:00.000Z",
+    "updatedAt": "2026-08-14T19:00:00.000Z"
+  },
+  {
+    "id": "report_2026-08-15",
+    "date": "2026-08-15",
+    "author": "Trịnh Minh Đức",
+    "status": "approved",
+    "tasks": [
+      {
+        "id": "t8_w2_10",
+        "date": "2026-08-15",
+        "title": "Đánh giá , Đề xuất kênh tiktok cũ",
+        "category": "CV ngoài",
+        "status": "completed",
+        "priority": "high",
+        "quantity": 1,
+        "timeSpentHours": 3,
+        "completionPercent": 100,
+        "kpiMetric": "Link 29072026_Họp quy trình Marketing (100%)",
+        "outcome": "Trình bày báo cáo phân tích toàn diện kênh TikTok cũ",
+        "description": "Đánh giá , Đề xuất kênh tiktok cũ - Tài liệu 29072026_Họp quy trình Marketing",
+        "tags": [
+          "CV ngoài",
+          "Đánh giá Kênh",
+          "TikTok"
+        ]
+      },
+      {
+        "id": "t8_w2_11",
+        "date": "2026-08-15",
+        "title": "Lên bộ khung kịch bản cũng như là cấu trúc đăng bài của tiktok",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "high",
+        "quantity": 1,
+        "timeSpentHours": 3,
+        "completionPercent": 100,
+        "kpiMetric": "Tài liệu Đề Xuất Quy Tắc TikTok (100%)",
+        "outcome": "Xây dựng quy chuẩn khung kịch bản 3s đầu và cấu trúc đăng bài chuẩn thuật toán",
+        "description": "Lên bộ khung kịch bản cũng như là cấu trúc đăng bài của tiktok - Đề Xuất Quy Tắc TikTok",
+        "tags": [
+          "Marketing",
+          "Quy tắc TikTok",
+          "Khung Kịch Bản"
+        ]
+      },
+      {
+        "id": "t8_w2_12",
+        "date": "2026-08-15",
+        "title": "Ý tưởng kênh TT Đại diện sếp Huyền",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "medium",
+        "quantity": 1,
+        "timeSpentHours": 2,
+        "completionPercent": 100,
+        "kpiMetric": "1 bộ ý tưởng (100%)",
+        "outcome": "Đã duyệt bộ ý tưởng phát triển kênh TikTok thương hiệu cá nhân sếp Huyền",
+        "description": "Ý tưởng phát triển kênh TikTok Đại diện sếp Huyền",
+        "tags": [
+          "Marketing",
+          "Ý Tưởng",
+          "TikTok Sếp Huyền"
+        ]
+      }
+    ],
+    "productivityScore": 95,
+    "evaluationGrade": "A+",
+    "summary": "Báo cáo Ngày 2026-08-15: Hoàn thành 3/3 đầu việc trọng tâm với 8h làm việc tập trung. Tiến độ bám sát kế hoạch tháng 8 đề ra.",
+    "highlights": [
+      "Hoàn thành: Đánh giá , Đề xuất kênh tiktok cũ",
+      "Hoàn thành: Lên bộ khung kịch bản cũng như là cấu trúc đăng bài của tiktok",
+      "Hoàn thành: Ý tưởng kênh TT Đại diện sếp Huyền"
+    ],
+    "bottlenecks": [],
+    "aiAnalysis": {
+      "strengths": [
+        "Hoàn thành 3/3 mục tiêu với chất lượng cao.",
+        "Duy trì 8 giờ làm việc chuyên sâu."
+      ],
+      "improvements": [
+        "Tiếp tục đẩy nhanh khâu duyệt kịch bản để tránh nghẽn tiến độ dựng clip."
+      ],
+      "workloadScore": 10,
+      "burnoutRisk": "Thấp",
+      "recommendations": [
+        "Bám sát kế hoạch nội dung tuần tiếp theo.",
+        "Tối ưu quy trình quay và chuẩn bị phòng Livestream."
+      ],
+      "infographicSummary": "Hiệu suất đạt 95/100 điểm (A+). Hoàn thành 3/3 đầu việc."
+    },
+    "userNotes": "",
+    "createdAt": "2026-08-15T18:00:00.000Z",
+    "updatedAt": "2026-08-15T19:00:00.000Z"
+  },
+  {
+    "id": "report_2026-08-17",
+    "date": "2026-08-17",
+    "author": "Trịnh Minh Đức",
+    "status": "approved",
+    "tasks": [
+      {
+        "id": "t8_w3_01",
+        "date": "2026-08-17",
+        "title": "Quay content Kênh Ba làng Tuyến Hòa",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "high",
+        "quantity": 8,
+        "timeSpentHours": 6,
+        "completionPercent": 90,
+        "kpiMetric": "8 content (90%)",
+        "outcome": "Quay đạt 90% khối lượng 8 content kênh Ba Làng Tuyến Hòa",
+        "description": "Quay content Kênh Ba làng Tuyến Hòa - Khối lượng lớn 8 video",
+        "tags": [
+          "Marketing",
+          "Quay Clip",
+          "Ba Làng Tuyến Hòa"
+        ]
+      },
+      {
+        "id": "t8_w3_02",
+        "date": "2026-08-17",
+        "title": "Họp giao ban đầu tuần",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "medium",
+        "quantity": 1,
+        "timeSpentHours": 2,
+        "completionPercent": 100,
+        "kpiMetric": "Hoàn thành 100% mục tiêu",
+        "outcome": "Đã xong: Họp triển khai kế hoạch trong tuần & phát triển tuyến nỗi đau khách hàng",
+        "description": "- Họp triển khai kế hoạch trong tuần\\n- Phát triển kế hoạch xây kênh theo tuyến nỗi đau khách hàng",
+        "tags": [
+          "Marketing",
+          "Họp"
+        ]
+      }
+    ],
+    "productivityScore": 95,
+    "evaluationGrade": "A+",
+    "summary": "Báo cáo Ngày 2026-08-17: Hoàn thành 2/2 đầu việc trọng tâm với 8h làm việc tập trung. Tiến độ bám sát kế hoạch tháng 8 đề ra.",
+    "highlights": [
+      "Hoàn thành: Quay content Kênh Ba làng Tuyến Hòa",
+      "Hoàn thành: Họp giao ban đầu tuần"
+    ],
+    "bottlenecks": [],
+    "aiAnalysis": {
+      "strengths": [
+        "Hoàn thành 2/2 mục tiêu với chất lượng cao.",
+        "Duy trì 8 giờ làm việc chuyên sâu."
+      ],
+      "improvements": [
+        "Tiếp tục đẩy nhanh khâu duyệt kịch bản để tránh nghẽn tiến độ dựng clip."
+      ],
+      "workloadScore": 10,
+      "burnoutRisk": "Thấp",
+      "recommendations": [
+        "Bám sát kế hoạch nội dung tuần tiếp theo.",
+        "Tối ưu quy trình quay và chuẩn bị phòng Livestream."
+      ],
+      "infographicSummary": "Hiệu suất đạt 95/100 điểm (A+). Hoàn thành 2/2 đầu việc."
+    },
+    "userNotes": "",
+    "createdAt": "2026-08-17T18:00:00.000Z",
+    "updatedAt": "2026-08-17T19:00:00.000Z"
+  },
+  {
+    "id": "report_2026-08-18",
+    "date": "2026-08-18",
+    "author": "Trịnh Minh Đức",
+    "status": "approved",
+    "tasks": [
+      {
+        "id": "t8_w3_03",
+        "date": "2026-08-18",
+        "title": "Quay content Kênh Fan Ba Làng",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "high",
+        "quantity": 11,
+        "timeSpentHours": 7,
+        "completionPercent": 90,
+        "kpiMetric": "11 content (90%)",
+        "outcome": "Đã quay 11 content kênh Fan Ba Làng (đạt 90%)",
+        "description": "Quay content Kênh Fan Ba Làng - Khối lượng lớn 11 clip theo dạng Q&A và giải trí",
+        "tags": [
+          "Marketing",
+          "Quay Clip",
+          "Fan Ba Làng"
+        ]
+      }
+    ],
+    "productivityScore": 95,
+    "evaluationGrade": "A+",
+    "summary": "Báo cáo Ngày 2026-08-18: Hoàn thành 1/1 đầu việc trọng tâm với 7h làm việc tập trung. Tiến độ bám sát kế hoạch tháng 8 đề ra.",
+    "highlights": [
+      "Hoàn thành: Quay content Kênh Fan Ba Làng"
+    ],
+    "bottlenecks": [],
+    "aiAnalysis": {
+      "strengths": [
+        "Hoàn thành 1/1 mục tiêu với chất lượng cao.",
+        "Duy trì 7 giờ làm việc chuyên sâu."
+      ],
+      "improvements": [
+        "Tiếp tục đẩy nhanh khâu duyệt kịch bản để tránh nghẽn tiến độ dựng clip."
+      ],
+      "workloadScore": 8,
+      "burnoutRisk": "Thấp",
+      "recommendations": [
+        "Bám sát kế hoạch nội dung tuần tiếp theo.",
+        "Tối ưu quy trình quay và chuẩn bị phòng Livestream."
+      ],
+      "infographicSummary": "Hiệu suất đạt 95/100 điểm (A+). Hoàn thành 1/1 đầu việc."
+    },
+    "userNotes": "",
+    "createdAt": "2026-08-18T18:00:00.000Z",
+    "updatedAt": "2026-08-18T19:00:00.000Z"
+  },
+  {
+    "id": "report_2026-08-19",
+    "date": "2026-08-19",
+    "author": "Trịnh Minh Đức",
+    "status": "approved",
+    "tasks": [
+      {
+        "id": "t8_w3_04",
+        "date": "2026-08-19",
+        "title": "Kịch Bản kênh Fan Ba Làng TH",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "high",
+        "quantity": 3,
+        "timeSpentHours": 4,
+        "completionPercent": 90,
+        "kpiMetric": "3 kịch bản (90%)",
+        "outcome": "Soạn thảo 3 kịch bản kênh Fan Ba Làng TH đạt 90%",
+        "description": "Kịch Bản kênh Fan Ba Làng TH",
+        "tags": [
+          "Marketing",
+          "Kịch bản",
+          "Fan Ba Làng TH"
+        ]
+      }
+    ],
+    "productivityScore": 95,
+    "evaluationGrade": "A+",
+    "summary": "Báo cáo Ngày 2026-08-19: Hoàn thành 1/1 đầu việc trọng tâm với 4h làm việc tập trung. Tiến độ bám sát kế hoạch tháng 8 đề ra.",
+    "highlights": [
+      "Hoàn thành: Kịch Bản kênh Fan Ba Làng TH"
+    ],
+    "bottlenecks": [],
+    "aiAnalysis": {
+      "strengths": [
+        "Hoàn thành 1/1 mục tiêu với chất lượng cao.",
+        "Duy trì 4 giờ làm việc chuyên sâu."
+      ],
+      "improvements": [
+        "Tiếp tục đẩy nhanh khâu duyệt kịch bản để tránh nghẽn tiến độ dựng clip."
+      ],
+      "workloadScore": 5,
+      "burnoutRisk": "Thấp",
+      "recommendations": [
+        "Bám sát kế hoạch nội dung tuần tiếp theo.",
+        "Tối ưu quy trình quay và chuẩn bị phòng Livestream."
+      ],
+      "infographicSummary": "Hiệu suất đạt 95/100 điểm (A+). Hoàn thành 1/1 đầu việc."
+    },
+    "userNotes": "",
+    "createdAt": "2026-08-19T18:00:00.000Z",
+    "updatedAt": "2026-08-19T19:00:00.000Z"
+  },
+  {
+    "id": "report_2026-08-20",
+    "date": "2026-08-20",
+    "author": "Trịnh Minh Đức",
+    "status": "approved",
+    "tasks": [
+      {
+        "id": "t8_w3_05",
+        "date": "2026-08-20",
+        "title": "Kịch Bản kênh Ba Làng Tuyến Hoà",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "high",
+        "quantity": 6,
+        "timeSpentHours": 5,
+        "completionPercent": 90,
+        "kpiMetric": "6 kịch bản (90%)",
+        "outcome": "Hoàn thành 6 kịch bản kênh Ba Làng Tuyến Hòa đạt 90%",
+        "description": "Kịch Bản kênh Ba Làng Tuyến Hoà",
+        "tags": [
+          "Marketing",
+          "Kịch bản",
+          "Ba Làng Tuyến Hòa"
+        ]
+      },
+      {
+        "id": "t8_w3_06",
+        "date": "2026-08-20",
+        "title": "Edit kênh Fan Ba Làng",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "high",
+        "quantity": 8,
+        "timeSpentHours": 6,
+        "completionPercent": 90,
+        "kpiMetric": "8 video edit (90%)",
+        "outcome": "Dựng và chỉnh sửa 8 clip kênh Fan Ba Làng đạt 90%",
+        "description": "Edit dựng video kênh Fan Ba Làng",
+        "tags": [
+          "Marketing",
+          "Dựng Video",
+          "Fan Ba Làng"
+        ]
+      }
+    ],
+    "productivityScore": 95,
+    "evaluationGrade": "A+",
+    "summary": "Báo cáo Ngày 2026-08-20: Hoàn thành 2/2 đầu việc trọng tâm với 11h làm việc tập trung. Tiến độ bám sát kế hoạch tháng 8 đề ra.",
+    "highlights": [
+      "Hoàn thành: Kịch Bản kênh Ba Làng Tuyến Hoà",
+      "Hoàn thành: Edit kênh Fan Ba Làng"
+    ],
+    "bottlenecks": [],
+    "aiAnalysis": {
+      "strengths": [
+        "Hoàn thành 2/2 mục tiêu với chất lượng cao.",
+        "Duy trì 11 giờ làm việc chuyên sâu."
+      ],
+      "improvements": [
+        "Tiếp tục đẩy nhanh khâu duyệt kịch bản để tránh nghẽn tiến độ dựng clip."
+      ],
+      "workloadScore": 10,
+      "burnoutRisk": "Thấp",
+      "recommendations": [
+        "Bám sát kế hoạch nội dung tuần tiếp theo.",
+        "Tối ưu quy trình quay và chuẩn bị phòng Livestream."
+      ],
+      "infographicSummary": "Hiệu suất đạt 95/100 điểm (A+). Hoàn thành 2/2 đầu việc."
+    },
+    "userNotes": "",
+    "createdAt": "2026-08-20T18:00:00.000Z",
+    "updatedAt": "2026-08-20T19:00:00.000Z"
+  },
+  {
+    "id": "report_2026-08-21",
+    "date": "2026-08-21",
+    "author": "Trịnh Minh Đức",
+    "status": "approved",
+    "tasks": [
+      {
+        "id": "t8_w3_07",
+        "date": "2026-08-21",
+        "title": "Edit kênh Ba Làng Tuyến Hoà",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "high",
+        "quantity": 8,
+        "timeSpentHours": 6,
+        "completionPercent": 90,
+        "kpiMetric": "8 video edit (90%)",
+        "outcome": "Dựng xong 8 video kênh Ba Làng Tuyến Hòa đạt 90%",
+        "description": "Edit dựng video kênh Ba Làng Tuyến Hoà",
+        "tags": [
+          "Marketing",
+          "Dựng Video",
+          "Ba Làng Tuyến Hòa"
+        ]
+      },
+      {
+        "id": "t8_w3_08",
+        "date": "2026-08-21",
+        "title": "Mua thêm đường truyền riêng cho Livestream",
+        "category": "Hỗ trợ",
+        "status": "in_progress",
+        "priority": "high",
+        "quantity": 1,
+        "timeSpentHours": 2,
+        "completionPercent": 50,
+        "kpiMetric": "Đề xuất lắp mạng phòng Live (50%)",
+        "outcome": "Đã khảo sát và làm đề xuất lắp mạng cáp quang riêng phòng Live, cần trước ngày 25/8",
+        "description": "Mua thêm đường truyền riêng cho Livestream - Đề xuất lắp mạng phòng Live (Cần trước ngày 25/8)",
+        "tags": [
+          "Hỗ trợ",
+          "Đề Xuất",
+          "Livestream"
+        ]
+      }
+    ],
+    "productivityScore": 75,
+    "evaluationGrade": "B+",
+    "summary": "Báo cáo Ngày 2026-08-21: Hoàn thành 1/2 đầu việc trọng tâm với 8h làm việc tập trung. Tiến độ bám sát kế hoạch tháng 8 đề ra.",
+    "highlights": [
+      "Hoàn thành: Edit kênh Ba Làng Tuyến Hoà"
+    ],
+    "bottlenecks": [],
+    "aiAnalysis": {
+      "strengths": [
+        "Hoàn thành 1/2 mục tiêu với chất lượng cao.",
+        "Duy trì 8 giờ làm việc chuyên sâu."
+      ],
+      "improvements": [
+        "Tiếp tục đẩy nhanh khâu duyệt kịch bản để tránh nghẽn tiến độ dựng clip."
+      ],
+      "workloadScore": 10,
+      "burnoutRisk": "Thấp",
+      "recommendations": [
+        "Bám sát kế hoạch nội dung tuần tiếp theo.",
+        "Tối ưu quy trình quay và chuẩn bị phòng Livestream."
+      ],
+      "infographicSummary": "Hiệu suất đạt 75/100 điểm (B+). Hoàn thành 1/2 đầu việc."
+    },
+    "userNotes": "",
+    "createdAt": "2026-08-21T18:00:00.000Z",
+    "updatedAt": "2026-08-21T19:00:00.000Z"
+  },
+  {
+    "id": "report_2026-08-22",
+    "date": "2026-08-22",
+    "author": "Trịnh Minh Đức",
+    "status": "approved",
+    "tasks": [
+      {
+        "id": "t8_w3_09",
+        "date": "2026-08-22",
+        "title": "Thiết bị Máy tính - Edit Video - Setup Live OBS",
+        "category": "Hỗ trợ",
+        "status": "in_progress",
+        "priority": "medium",
+        "quantity": 1,
+        "timeSpentHours": 2,
+        "completionPercent": 25,
+        "kpiMetric": "25% (Đang khảo sát giá)",
+        "outcome": "Đang tham khảo giá thành linh kiện máy tính và phần mềm OBS để đưa ra mức giá hợp lý nhất",
+        "description": "Thiết bị Máy tính - Edit Video - Setup Live OBS (Đang tham khảo giá thành để đưa ra mức giá hợp lý nhất)",
+        "tags": [
+          "Hỗ trợ",
+          "Thiết bị",
+          "Setup OBS"
+        ]
+      }
+    ],
+    "productivityScore": 75,
+    "evaluationGrade": "B+",
+    "summary": "Báo cáo Ngày 2026-08-22: Hoàn thành 0/1 đầu việc trọng tâm với 2h làm việc tập trung. Tiến độ bám sát kế hoạch tháng 8 đề ra.",
+    "highlights": [],
+    "bottlenecks": [
+      "Chưa duyệt / nghẽn: Thiết bị Máy tính - Edit Video - Setup Live OBS (Thiết bị Máy tính - Edit Video - Setup Live OBS (Đang tham khảo giá thành để đưa ra mức giá hợp lý nhất))"
+    ],
+    "aiAnalysis": {
+      "strengths": [
+        "Hoàn thành 0/1 mục tiêu với chất lượng cao.",
+        "Duy trì 2 giờ làm việc chuyên sâu."
+      ],
+      "improvements": [
+        "Tiếp tục đẩy nhanh khâu duyệt kịch bản để tránh nghẽn tiến độ dựng clip."
+      ],
+      "workloadScore": 4,
+      "burnoutRisk": "Thấp",
+      "recommendations": [
+        "Bám sát kế hoạch nội dung tuần tiếp theo.",
+        "Tối ưu quy trình quay và chuẩn bị phòng Livestream."
+      ],
+      "infographicSummary": "Hiệu suất đạt 75/100 điểm (B+). Hoàn thành 0/1 đầu việc."
+    },
+    "userNotes": "",
+    "createdAt": "2026-08-22T18:00:00.000Z",
+    "updatedAt": "2026-08-22T19:00:00.000Z"
+  },
+  {
+    "id": "report_2026-08-24",
+    "date": "2026-08-24",
+    "author": "Trịnh Minh Đức",
+    "status": "approved",
+    "tasks": [
+      {
+        "id": "t8_w4_01",
+        "date": "2026-08-24",
+        "title": "Quay content Kênh Ba làng Tuyến Hòa",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "high",
+        "quantity": 9,
+        "timeSpentHours": 6,
+        "completionPercent": 90,
+        "kpiMetric": "9 content (90%)",
+        "outcome": "Quay xong 9 content kênh Ba Làng Tuyến Hòa đạt 90%",
+        "description": "Quay content Kênh Ba làng Tuyến Hòa",
+        "tags": [
+          "Marketing",
+          "Quay Clip",
+          "Ba Làng Tuyến Hòa"
+        ]
+      }
+    ],
+    "productivityScore": 95,
+    "evaluationGrade": "A+",
+    "summary": "Báo cáo Ngày 2026-08-24: Hoàn thành 1/1 đầu việc trọng tâm với 6h làm việc tập trung. Tiến độ bám sát kế hoạch tháng 8 đề ra.",
+    "highlights": [
+      "Hoàn thành: Quay content Kênh Ba làng Tuyến Hòa"
+    ],
+    "bottlenecks": [],
+    "aiAnalysis": {
+      "strengths": [
+        "Hoàn thành 1/1 mục tiêu với chất lượng cao.",
+        "Duy trì 6 giờ làm việc chuyên sâu."
+      ],
+      "improvements": [
+        "Tiếp tục đẩy nhanh khâu duyệt kịch bản để tránh nghẽn tiến độ dựng clip."
+      ],
+      "workloadScore": 7,
+      "burnoutRisk": "Thấp",
+      "recommendations": [
+        "Bám sát kế hoạch nội dung tuần tiếp theo.",
+        "Tối ưu quy trình quay và chuẩn bị phòng Livestream."
+      ],
+      "infographicSummary": "Hiệu suất đạt 95/100 điểm (A+). Hoàn thành 1/1 đầu việc."
+    },
+    "userNotes": "",
+    "createdAt": "2026-08-24T18:00:00.000Z",
+    "updatedAt": "2026-08-24T19:00:00.000Z"
+  },
+  {
+    "id": "report_2026-08-25",
+    "date": "2026-08-25",
+    "author": "Trịnh Minh Đức",
+    "status": "approved",
+    "tasks": [
+      {
+        "id": "t8_w4_02",
+        "date": "2026-08-25",
+        "title": "Quay content Kênh Fan Ba Làng",
+        "category": "Marketing",
+        "status": "in_progress",
+        "priority": "medium",
+        "quantity": 0,
+        "timeSpentHours": 2,
+        "completionPercent": 25,
+        "kpiMetric": "25% tiến độ",
+        "outcome": "Tạm dừng để tập trung quay kịch bản kênh Ba Làng Tuyến Hòa và kịch bản lễ 2/9",
+        "description": "Quay content Kênh Fan Ba Làng",
+        "tags": [
+          "Marketing",
+          "Quay Clip",
+          "Fan Ba Làng"
+        ]
+      }
+    ],
+    "productivityScore": 75,
+    "evaluationGrade": "B+",
+    "summary": "Báo cáo Ngày 2026-08-25: Hoàn thành 0/1 đầu việc trọng tâm với 2h làm việc tập trung. Tiến độ bám sát kế hoạch tháng 8 đề ra.",
+    "highlights": [],
+    "bottlenecks": [
+      "Chưa duyệt / nghẽn: Quay content Kênh Fan Ba Làng (Quay content Kênh Fan Ba Làng)"
+    ],
+    "aiAnalysis": {
+      "strengths": [
+        "Hoàn thành 0/1 mục tiêu với chất lượng cao.",
+        "Duy trì 2 giờ làm việc chuyên sâu."
+      ],
+      "improvements": [
+        "Tiếp tục đẩy nhanh khâu duyệt kịch bản để tránh nghẽn tiến độ dựng clip."
+      ],
+      "workloadScore": 4,
+      "burnoutRisk": "Thấp",
+      "recommendations": [
+        "Bám sát kế hoạch nội dung tuần tiếp theo.",
+        "Tối ưu quy trình quay và chuẩn bị phòng Livestream."
+      ],
+      "infographicSummary": "Hiệu suất đạt 75/100 điểm (B+). Hoàn thành 0/1 đầu việc."
+    },
+    "userNotes": "",
+    "createdAt": "2026-08-25T18:00:00.000Z",
+    "updatedAt": "2026-08-25T19:00:00.000Z"
+  },
+  {
+    "id": "report_2026-08-26",
+    "date": "2026-08-26",
+    "author": "Trịnh Minh Đức",
+    "status": "approved",
+    "tasks": [
+      {
+        "id": "t8_w4_03",
+        "date": "2026-08-26",
+        "title": "Kịch Bản kênh Fan Ba Làng TH",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "medium",
+        "quantity": 1,
+        "timeSpentHours": 2,
+        "completionPercent": 100,
+        "kpiMetric": "1 kịch bản (100%)",
+        "outcome": "Đã hoàn thành 1 kịch bản chất lượng cao",
+        "description": "Kịch Bản kênh Fan Ba Làng TH",
+        "tags": [
+          "Marketing",
+          "Kịch bản",
+          "Fan Ba Làng TH"
+        ]
+      }
+    ],
+    "productivityScore": 95,
+    "evaluationGrade": "A+",
+    "summary": "Báo cáo Ngày 2026-08-26: Hoàn thành 1/1 đầu việc trọng tâm với 2h làm việc tập trung. Tiến độ bám sát kế hoạch tháng 8 đề ra.",
+    "highlights": [
+      "Hoàn thành: Kịch Bản kênh Fan Ba Làng TH"
+    ],
+    "bottlenecks": [],
+    "aiAnalysis": {
+      "strengths": [
+        "Hoàn thành 1/1 mục tiêu với chất lượng cao.",
+        "Duy trì 2 giờ làm việc chuyên sâu."
+      ],
+      "improvements": [
+        "Tiếp tục đẩy nhanh khâu duyệt kịch bản để tránh nghẽn tiến độ dựng clip."
+      ],
+      "workloadScore": 4,
+      "burnoutRisk": "Thấp",
+      "recommendations": [
+        "Bám sát kế hoạch nội dung tuần tiếp theo.",
+        "Tối ưu quy trình quay và chuẩn bị phòng Livestream."
+      ],
+      "infographicSummary": "Hiệu suất đạt 95/100 điểm (A+). Hoàn thành 1/1 đầu việc."
+    },
+    "userNotes": "",
+    "createdAt": "2026-08-26T18:00:00.000Z",
+    "updatedAt": "2026-08-26T19:00:00.000Z"
+  },
+  {
+    "id": "report_2026-08-27",
+    "date": "2026-08-27",
+    "author": "Trịnh Minh Đức",
+    "status": "approved",
+    "tasks": [
+      {
+        "id": "t8_w4_04",
+        "date": "2026-08-27",
+        "title": "Kịch Bản kênh Ba Làng Tuyến Hoà",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "high",
+        "quantity": 13,
+        "timeSpentHours": 7,
+        "completionPercent": 100,
+        "kpiMetric": "13 kịch bản (100%)",
+        "outcome": "Bứt phá hoàn thành xuất sắc 13 kịch bản kênh Ba Làng Tuyến Hòa",
+        "description": "Kịch Bản kênh Ba Làng Tuyến Hoà - Năng suất cao nhất tháng",
+        "tags": [
+          "Marketing",
+          "Kịch bản",
+          "Ba Làng Tuyến Hòa"
+        ]
+      }
+    ],
+    "productivityScore": 95,
+    "evaluationGrade": "A+",
+    "summary": "Báo cáo Ngày 2026-08-27: Hoàn thành 1/1 đầu việc trọng tâm với 7h làm việc tập trung. Tiến độ bám sát kế hoạch tháng 8 đề ra.",
+    "highlights": [
+      "Hoàn thành: Kịch Bản kênh Ba Làng Tuyến Hoà"
+    ],
+    "bottlenecks": [],
+    "aiAnalysis": {
+      "strengths": [
+        "Hoàn thành 1/1 mục tiêu với chất lượng cao.",
+        "Duy trì 7 giờ làm việc chuyên sâu."
+      ],
+      "improvements": [
+        "Tiếp tục đẩy nhanh khâu duyệt kịch bản để tránh nghẽn tiến độ dựng clip."
+      ],
+      "workloadScore": 8,
+      "burnoutRisk": "Thấp",
+      "recommendations": [
+        "Bám sát kế hoạch nội dung tuần tiếp theo.",
+        "Tối ưu quy trình quay và chuẩn bị phòng Livestream."
+      ],
+      "infographicSummary": "Hiệu suất đạt 95/100 điểm (A+). Hoàn thành 1/1 đầu việc."
+    },
+    "userNotes": "",
+    "createdAt": "2026-08-27T18:00:00.000Z",
+    "updatedAt": "2026-08-27T19:00:00.000Z"
+  },
+  {
+    "id": "report_2026-08-28",
+    "date": "2026-08-28",
+    "author": "Trịnh Minh Đức",
+    "status": "approved",
+    "tasks": [
+      {
+        "id": "t8_w4_05",
+        "date": "2026-08-28",
+        "title": "Edit kênh Fan Ba Làng",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "high",
+        "quantity": 3,
+        "timeSpentHours": 4,
+        "completionPercent": 100,
+        "kpiMetric": "3 video edit (100%)",
+        "outcome": "Dựng và xuất hoàn tất 3 clip kênh Fan Ba Làng",
+        "description": "Edit kênh Fan Ba Làng",
+        "tags": [
+          "Marketing",
+          "Dựng Video",
+          "Fan Ba Làng"
+        ]
+      }
+    ],
+    "productivityScore": 95,
+    "evaluationGrade": "A+",
+    "summary": "Báo cáo Ngày 2026-08-28: Hoàn thành 1/1 đầu việc trọng tâm với 4h làm việc tập trung. Tiến độ bám sát kế hoạch tháng 8 đề ra.",
+    "highlights": [
+      "Hoàn thành: Edit kênh Fan Ba Làng"
+    ],
+    "bottlenecks": [],
+    "aiAnalysis": {
+      "strengths": [
+        "Hoàn thành 1/1 mục tiêu với chất lượng cao.",
+        "Duy trì 4 giờ làm việc chuyên sâu."
+      ],
+      "improvements": [
+        "Tiếp tục đẩy nhanh khâu duyệt kịch bản để tránh nghẽn tiến độ dựng clip."
+      ],
+      "workloadScore": 5,
+      "burnoutRisk": "Thấp",
+      "recommendations": [
+        "Bám sát kế hoạch nội dung tuần tiếp theo.",
+        "Tối ưu quy trình quay và chuẩn bị phòng Livestream."
+      ],
+      "infographicSummary": "Hiệu suất đạt 95/100 điểm (A+). Hoàn thành 1/1 đầu việc."
+    },
+    "userNotes": "",
+    "createdAt": "2026-08-28T18:00:00.000Z",
+    "updatedAt": "2026-08-28T19:00:00.000Z"
+  },
+  {
+    "id": "report_2026-08-29",
+    "date": "2026-08-29",
+    "author": "Trịnh Minh Đức",
+    "status": "approved",
+    "tasks": [
+      {
+        "id": "t8_w4_06",
+        "date": "2026-08-29",
+        "title": "Edit kênh Ba Làng Tuyến Hoà",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "high",
+        "quantity": 6,
+        "timeSpentHours": 6,
+        "completionPercent": 100,
+        "kpiMetric": "6 video dựng (Deadline: 9, 100%)",
+        "outcome": "Hoàn tất 6 video; tiến hành dựng bổ sung vào Chủ Nhật",
+        "description": "Edit kênh Ba Làng Tuyến Hoà - Ghi chú: Bổ sung vào CN",
+        "tags": [
+          "Marketing",
+          "Dựng Video",
+          "Ba Làng Tuyến Hòa"
+        ]
+      }
+    ],
+    "productivityScore": 95,
+    "evaluationGrade": "A+",
+    "summary": "Báo cáo Ngày 2026-08-29: Hoàn thành 1/1 đầu việc trọng tâm với 6h làm việc tập trung. Tiến độ bám sát kế hoạch tháng 8 đề ra.",
+    "highlights": [
+      "Hoàn thành: Edit kênh Ba Làng Tuyến Hoà"
+    ],
+    "bottlenecks": [],
+    "aiAnalysis": {
+      "strengths": [
+        "Hoàn thành 1/1 mục tiêu với chất lượng cao.",
+        "Duy trì 6 giờ làm việc chuyên sâu."
+      ],
+      "improvements": [
+        "Tiếp tục đẩy nhanh khâu duyệt kịch bản để tránh nghẽn tiến độ dựng clip."
+      ],
+      "workloadScore": 7,
+      "burnoutRisk": "Thấp",
+      "recommendations": [
+        "Bám sát kế hoạch nội dung tuần tiếp theo.",
+        "Tối ưu quy trình quay và chuẩn bị phòng Livestream."
+      ],
+      "infographicSummary": "Hiệu suất đạt 95/100 điểm (A+). Hoàn thành 1/1 đầu việc."
+    },
+    "userNotes": "",
+    "createdAt": "2026-08-29T18:00:00.000Z",
+    "updatedAt": "2026-08-29T19:00:00.000Z"
+  },
+  {
+    "id": "report_2026-08-30",
+    "date": "2026-08-30",
+    "author": "Trịnh Minh Đức",
+    "status": "approved",
+    "tasks": [
+      {
+        "id": "t8_w4_07",
+        "date": "2026-08-30",
+        "title": "Kịch bản 2/9",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "high",
+        "quantity": 2,
+        "timeSpentHours": 3,
+        "completionPercent": 90,
+        "kpiMetric": "2 kịch bản đại lễ 2/9 (90%)",
+        "outcome": "Hoàn thành 2 kịch bản đặc biệt chào mừng ngày Quốc Khánh 2/9",
+        "description": "Kịch bản thêm - Kịch bản chào mừng ngày lễ 2/9",
+        "tags": [
+          "Marketing",
+          "Kịch bản",
+          "Lễ 2/9"
+        ]
+      }
+    ],
+    "productivityScore": 95,
+    "evaluationGrade": "A+",
+    "summary": "Báo cáo Ngày 2026-08-30: Hoàn thành 1/1 đầu việc trọng tâm với 3h làm việc tập trung. Tiến độ bám sát kế hoạch tháng 8 đề ra.",
+    "highlights": [
+      "Hoàn thành: Kịch bản 2/9"
+    ],
+    "bottlenecks": [],
+    "aiAnalysis": {
+      "strengths": [
+        "Hoàn thành 1/1 mục tiêu với chất lượng cao.",
+        "Duy trì 3 giờ làm việc chuyên sâu."
+      ],
+      "improvements": [
+        "Tiếp tục đẩy nhanh khâu duyệt kịch bản để tránh nghẽn tiến độ dựng clip."
+      ],
+      "workloadScore": 4,
+      "burnoutRisk": "Thấp",
+      "recommendations": [
+        "Bám sát kế hoạch nội dung tuần tiếp theo.",
+        "Tối ưu quy trình quay và chuẩn bị phòng Livestream."
+      ],
+      "infographicSummary": "Hiệu suất đạt 95/100 điểm (A+). Hoàn thành 1/1 đầu việc."
+    },
+    "userNotes": "",
+    "createdAt": "2026-08-30T18:00:00.000Z",
+    "updatedAt": "2026-08-30T19:00:00.000Z"
+  },
+  {
+    "id": "report_2026-08-31",
+    "date": "2026-08-31",
+    "author": "Trịnh Minh Đức",
+    "status": "approved",
+    "tasks": [
+      {
+        "id": "t8_w4_08",
+        "date": "2026-08-31",
+        "title": "Kịch bản live 9/9",
+        "category": "Marketing",
+        "status": "pending",
+        "priority": "medium",
+        "quantity": 1,
+        "timeSpentHours": 1,
+        "completionPercent": 0,
+        "kpiMetric": "0% (Chuẩn bị)",
+        "outcome": "Đã lên dàn ý khung kịch bản live sự kiện siêu sale 9/9",
+        "description": "Kịch bản thêm - Kịch bản live 9/9 chuẩn bị cho tháng 9",
+        "tags": [
+          "Marketing",
+          "Kịch bản",
+          "Live 9/9"
+        ]
+      },
+      {
+        "id": "t8_w4_09",
+        "date": "2026-08-31",
+        "title": "Quay Clip Kênh Bán Hàng",
+        "category": "Marketing",
+        "status": "completed",
+        "priority": "high",
+        "quantity": 1,
+        "timeSpentHours": 2,
+        "completionPercent": 100,
+        "kpiMetric": "1 clip hoàn thành",
+        "outcome": "Quay video clip kênh bán hàng chuyển tiếp sang đầu tháng 9",
+        "description": "Quay clip Kênh Bán Hàng phục vụ chiến dịch mở bán",
+        "tags": [
+          "Marketing",
+          "Quay Clip",
+          "Kênh Bán Hàng"
+        ]
+      }
+    ],
+    "productivityScore": 75,
+    "evaluationGrade": "B+",
+    "summary": "Báo cáo Ngày 2026-08-31: Hoàn thành 1/2 đầu việc trọng tâm với 3h làm việc tập trung. Tiến độ bám sát kế hoạch tháng 8 đề ra.",
+    "highlights": [
+      "Hoàn thành: Quay Clip Kênh Bán Hàng"
+    ],
+    "bottlenecks": [
+      "Chưa duyệt / nghẽn: Kịch bản live 9/9 (Kịch bản thêm - Kịch bản live 9/9 chuẩn bị cho tháng 9)"
+    ],
+    "aiAnalysis": {
+      "strengths": [
+        "Hoàn thành 1/2 mục tiêu với chất lượng cao.",
+        "Duy trì 3 giờ làm việc chuyên sâu."
+      ],
+      "improvements": [
+        "Tiếp tục đẩy nhanh khâu duyệt kịch bản để tránh nghẽn tiến độ dựng clip."
+      ],
+      "workloadScore": 4,
+      "burnoutRisk": "Thấp",
+      "recommendations": [
+        "Bám sát kế hoạch nội dung tuần tiếp theo.",
+        "Tối ưu quy trình quay và chuẩn bị phòng Livestream."
+      ],
+      "infographicSummary": "Hiệu suất đạt 75/100 điểm (B+). Hoàn thành 1/2 đầu việc."
+    },
+    "userNotes": "",
+    "createdAt": "2026-08-31T18:00:00.000Z",
+    "updatedAt": "2026-08-31T19:00:00.000Z"
+  }
+];

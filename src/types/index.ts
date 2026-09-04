@@ -209,9 +209,43 @@ export interface ViewerFeedback {
   userName: string;
   userRole: UserRole;
   userAvatar: string;
+  userEmail?: string;
   userTitle?: string;
   rating: number; // 1 - 5 stars
   tag?: string; // Quick tag e.g. "Tiến độ xuất sắc"
   comment: string;
   createdAt: string; // ISO string
 }
+
+export interface ChannelMetrics {
+  views: string; // e.g. "215,000"
+  followers: string; // e.g. "+3,600"
+  reach: string; // e.g. "145,000"
+  engagement: string; // e.g. "18,800"
+  conversionOrOrders?: string; // e.g. "45 đơn hàng"
+  activeChannels: string[]; // e.g. ["TikTok Ba Làng Tuyến Hòa", "Fan Ba Làng TH"]
+  note?: string;
+}
+
+export interface WeeklySelfReview {
+  id: string;
+  weekKey: string; // e.g. "weekly_34_2026"
+  weekNumber: number;
+  year: number;
+  startDate: string;
+  endDate: string;
+  userBulletPoints: string; // Các ý chính người dùng tự vạch ra
+  channelMetrics: ChannelMetrics;
+  selfRating: string; // e.g. "Xuất sắc (A+)"
+  selfScore: number; // 0 - 100
+  aiGeneratedReview?: {
+    overallSummary: string;
+    channelAnalysis: string;
+    keyStrengths: string[];
+    bottlenecksAndLearnings: string[];
+    nextWeekActionPlan: string[];
+  };
+  formattedDocument?: string; // Bài nhận xét đầy đủ có thể chỉnh sửa trực tiếp và sao chép
+  updatedAt: string;
+}
+

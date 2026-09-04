@@ -26,6 +26,8 @@ import { DailyReport, TaskItem, User, TASK_CATEGORIES, ViewerFeedback } from '..
 import { TiltCard } from './TiltCard';
 import { MetricCard3D } from './MetricCard3D';
 import { ViewerEvaluationSection } from './ViewerEvaluationSection';
+import { calculateDayWorkHours } from '../utils/workHours';
+import { DatePickerPopover } from './DatePickerPopover';
 
 interface DailyReportViewProps {
   selectedDate: string;
@@ -42,6 +44,7 @@ interface DailyReportViewProps {
   onAddFeedback?: (feedback: Omit<ViewerFeedback, 'id' | 'createdAt'>) => Promise<void> | void;
   onDeleteFeedback?: (id: string) => Promise<void> | void;
   onOpenLoginModal?: () => void;
+  onClearMockFeedbacks?: () => Promise<void> | void;
 }
 
 export const DailyReportView: React.FC<DailyReportViewProps> = ({
@@ -59,6 +62,7 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
   onAddFeedback = () => {},
   onDeleteFeedback = () => {},
   onOpenLoginModal,
+  onClearMockFeedbacks,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -106,6 +110,9 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
   const avgCompletion = totalTasks > 0
     ? Math.round(tasks.reduce((sum, t) => sum + (Number(t.completionPercent) || 0), 0) / totalTasks)
     : 0;
+
+  // Tính chuẩn giờ làm việc theo ngày (8h/ngày, nghỉ Chủ Nhật)
+  const dayWork = calculateDayWorkHours(selectedDate, totalHours > 0 ? totalHours : undefined);
 
   const currentScore = report?.productivityScore ?? Math.min(100, Math.round((completedTasks / (totalTasks || 1)) * 60 + avgCompletion * 0.4));
   const currentGrade = report?.evaluationGrade ?? (currentScore >= 90 ? 'A+' : currentScore >= 80 ? 'A' : currentScore >= 70 ? 'B+' : 'B');
@@ -197,20 +204,15 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Top Controls: Date Navigator & Action Buttons */}
-      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 p-4 rounded-3xl bg-slate-900/80 border border-slate-800/80 backdrop-blur-xl shadow-2xl">
+      <div className="relative z-30 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 p-4 rounded-3xl bg-slate-900/80 border border-slate-800/80 backdrop-blur-xl shadow-2xl">
         {/* Date Selector */}
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-slate-950/80 border border-slate-700/80 shadow-inner">
-            <Calendar className="w-4 h-4 text-cyan-400" />
-            <span className="text-xs font-semibold text-slate-400">Ngày xem:</span>
-            <input
-              id="daily-date-picker"
-              type="date"
-              value={selectedDate}
-              onChange={(e) => onDateChange(e.target.value)}
-              className="bg-transparent text-sm font-bold text-white focus:outline-none cursor-pointer"
-            />
-          </div>
+          <DatePickerPopover
+            id="daily-date-picker"
+            value={selectedDate}
+            onChange={onDateChange}
+            label="Ngày xem:"
+          />
 
           <div className="flex items-center gap-1">
             <button
@@ -278,9 +280,30 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
           ) : (
             <div className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-semibold shadow-sm">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Chế độ Người Xem: Tự động cập nhật trực tiếp theo Quản Trị Viên</span>
+              <span>Chế độ Người Xem: Đã khóa chỉnh sửa — Tự động cập nhật trực tiếp theo Quản Trị Viên</span>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Work Schedule Standard Indicator */}
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-2xl bg-emerald-950/25 border border-emerald-500/25 text-xs text-emerald-300">
+        <div className="flex items-center gap-2">
+          <Clock className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>
+            <strong className="text-white">{dayWork.dayName}:</strong> {dayWork.isSunday ? (
+              <span className="text-amber-400 font-medium">Chủ Nhật — Ngày nghỉ tuần theo quy định</span>
+            ) : (
+              <span>Chuẩn <strong className="text-white">8.0 tiếng/ngày</strong> (Thứ 2 - Thứ 7, nghỉ Chủ Nhật)</span>
+            )}
+          </span>
+        </div>
+        <div className="flex items-center gap-3 text-[11px] text-slate-400">
+          <span>Trạng thái: <strong className={dayWork.isSunday ? "text-amber-400" : "text-emerald-400"}>{dayWork.statusText}</strong></span>
+          <span>•</span>
+          <span>Định mức chuẩn: <strong className="text-emerald-300">{dayWork.standardHours}h</strong></span>
+          <span>•</span>
+          <span>Ghi nhận thực tế: <strong className="text-cyan-300">{dayWork.actualHours}h</strong></span>
         </div>
       </div>
 
@@ -310,12 +333,13 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
 
         <MetricCard3D
           id="metric-daily-hours"
-          title="Thời Gian Thực Hiện"
-          value={`${totalHours}h`}
-          subValue="Giờ làm việc"
+          title="Tổng Giờ Làm Việc"
+          value={`${dayWork.actualHours}h`}
+          subValue={dayWork.formattedSubValue}
           icon={Clock}
           colorScheme="emerald"
-          trend="+1.5h"
+          progress={dayWork.isSunday ? (dayWork.actualHours > 0 ? 100 : 0) : 100}
+          trend={dayWork.statusText}
           trendUp={true}
         />
 
@@ -602,45 +626,81 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-1.5">
-                      {/* Edit Button */}
-                      <button
-                        id={`quick-edit-${task.id}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onOpenTaskModal(task);
-                        }}
-                        title="Chỉnh sửa chi tiết đầu mục này"
-                        className="p-1.5 rounded-xl border border-slate-700/80 bg-slate-800/80 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-300 hover:border-cyan-500/50 transition-all flex items-center gap-1 text-[11px] font-medium"
-                      >
-                        <Edit3 className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">Sửa</span>
-                      </button>
+                    {isAdmin ? (
+                      <div className="flex items-center gap-1.5">
+                        {/* Edit Button */}
+                        <button
+                          id={`quick-edit-${task.id}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenTaskModal(task);
+                          }}
+                          title="Chỉnh sửa chi tiết đầu mục này"
+                          className="p-1.5 rounded-xl border border-slate-700/80 bg-slate-800/80 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-300 hover:border-cyan-500/50 transition-all flex items-center gap-1 text-[11px] font-medium"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">Sửa</span>
+                        </button>
 
-                      {/* Quick Complete Toggle */}
-                      <button
-                        id={`toggle-task-${task.id}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onToggleTaskStatus(task.id);
-                        }}
-                        title={isAdmin ? 'Chuyển trạng thái hoàn thành' : 'Đánh dấu hoàn thành'}
-                        className={`p-1.5 rounded-xl border transition-all ${
-                          isCompleted
-                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
-                            : 'bg-slate-800/80 text-slate-400 border-slate-700 hover:border-cyan-400 hover:text-cyan-300'
-                        }`}
-                      >
-                        <Check className="w-4 h-4" />
-                      </button>
-                    </div>
+                        {/* Quick Complete Toggle */}
+                        <button
+                          id={`toggle-task-${task.id}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onToggleTaskStatus(task.id);
+                          }}
+                          title="Chuyển trạng thái hoàn thành"
+                          className={`p-1.5 rounded-xl border transition-all ${
+                            isCompleted
+                              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
+                              : 'bg-slate-800/80 text-slate-400 border-slate-700 hover:border-cyan-400 hover:text-cyan-300'
+                          }`}
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      /* Read-Only Status Indicator for Viewers (Locked) */
+                      <div className="flex items-center gap-1.5" title="Chế độ người xem: Khóa chỉnh sửa">
+                        <span
+                          className={`px-2.5 py-1 rounded-xl text-[10px] font-bold border flex items-center gap-1 select-none ${
+                            isCompleted
+                              ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                              : isBlocked
+                              ? 'bg-rose-500/15 text-rose-300 border-rose-500/30'
+                              : 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30'
+                          }`}
+                        >
+                          {isCompleted ? (
+                            <>
+                              <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                              <span>Đã xong</span>
+                            </>
+                          ) : isBlocked ? (
+                            <>
+                              <AlertTriangle className="w-3 h-3 text-rose-400" />
+                              <span>Bị nghẽn</span>
+                            </>
+                          ) : (
+                            <>
+                              <Clock className="w-3 h-3 text-cyan-400" />
+                              <span>Đang làm</span>
+                            </>
+                          )}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Title & Description (Clickable to Edit) */}
+                  {/* Title & Description (Clickable to Edit only for Admin) */}
                   <div
-                    onClick={() => onOpenTaskModal(task)}
-                    className="cursor-pointer group/title hover:opacity-90 transition-opacity"
-                    title="Bấm để mở form chỉnh sửa công việc này"
+                    onClick={() => {
+                      if (isAdmin) {
+                        onOpenTaskModal(task);
+                      }
+                    }}
+                    className={isAdmin ? 'cursor-pointer group/title hover:opacity-90 transition-opacity' : 'cursor-default select-text'}
+                    title={isAdmin ? 'Bấm để mở form chỉnh sửa công việc này' : undefined}
                   >
                     <h4 className={`text-sm font-bold tracking-tight mb-1 font-display flex items-center justify-between gap-2 ${isCompleted ? 'text-slate-200 line-through opacity-80' : 'text-white group-hover/title:text-cyan-300'}`}>
                       <span>{task.title}</span>
@@ -736,6 +796,7 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
         onAddFeedback={onAddFeedback}
         onDeleteFeedback={onDeleteFeedback}
         onOpenLoginModal={onOpenLoginModal}
+        onClearMockFeedbacks={onClearMockFeedbacks}
       />
     </div>
   );
