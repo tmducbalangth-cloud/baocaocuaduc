@@ -46,6 +46,110 @@ async function callGeminiWithFallback(ai: GoogleGenAI, options: { contents: any;
   throw lastError;
 }
 
+// Robust JSON extractor and parser that handles markdown code blocks, trailing commentary,
+// extra non-whitespace characters after JSON, and nested braces.
+function cleanAndParseJson<T = any>(rawText: string | null | undefined, fallback: T): T {
+  if (!rawText || typeof rawText !== 'string') return fallback;
+
+  let text = rawText.trim();
+
+  // 1. Direct parse attempt if already clean
+  try {
+    return JSON.parse(text);
+  } catch (_) {}
+
+  // 2. Strip code fences like ```json ... ``` or ``` ... ```
+  text = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+  try {
+    return JSON.parse(text);
+  } catch (_) {}
+
+  // 3. Find outermost JSON structure: object '{'...'}' or array '['...']'
+  const firstBrace = text.indexOf('{');
+  const firstBracket = text.indexOf('[');
+
+  let startIdx = -1;
+  let endChar = '';
+  if (firstBrace !== -1 && (firstBracket === -1 || firstBrace < firstBracket)) {
+    startIdx = firstBrace;
+    endChar = '}';
+  } else if (firstBracket !== -1) {
+    startIdx = firstBracket;
+    endChar = ']';
+  }
+
+  if (startIdx !== -1) {
+    // Balanced bracket counting to find the EXACT closing token of the outermost JSON structure
+    // This avoids "Unexpected non-whitespace character after JSON" errors when models output commentary after the closing brace.
+    let depth = 0;
+    let inString = false;
+    let escape = false;
+    let exactEndIdx = -1;
+
+    for (let i = startIdx; i < text.length; i++) {
+      const char = text[i];
+      if (escape) {
+        escape = false;
+        continue;
+      }
+      if (char === '\\') {
+        escape = true;
+        continue;
+      }
+      if (char === '"') {
+        inString = !inString;
+        continue;
+      }
+      if (!inString) {
+        if (char === '{' || char === '[') {
+          depth++;
+        } else if (char === '}' || char === ']') {
+          depth--;
+          if (depth === 0) {
+            exactEndIdx = i;
+            break;
+          }
+        }
+      }
+    }
+
+    if (exactEndIdx > startIdx) {
+      const balanced = text.substring(startIdx, exactEndIdx + 1);
+      try {
+        return JSON.parse(balanced);
+      } catch (_) {}
+      try {
+        const withoutTrailingCommas = balanced.replace(/,\s*([\}\]])/g, '$1');
+        return JSON.parse(withoutTrailingCommas);
+      } catch (_) {}
+    }
+
+    // Fallback: substring from startIdx to lastIndexOf endChar
+    const lastIdx = text.lastIndexOf(endChar);
+    if (lastIdx > startIdx) {
+      const candidate = text.substring(startIdx, lastIdx + 1);
+      try {
+        return JSON.parse(candidate);
+      } catch (_) {}
+      try {
+        const withoutTrailingCommas = candidate.replace(/,\s*([\}\]])/g, '$1');
+        return JSON.parse(withoutTrailingCommas);
+      } catch (_) {}
+    }
+  }
+
+  // 4. Regex match fallback
+  try {
+    const match = text.match(/\{[\s\S]*\}/);
+    if (match) {
+      const sanitized = match[0].replace(/,\s*([\}\]])/g, '$1');
+      return JSON.parse(sanitized);
+    }
+  } catch (_) {}
+
+  return fallback;
+}
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -546,9 +650,11 @@ Hãy trả về kết quả theo ĐÚNG định dạng JSON với cấu trúc sa
       },
     });
 
-    const responseText = response.text || '{}';
-    const parsed = JSON.parse(responseText);
-    res.json(parsed);
+    const parsed = cleanAndParseJson(response.text, null);
+    if (parsed && typeof parsed === 'object') {
+      return res.json(parsed);
+    }
+    throw new Error('Dữ liệu trả về từ AI không đúng định dạng JSON');
   } catch (error: any) {
     console.error('Error in analyze-daily:', error);
     res.status(500).json({ error: error.message || 'Lỗi khi phân tích báo cáo ngày bằng AI' });
@@ -621,14 +727,117 @@ Hãy phân tích toàn diện, đo lường cụ thể và trả về JSON theo 
       },
     });
 
-    const responseText = response.text || '{}';
-    const parsed = JSON.parse(responseText);
-    res.json(parsed);
+    const parsed = cleanAndParseJson(response.text, null);
+    if (parsed && typeof parsed === 'object') {
+      return res.json(parsed);
+    }
+    throw new Error('Dữ liệu trả về từ AI không đúng định dạng JSON');
   } catch (error: any) {
     console.error('Error in analyze-weekly:', error);
     res.status(500).json({ error: error.message || 'Lỗi khi phân tích báo cáo tuần bằng AI' });
   }
 });
+
+// Helper: Generate intelligent fallback self-review tailored to user inputs and channel metrics
+function generateFallbackSelfReview(params: {
+  weekNumber: number | string;
+  year?: number | string;
+  startDate: string;
+  endDate: string;
+  userBulletPoints?: string;
+  activeChannels: string;
+  views: string;
+  followers: string;
+  reach: string;
+  engagement: string;
+  conversion: string;
+  selfScore?: number;
+  selfRating?: string;
+}) {
+  const {
+    weekNumber,
+    startDate,
+    endDate,
+    userBulletPoints,
+    activeChannels,
+    views,
+    followers,
+    reach,
+    engagement,
+    conversion,
+    selfScore,
+    selfRating,
+  } = params;
+
+  const bulletPointsList = userBulletPoints
+    ? userBulletPoints
+        .split('\n')
+        .map((s: string) => s.trim())
+        .filter((s: string) => s.length > 0)
+    : [];
+
+  const strengths = bulletPointsList.length > 0
+    ? [
+        `Bứt phá sản xuất: Đã hoàn thành xuất sắc các nội dung trọng điểm (${bulletPointsList[0].replace(/^[-*•\s]+/, '')}).`,
+        `Hiệu ứng kênh tích cực: Đạt ${views} lượt xem và thu hút thêm ${followers} người theo dõi mới trên ${activeChannels}.`,
+        `Chỉ số tương tác duy trì ở mức cao với ${engagement} tương tác và độ phủ tới ${reach} tài khoản.`,
+      ]
+    : [
+        `Duy trì tiến độ sản xuất nội dung đều đặn cho các kênh ${activeChannels}.`,
+        `Lượng tương tác và người theo dõi tăng trưởng ổn định (${views} lượt xem, ${followers} follower mới).`,
+        `Chủ động thích ứng và phối hợp các khâu quay dựng, kịch bản linh hoạt.`,
+      ];
+
+  const bottlenecks = [
+    'Cần rút ngắn thời gian phản hồi và duyệt kịch bản giữa các bộ phận để tăng tốc độ lên video.',
+    'Độ dài giữ chân người xem ở một số clip chưa đạt tối đa, cần tối ưu 3 giây đầu mạnh mẽ hơn.',
+  ];
+
+  const nextActions = [
+    `Tiếp tục tối ưu kịch bản theo tuyến nội dung giữ chân người xem cao nhất trên ${activeChannels}.`,
+    `Thử nghiệm đẩy mạnh định dạng video ngắn kết hợp kêu gọi hành động (CTA) để tăng chuyển đổi.`,
+    `Phối hợp chuẩn bị chu đáo kịch bản và đường truyền kỹ thuật cho các phiên Livestream tuần tới.`,
+  ];
+
+  const overall = `Trong Tuần ${weekNumber} (${startDate} - ${endDate}), bản thân tôi đã nỗ lực cao độ bám sát kế hoạch sản xuất nội dung và vận hành kênh. Các đầu việc cốt lõi về kịch bản, quay và dựng đều được triển khai quyết liệt với tinh thần trách nhiệm cao. Kết quả tăng trưởng về view (${views}) và follow mới (${followers}) phản ánh đúng sự tập trung và chuyển đổi chất lượng nội dung.`;
+
+  const channelReview = `Về mặt chỉ số truyền thông trên ${activeChannels}: Kênh ghi nhận tổng cộng ${views} lượt xem, đạt độ phủ tới ${reach} người dùng và thu về ${followers} người theo dõi mới cùng ${engagement} lượt tương tác. Điều này chứng minh định hướng kịch bản giải quyết đúng nhu cầu/nỗi đau của người xem, hình ảnh sản phẩm Ba Làng được truyền tải chân thực, tạo dựng niềm tin thương hiệu mạnh mẽ.`;
+
+  const formattedDoc = `BÁO CÁO TỰ ĐÁNH GIÁ CÔNG VIỆC TRONG TUẦN ${weekNumber} (${startDate} - ${endDate})
+Người thực hiện: Trịnh Minh Đức | Kênh phụ trách: ${activeChannels}
+Xếp loại tự chấm: ${selfRating || 'Xuất sắc (A+)'} (${selfScore || 95}/100)
+
+I. TỔNG QUAN TỰ ĐÁNH GIÁ:
+${overall}
+
+II. ĐO LƯỜNG & PHÂN TÍCH CHỈ SỐ KÊNH:
+- Lượt xem (Views): ${views}
+- Lượt Follow mới: ${followers}
+- Độ phủ (Reach): ${reach}
+- Tương tác (Engagement): ${engagement}
+- Chuyển đổi / Ghi chú: ${conversion}
+Nhận xét số liệu:
+${channelReview}
+
+III. NHỮNG ĐIỂM SÁNG & ĐỘT PHÁ ĐẠT ĐƯỢC:
+${strengths.map((s) => `+ ${s}`).join('\n')}
+
+IV. KHUYẾT ĐIỂM CẦN KHẮC PHỤC & BÀI HỌC KINH NGHIỆM:
+${bottlenecks.map((b) => `- ${b}`).join('\n')}
+
+V. CAM KẾT HÀNH ĐỘNG & MỤC TIÊU TUẦN TIẾP THEO:
+${nextActions.map((a) => `-> ${a}`).join('\n')}`;
+
+  return {
+    overallSummary: overall,
+    channelAnalysis: channelReview,
+    keyStrengths: strengths,
+    bottlenecksAndLearnings: bottlenecks,
+    nextWeekActionPlan: nextActions,
+    formattedDocument: formattedDoc,
+    suggestedScore: selfScore || 95,
+  };
+}
 
 // API: Weekly Self-Evaluation AI Review Writer
 app.post('/api/ai/self-review', async (req, res) => {
@@ -660,78 +869,26 @@ app.post('/api/ai/self-review', async (req, res) => {
           .join('\n')
       : 'Không có dữ liệu công việc cụ thể';
 
+    const fallbackParams = {
+      weekNumber,
+      year,
+      startDate,
+      endDate,
+      userBulletPoints,
+      activeChannels,
+      views,
+      followers,
+      reach,
+      engagement,
+      conversion,
+      selfScore,
+      selfRating,
+    };
+
     const ai = getGeminiClient();
 
     if (!ai) {
-      // Smart algorithm fallback if Gemini API is offline or not configured
-      const bulletPointsList = userBulletPoints
-        ? userBulletPoints
-            .split('\n')
-            .map((s: string) => s.trim())
-            .filter((s: string) => s.length > 0)
-        : [];
-
-      const strengths = bulletPointsList.length > 0
-        ? [
-            `Bứt phá sản xuất: Đã hoàn thành xuất sắc các nội dung trọng điểm (${bulletPointsList[0].replace(/^[-*•\s]+/, '')}).`,
-            `Hiệu ứng kênh tích cực: Đạt ${views} lượt xem và thu hút thêm ${followers} người theo dõi mới trên ${activeChannels}.`,
-            `Chỉ số tương tác duy trì ở mức cao với ${engagement} tương tác và độ phủ tới ${reach} tài khoản.`,
-          ]
-        : [
-            `Duy trì tiến độ sản xuất nội dung đều đặn cho các kênh ${activeChannels}.`,
-            `Lượng tương tác và người theo dõi tăng trưởng ổn định (${views} lượt xem, ${followers} follower mới).`,
-            `Chủ động thích ứng và phối hợp các khâu quay dựng, kịch bản linh hoạt.`,
-          ];
-
-      const bottlenecks = [
-        'Cần rút ngắn thời gian phản hồi và duyệt kịch bản giữa các bộ phận để tăng tốc độ lên video.',
-        'Độ dài giữ chân người xem ở một số clip chưa đạt tối đa, cần tối ưu 3 giây đầu mạnh mẽ hơn.',
-      ];
-
-      const nextActions = [
-        `Tiếp tục tối ưu kịch bản theo tuyến nội dung giữ chân người xem cao nhất trên ${activeChannels}.`,
-        `Thử nghiệm đẩy mạnh định dạng video ngắn kết hợp kêu gọi hành động (CTA) để tăng chuyển đổi.`,
-        `Phối hợp chuẩn bị chu đáo kịch bản và đường truyền kỹ thuật cho các phiên Livestream tuần tới.`,
-      ];
-
-      const overall = `Trong Tuần ${weekNumber} (${startDate} - ${endDate}), bản thân tôi đã nỗ lực cao độ bám sát kế hoạch sản xuất nội dung và vận hành kênh. Các đầu việc cốt lõi về kịch bản, quay và dựng đều được triển khai quyết liệt với tinh thần trách nhiệm cao. Kết quả tăng trưởng về view (${views}) và follow mới (${followers}) phản ánh đúng sự tập trung và chuyển đổi chất lượng nội dung.`;
-
-      const channelReview = `Về mặt chỉ số truyền thông trên ${activeChannels}: Kênh ghi nhận tổng cộng ${views} lượt xem, đạt độ phủ tới ${reach} người dùng và thu về ${followers} người theo dõi mới cùng ${engagement} lượt tương tác. Điều này chứng minh định hướng kịch bản giải quyết đúng nhu cầu/nỗi đau của người xem, hình ảnh sản phẩm Ba Làng được truyền tải chân thực, tạo dựng niềm tin thương hiệu mạnh mẽ.`;
-
-      const formattedDoc = `BÁO CÁO TỰ ĐÁNH GIÁ CÔNG VIỆC TRONG TUẦN ${weekNumber} (${startDate} - ${endDate})
-Người thực hiện: Trịnh Minh Đức | Kênh phụ trách: ${activeChannels}
-Xếp loại tự chấm: ${selfRating || 'Xuất sắc (A+)'} (${selfScore || 95}/100)
-
-I. TỔNG QUAN TỰ ĐÁNH GIÁ:
-${overall}
-
-II. ĐO LƯỜNG & PHÂN TÍCH CHỈ SỐ KÊNH:
-- Lượt xem (Views): ${views}
-- Lượt Follow mới: ${followers}
-- Độ phủ (Reach): ${reach}
-- Tương tác (Engagement): ${engagement}
-- Chuyển đổi / Ghi chú: ${conversion}
-Nhận xét số liệu:
-${channelReview}
-
-III. NHỮNG ĐIỂM SÁNG & ĐỘT PHÁ ĐẠT ĐƯỢC:
-${strengths.map((s) => `+ ${s}`).join('\n')}
-
-IV. KHUYẾT ĐIỂM CẦN KHẮC PHỤC & BÀI HỌC KINH NGHIỆM:
-${bottlenecks.map((b) => `- ${b}`).join('\n')}
-
-V. CAM KẾT HÀNH ĐỘNG & MỤC TIÊU TUẦN TIẾP THEO:
-${nextActions.map((a) => `-> ${a}`).join('\n')}`;
-
-      return res.json({
-        overallSummary: overall,
-        channelAnalysis: channelReview,
-        keyStrengths: strengths,
-        bottlenecksAndLearnings: bottlenecks,
-        nextWeekActionPlan: nextActions,
-        formattedDocument: formattedDoc,
-        suggestedScore: selfScore || 95,
-      });
+      return res.json(generateFallbackSelfReview(fallbackParams));
     }
 
     const prompt = `Bạn là Giám đốc Sáng tạo Nội dung & Cố vấn Quản trị Hiệu suất (Creative Director & HR Performance Mentor).
@@ -781,18 +938,27 @@ Trả về kết quả chuẩn JSON theo đúng định dạng sau (không chứ
   "suggestedScore": 95
 }`;
 
-    const response = await callGeminiWithFallback(ai, {
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-      },
-    });
+    try {
+      const response = await callGeminiWithFallback(ai, {
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+        },
+      });
 
-    const parsed = JSON.parse(response.text || '{}');
-    res.json(parsed);
+      const parsed = cleanAndParseJson(response.text, null);
+      if (parsed && typeof parsed === 'object' && (parsed.overallSummary || parsed.formattedDocument)) {
+        return res.json(parsed);
+      }
+      console.warn('[self-review] AI output was malformed, using structured fallback');
+      return res.json(generateFallbackSelfReview(fallbackParams));
+    } catch (aiErr: any) {
+      console.warn('[self-review] AI call failed, gracefully using structured fallback:', aiErr.message || aiErr);
+      return res.json(generateFallbackSelfReview(fallbackParams));
+    }
   } catch (error: any) {
     console.error('Error in /api/ai/self-review:', error);
-    res.status(500).json({ error: error.message || 'Lỗi khi AI viết bản tự đánh giá tuần' });
+    res.status(500).json({ error: error.message || 'Lỗi khi viết bản tự đánh giá tuần' });
   }
 });
 
@@ -1200,8 +1366,11 @@ Trả về kết quả chuẩn JSON (không kèm markdown ngoài json):
       },
     });
 
-    const parsed = JSON.parse(response.text || '{}');
-    res.json(parsed);
+    const parsed = cleanAndParseJson(response.text, null);
+    if (parsed && typeof parsed === 'object') {
+      return res.json(parsed);
+    }
+    throw new Error('Dữ liệu phân tích clip từ AI không đúng định dạng JSON');
   } catch (error: any) {
     console.error('Error in /api/ai/analyze-channel-clips:', error);
     res.status(500).json({ error: error.message || 'Lỗi khi AI phân tích kênh và clip TikTok' });
@@ -1415,7 +1584,7 @@ Hãy trả về định dạng JSON thuần:
       },
     });
 
-    const parsed = JSON.parse(response.text || '{"tasks": []}');
+    const parsed = cleanAndParseJson(response.text, { tasks: [] });
     const tasksWithId = (parsed.tasks || []).map((t: any, i: number) => ({
       ...t,
       id: `task_ai_${Date.now()}_${i}`,

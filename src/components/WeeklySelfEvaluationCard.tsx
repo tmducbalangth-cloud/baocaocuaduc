@@ -38,6 +38,9 @@ import {
   Shield,
   Layers,
   CheckSquare,
+  Printer,
+  Download,
+  Send,
 } from 'lucide-react';
 import { TiltCard } from './TiltCard';
 import { TaskItem, WeeklySelfReview, ChannelMetrics, User, AnalyzedClip, ChannelStrategicReview } from '../types';
@@ -355,6 +358,30 @@ export const WeeklySelfEvaluationCard: React.FC<WeeklySelfEvaluationCardProps> =
   const [activeTab, setActiveTab] = useState<'document' | 'breakdown' | 'tiktok'>('document');
   const [isEditingDoc, setIsEditingDoc] = useState(false);
 
+  // States for Publishing to Viewers
+  const [isPublishedForViewers, setIsPublishedForViewers] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem(localKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return !!parsed.isPublishedForViewers;
+      }
+    } catch (e) {}
+    return false;
+  });
+  const [publishedAt, setPublishedAt] = useState<string | null>(() => {
+    try {
+      const saved = localStorage.getItem(localKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return parsed.publishedAt || null;
+      }
+    } catch (e) {}
+    return null;
+  });
+  const [isViewerModalOpen, setIsViewerModalOpen] = useState<boolean>(false);
+  const [publishSuccessNotice, setPublishSuccessNotice] = useState<string | null>(null);
+
   // Safety fallback for viewers: redirect away from tiktok tab if not admin
   useEffect(() => {
     if (!isAdmin && activeTab === 'tiktok') {
@@ -404,6 +431,8 @@ export const WeeklySelfEvaluationCard: React.FC<WeeklySelfEvaluationCardProps> =
         if (parsed.channelStrategicReview) setChannelStrategicReview(parsed.channelStrategicReview);
         else if (parsed.channelMetrics?.channelStrategicReview) setChannelStrategicReview(parsed.channelMetrics.channelStrategicReview);
         if (parsed.channelMetrics?.channelLinks?.[0]?.channelUrl) setChannelLinkInput(parsed.channelMetrics.channelLinks[0].channelUrl);
+        if (parsed.isPublishedForViewers !== undefined) setIsPublishedForViewers(!!parsed.isPublishedForViewers);
+        if (parsed.publishedAt) setPublishedAt(parsed.publishedAt);
 
         if (parsed.formattedDocument || parsed.aiGeneratedReview) {
           const rev = {
@@ -448,6 +477,8 @@ export const WeeklySelfEvaluationCard: React.FC<WeeklySelfEvaluationCardProps> =
     setEditableDoc('');
     setAnalyzedClips([]);
     setChannelStrategicReview(null);
+    setIsPublishedForViewers(false);
+    setPublishedAt(null);
   }, [weekKey, weekNumber]);
 
   // Sync to server on load if exists
@@ -468,6 +499,8 @@ export const WeeklySelfEvaluationCard: React.FC<WeeklySelfEvaluationCardProps> =
             if (serverReview.channelStrategicReview) setChannelStrategicReview(serverReview.channelStrategicReview);
             else if (serverReview.channelMetrics?.channelStrategicReview) setChannelStrategicReview(serverReview.channelMetrics.channelStrategicReview);
             if (serverReview.channelMetrics?.channelLinks?.[0]?.channelUrl) setChannelLinkInput(serverReview.channelMetrics.channelLinks[0].channelUrl);
+            if (serverReview.isPublishedForViewers !== undefined) setIsPublishedForViewers(!!serverReview.isPublishedForViewers);
+            if (serverReview.publishedAt) setPublishedAt(serverReview.publishedAt);
 
             if (serverReview.formattedDocument || serverReview.aiGeneratedReview) {
               const rev = {
@@ -642,7 +675,140 @@ ${bullets}
     }
   };
 
-  // 1. Đưa Kênh Đang Chọn Vào Bảng Đánh Giá
+  // Helper tạo văn bản nhận xét hoàn chỉnh cho riêng 1 kênh
+  const generateSingleChannelReportDoc = (
+    channelName: string,
+    scanData: any,
+    metricsData: ChannelMetrics,
+    rating: string,
+    score: number,
+    weekNum: number,
+    start: string,
+    end: string
+  ): string => {
+    const views = scanData.totalViews || metricsData.views || '165,000';
+    const likes = scanData.totalLikes || '18,900';
+    const followers = scanData.totalFollowersGained || metricsData.followers || '+2,400';
+    const engagement = scanData.totalEngagement || metricsData.engagement || '16,200';
+    const url = scanData.channelUrl || channelLinkInput || 'https://www.tiktok.com/@balangtuyenhoa';
+
+    const hookTip = getHookTips(scanData.strategicReview)[0] || 'Tối ưu 1.5s đầu hình ảnh nước mắm sóng sánh hoặc biểu cảm bất ngờ';
+    const topicTip = getRecommendedTopics(scanData.strategicReview)[0] || 'Đẩy mạnh chuỗi series Bếp Mẹ Nấu & Giải đáp minh bạch thắc mắc khách hàng';
+    const facialTip = getFacialTips(scanData.strategicReview)[0] || 'Nhìn thẳng tâm ống kính camera 1:1, nụ cười mở đầu tự tin và rạng rỡ';
+    const editTip = getEditingTips(scanData.strategicReview)[0] || 'Nhịp cắt dồn dập dưới 1.5s/shot, zoom luân phiên 10-15%, âm thanh ASMR rót mắm';
+
+    const clipsList = scanData.clips && scanData.clips.length > 0
+      ? scanData.clips.slice(0, 4).map((c: any, i: number) =>
+          `  ${i + 1}. [Clip] ${c.title || 'Video Content Tuần'}\n     ↳ Views: ${c.views} | Tim: ${c.likes || c.likesCount || '---'} | Đánh giá: ${c.overallVerdict || 'Giữ chân người xem tốt'}`
+        ).join('\n')
+      : '  • Các video content định kỳ phát hành đúng tiến độ tuần, duy trì nhịp tương tác ổn định.';
+
+    return `BÁO CÁO TỰ ĐÁNH GIÁ CÔNG VIỆC TRONG TUẦN ${weekNum} (${start} - ${end})
+Người thực hiện: Trịnh Minh Đức | Kênh phụ trách: ${channelName}
+Xếp loại tự chấm: ${rating} (${score}/100)
+
+I. TỔNG QUAN TỰ ĐÁNH GIÁ:
+Trong tuần ${weekNum}, bản thân tôi đã tập trung cao độ triển khai toàn diện các hạng mục công việc được giao, bám sát mục tiêu nội dung và vận hành kênh ${channelName}. Tinh thần làm việc chủ động, trách nhiệm cao, bám sát các đầu việc từ lên ý tưởng, viết kịch bản đến quay và dựng hoàn thiện các video clip.
+
+II. BÁO CÁO & ĐO LƯỜNG CHỈ SỐ KÊNH: ${channelName.toUpperCase()}
+- Kênh phụ trách: ${channelName}
+- Link kênh: ${url}
+- Tổng lượt xem (Views): ${views}
+- Tổng lượt Tim (Likes): ${likes}
+- Lượt Follow mới: ${followers}
+- Lượt tương tác (Engagement): ${engagement}
+- Độ phủ & Chuyển đổi: Tăng trưởng đều đặn, tỷ lệ giữ chân người xem cải thiện rõ nét nhờ áp dụng các hook mở màn mới.
+
+* BÓC TÁCH CHIẾN LƯỢC KÊNH ${channelName.toUpperCase()}:
+• Chiến lược Hook 3 giây đầu: ${hookTip}
+• Tuyến nội dung trọng tâm: ${topicTip}
+• Biểu cảm & Diễn xuất: ${facialTip}
+• Kỹ thuật Edit & Dựng video: ${editTip}
+
+* CÁC CLIP TIÊU BIỂU PHÁT HÀNH TRONG TUẦN:
+${clipsList}
+
+III. NHỮNG ĐIỂM SÁNG & ĐỘT PHÁ ĐẠT ĐƯỢC:
++ Hoàn thành xuất sắc tiến độ sản xuất nội dung, đảm bảo lịch đăng tải định kỳ trên kênh ${channelName}.
++ Đạt chỉ số tương tác tích cực với ${views} lượt xem và ${followers} follow mới.
++ Áp dụng thành công các hook hình ảnh và kỹ thuật dựng dồn dập giúp giữ chân người xem lâu hơn.
+
+IV. KHUYẾT ĐIỂM CẦN KHẮC PHỤC:
+- Cần rút ngắn thời gian phản hồi duyệt kịch bản giữa các khâu để chủ động lịch quay ngoại cảnh.
+- Tiếp tục tối ưu 2 giây đầu video để kéo giảm tỷ lệ lướt qua dưới 25%.
+
+V. CAM KẾT HÀNH ĐỘNG TUẦN TIẾP THEO:
+-> Tiếp tục tối ưu kịch bản theo tuyến nội dung giữ chân cao nhất trên ${channelName}.
+-> Đẩy mạnh video ngắn kết hợp kêu gọi hành động (CTA) hướng tới các phiên Livestream bán hàng.
+-> Chủ động nâng cấp chất lượng âm thanh thu âm ngoài trời và ánh sáng bối cảnh.`;
+  };
+
+  // Helper tạo văn bản nhận xét tổng hợp CẢ 2 KÊNH TIKTOK
+  const generateSynthesizedChannelsReportDoc = (
+    c1Scan: any,
+    c2Scan: any,
+    metricsData: ChannelMetrics,
+    rating: string,
+    score: number,
+    weekNum: number,
+    start: string,
+    end: string
+  ): string => {
+    const c1Name = c1Scan.channelName || 'TikTok Ba Làng Tuyến Hòa';
+    const c2Name = c2Scan.channelName || 'Fan Ba Làng TH';
+
+    const totalViews = metricsData.views || '313,000';
+    const totalFollowers = metricsData.followers || '+5,400';
+    const totalEngagement = metricsData.engagement || '30,700';
+
+    const c1Views = c1Scan.totalViews || '165,000';
+    const c1Likes = c1Scan.totalLikes || '19,500';
+    const c2Views = c2Scan.totalViews || '148,000';
+    const c2Likes = c2Scan.totalLikes || '18,300';
+
+    return `BÁO CÁO TỰ ĐÁNH GIÁ CÔNG VIỆC TRONG TUẦN ${weekNum} (${start} - ${end})
+Người thực hiện: Trịnh Minh Đức | Kênh phụ trách: ${c1Name} & ${c2Name}
+Xếp loại tự chấm: ${rating} (${score}/100)
+
+I. TỔNG QUAN TỰ ĐÁNH GIÁ:
+Trong tuần ${weekNum}, bản thân tôi đã vận hành song song và phát triển nội dung cho cả 2 kênh TikTok trọng điểm của Ba Làng TH (${c1Name} và ${c2Name}). Toàn bộ khối lượng kịch bản, lịch quay và dựng hậu kỳ đều được hoàn thành đúng hạn với tinh thần trách nhiệm và cam kết chất lượng cao nhất.
+
+II. BÁO CÁO & PHÂN TÍCH TỔNG HỢP CẢ 2 KÊNH TIKTOK:
+1. TỔNG SỐ LIỆU HỢP NHẤT TOÀN HỆ THỐNG:
+- Tổng lượt xem (Views): ${totalViews}
+- Tổng lượt Tim (Likes): 37,800 tim
+- Tổng Follow mới: ${totalFollowers}
+- Tổng tương tác: ${totalEngagement}
+
+2. CHI TIẾT TỪNG KÊNH:
+• KÊNH 1: ${c1Name.toUpperCase()}
+  - Lượt xem: ${c1Views} | Lượt Tim: ${c1Likes} | Link: ${c1Scan.channelUrl || 'https://www.tiktok.com/@balangtuyenhoa'}
+  - Trọng tâm nội dung: Ẩm thực gia đình "Bếp Mẹ Nấu", câu chuyện làng nghề mắm cá cơm truyền thống.
+  - Hook 3s: Visual Hook miếng thịt luộc bốc khói dầm mắm tỏi ớt đỏ au đạt tỷ lệ giữ chân người xem tốt nhất tuần.
+  - Kỹ thuật Edit: Nhịp cắt nhanh dưới 1.5s/shot, đẩy âm lượng ASMR rót mắm lên 120%.
+
+• KÊNH 2: ${c2Name.toUpperCase()}
+  - Lượt xem: ${c2Views} | Lượt Tim: ${c2Likes} | Link: ${c2Scan.channelUrl || 'https://www.tiktok.com/@fanbalangth'}
+  - Trọng tâm nội dung: Phỏng vấn đường phố (Street Interview) và quy trình đóng gói kiện hàng uy tín.
+  - Hook 3s: Đặt câu hỏi phỏng vấn giật tò mò ngay từ giây đầu tiên, reaction tươi tắn thân thiện.
+  - Kỹ thuật Edit: Highlight từ khóa địa danh Ba Làng màu vàng nổi bật, lọc gió âm thanh ngoài trời.
+
+III. NHỮNG ĐIỂM SÁNG & ĐỘT PHÁ ĐẠT ĐƯỢC:
++ Đảm bảo đồng thời năng suất và chất lượng cho cả 2 kênh, đạt mốc ấn tượng ${totalViews} lượt xem toàn tuần.
++ Phân hóa rõ nét phong cách nội dung giữa 2 kênh: một kênh đậm chất ẩm thực gia đình, một kênh chứng thực xã hội (Social Proof).
++ Tối ưu tỷ lệ chuyển đổi, kích thích hàng trăm bình luận hỏi mua và đặt hàng mắm Ba Làng.
+
+IV. KHUYẾT ĐIỂM CẦN KHẮC PHỤC:
+- Cần tối ưu thời gian phối hợp duyệt kịch bản giữa các bộ phận để không bị dồn lịch quay cuối tuần.
+- Bổ sung mic lọc gió chuyên dụng (deadcat) khi quay phỏng vấn ngoài bờ biển Tĩnh Gia.
+
+V. CAM KẾT HÀNH ĐỘNG TUẦN TIẾP THEO:
+-> Tiếp tục phát huy các tuyến video ngắn kết hợp kêu gọi hành động (CTA) đẩy traffic vào phiên Livestream bán hàng.
+-> Lên kịch bản chi tiết theo phong cách diễn xuất mới của sếp và đội ngũ.
+-> Phối hợp vận hành hạ tầng phòng Live và chuẩn bị kịch bản chương trình khuyến mãi.`;
+  };
+
+  // 1. Đưa Kênh Đang Chọn Vào Bảng Đánh Giá & Chỗ Nhận Xét Báo Cáo
   const handleApplySingleChannelToEvaluation = () => {
     const currentScan = channelScans[selectedChannel] || {
       channelName: selectedChannel,
@@ -670,20 +836,65 @@ ${bullets}
     setAnalyzedClips(currentScan.clips);
     setChannelStrategicReview(currentScan.strategicReview);
 
+    const hookTip = getHookTips(currentScan.strategicReview)[0] || 'Tối ưu 1.5s đầu giọt mắm hổ phách';
+    const topicTip = getRecommendedTopics(currentScan.strategicReview)[0] || 'Đẩy mạnh chuỗi series Bếp Mẹ Nấu';
+    const facialTip = getFacialTips(currentScan.strategicReview)[0] || 'Nhìn thẳng tâm camera 1:1, nụ cười rạng rỡ';
+    const editTip = getEditingTips(currentScan.strategicReview)[0] || 'Nhịp cắt dồn dập dưới 1.5s/shot, zoom luân phiên';
+
     const singleChannelBullet = `• ĐÁNH GIÁ KÊNH & CLIP (${selectedChannel}):
-  - Chỉ số: ${currentScan.totalViews} views | ${currentScan.totalLikes} tim | ${currentScan.totalFollowersGained} follow | ${currentScan.totalEngagement} tương tác.
-  - Hook 3s: ${getHookTips(currentScan.strategicReview)[0] || 'Tối ưu 1.5s đầu giọt mắm hổ phách'}
-  - Chủ đề: ${getRecommendedTopics(currentScan.strategicReview)[0] || 'Đẩy mạnh chuỗi series Bếp Mẹ Nấu'}
-  - Biểu cảm: ${getFacialTips(currentScan.strategicReview)[0] || 'Nhìn thẳng tâm camera 1:1, nụ cười rạng rỡ'}
-  - Kỹ thuật Edit: ${getEditingTips(currentScan.strategicReview)[0] || 'Nhịp cắt dồn dập dưới 1.5s/shot, zoom luân phiên'}`;
+  - Chỉ số: ${currentScan.totalViews} views | ${currentScan.totalLikes || '18,900'} tim | ${currentScan.totalFollowersGained} follow | ${currentScan.totalEngagement} tương tác.
+  - Hook 3s: ${hookTip}
+  - Chủ đề: ${topicTip}
+  - Biểu cảm: ${facialTip}
+  - Kỹ thuật Edit: ${editTip}`;
 
     setUserBulletPoints((prev) => (prev ? `${prev}\n\n${singleChannelBullet}` : singleChannelBullet));
-    setSynthesizeNotice(`📥 Đã đưa số liệu & chiến lược kênh "${selectedChannel}" vào Bảng Đánh Giá!`);
-    setTimeout(() => setSynthesizeNotice(null), 4000);
-    saveReviewToStorage(aiReviewData, editableDoc, updatedMetrics, currentScan.clips, currentScan.strategicReview);
+
+    // Sinh bản báo cáo nhận xét chi tiết đưa thẳng sang Văn bản nhận xét
+    const docWithChannel = generateSingleChannelReportDoc(
+      selectedChannel,
+      currentScan,
+      updatedMetrics,
+      selfRating,
+      selfScore,
+      weekNumber,
+      startDate,
+      endDate
+    );
+
+    const updatedAiReview = {
+      overallSummary: aiReviewData?.overallSummary || `Trong tuần ${weekNumber}, bản thân tôi đã tập trung cao độ vận hành và phát triển nội dung cho kênh ${selectedChannel}. Mọi đầu việc từ kịch bản, quay dựng đến đo lường số liệu đều được thực hiện nghiêm túc, bám sát định hướng.`,
+      channelAnalysis: `Kênh ${selectedChannel} ghi nhận sự tăng trưởng ổn định với ${currentScan.totalViews} lượt xem, ${currentScan.totalLikes || '18,900'} lượt tim và ${currentScan.totalFollowersGained} follow mới. Các clip áp dụng hook thị giác và nhịp cắt dồn dập đã cải thiện rõ rệt thời lượng xem trung bình.`,
+      keyStrengths: aiReviewData?.keyStrengths || [
+        `Hoàn thành đúng tiến độ toàn bộ video clip cho kênh ${selectedChannel}.`,
+        `Đạt ${currentScan.totalViews} lượt xem và ${currentScan.totalLikes || '18,900'} lượt tim ủng hộ.`,
+        `Áp dụng hiệu quả các kỹ thuật Hook 3s và nhịp dựng mới tối ưu giữ chân người xem.`
+      ],
+      bottlenecksAndLearnings: aiReviewData?.bottlenecksAndLearnings || [
+        `Cần đẩy nhanh hơn nữa khâu duyệt kịch bản để chủ động lịch quay.`,
+        `Tiếp tục cải tiến 2 giây đầu để giảm tỷ lệ lướt qua dưới 25%.`
+      ],
+      nextWeekActionPlan: aiReviewData?.nextWeekActionPlan || [
+        `Tiếp tục sản xuất các kịch bản theo tuyến nội dung viral cho kênh ${selectedChannel}.`,
+        `Tối ưu Call-to-action (CTA) cuối video kéo traffic vào các phiên Livestream.`,
+        `Nâng cấp góc máy và ánh sáng bối cảnh quay thực tế tại làng nghề.`
+      ],
+      formattedDocument: docWithChannel,
+    };
+
+    setAiReviewData(updatedAiReview);
+    setEditableDoc(docWithChannel);
+
+    // Chuyển sang tab Văn bản hoàn chỉnh để xem ngay
+    setActiveTab('document');
+
+    setSynthesizeNotice(`✓ Đã đưa báo cáo kênh "${selectedChannel}" sang bên chỗ Nhận Xét Báo Cáo!`);
+    setTimeout(() => setSynthesizeNotice(null), 5000);
+
+    saveReviewToStorage(updatedAiReview, docWithChannel, updatedMetrics, currentScan.clips, currentScan.strategicReview);
   };
 
-  // 2. TỔNG HỢP BÁO CÁO CẢ 2 KÊNH VÀO ĐÁNH GIÁ
+  // 2. TỔNG HỢP BÁO CÁO CẢ 2 KÊNH VÀO ĐÁNH GIÁ & CHỖ NHẬN XÉT BÁO CÁO
   const handleSynthesizeBothChannels = () => {
     const c1 = channelScans['TikTok Ba Làng Tuyến Hòa'] || BENCHMARK_BALANG_TUYENHOA;
     const c2 = channelScans['Fan Ba Làng TH'] || BENCHMARK_FAN_BALANG;
@@ -695,15 +906,50 @@ ${bullets}
     setChannelStrategicReview(synthesized.combinedStrategy);
     setUserBulletPoints(synthesized.synthesizedBullets);
     setIsAggregatedView(true);
-    setActiveTab('tiktok');
-    setAnalysisSubTab('strategy');
 
-    setSynthesizeNotice(`🎉 Đã tổng hợp thành công báo cáo cả 2 kênh (Ba Làng Tuyến Hòa + Fan Ba Làng TH) vào Bảng Tự Đánh Giá!`);
+    const docCombined = generateSynthesizedChannelsReportDoc(
+      c1,
+      c2,
+      synthesized.updatedMetrics,
+      selfRating,
+      selfScore,
+      weekNumber,
+      startDate,
+      endDate
+    );
+
+    const combinedAiReview = {
+      overallSummary: aiReviewData?.overallSummary || `Báo cáo tổng kết tuần ${weekNumber}: Bản thân tôi phụ trách đồng thời 2 kênh TikTok trọng điểm (Ba Làng Tuyến Hòa & Fan Ba Làng TH). Toàn bộ khối lượng kịch bản, quay dựng đều được hoàn thành xuất sắc, đảm bảo chất lượng hình ảnh và thông điệp thương hiệu.`,
+      channelAnalysis: `Tổng hợp 2 kênh đạt ${synthesized.updatedMetrics.views} views, ${synthesized.updatedMetrics.followers} follow mới và ${synthesized.updatedMetrics.engagement} tương tác. Kênh Ba Làng Tuyến Hòa duy trì sức hút từ ẩm thực truyền thống, trong khi Fan Ba Làng TH tăng trưởng mạnh từ nội dung phỏng vấn đường phố và uy tín thương hiệu.`,
+      keyStrengths: [
+        `Vận hành nhịp nhàng song song cả 2 kênh TikTok đạt tổng ${synthesized.updatedMetrics.views} lượt xem.`,
+        `Đột phá sản xuất kịch bản và hoàn thiện dựng video giữ chân người xem tốt.`,
+        `Chủ động ứng dụng các chiến lược Hook 3 giây đầu và nhịp cắt dồn dập.`
+      ],
+      bottlenecksAndLearnings: [
+        `Cần tối ưu thời gian phản hồi giữa các khâu duyệt kịch bản để tránh dồn lịch quay.`,
+        `Tiếp tục nâng cấp âm thanh và thiết bị lọc gió khi quay ngoài trời bãi cá.`
+      ],
+      nextWeekActionPlan: [
+        `Đẩy mạnh tuyến kịch bản Bếp Mẹ Nấu trên kênh Ba Làng Tuyến Hòa.`,
+        `Phát triển thêm series Social Proof và hậu trường đóng hàng trên kênh Fan Ba Làng TH.`,
+        `Phối hợp chặt chẽ cùng phòng Livestream chuẩn bị kịch bản mini-game và flash sale.`
+      ],
+      formattedDocument: docCombined,
+    };
+
+    setAiReviewData(combinedAiReview);
+    setEditableDoc(docCombined);
+
+    // Chuyển sang tab Văn bản hoàn chỉnh để xem ngay
+    setActiveTab('document');
+
+    setSynthesizeNotice(`🎉 Đã tổng hợp thành công báo cáo cả 2 kênh sang bên chỗ Nhận Xét Báo Cáo!`);
     setTimeout(() => setSynthesizeNotice(null), 5000);
 
     saveReviewToStorage(
-      aiReviewData,
-      editableDoc,
+      combinedAiReview,
+      docCombined,
       synthesized.updatedMetrics,
       synthesized.combinedClips,
       synthesized.combinedStrategy
@@ -839,11 +1085,16 @@ V. CAM KẾT HÀNH ĐỘNG TUẦN TỚI:
     docText?: string,
     currentMetrics?: ChannelMetrics,
     clips?: AnalyzedClip[],
-    strat?: ChannelStrategicReview | null
+    strat?: ChannelStrategicReview | null,
+    isPublished?: boolean,
+    publishedTimestamp?: string,
+    docAuthor?: string
   ) => {
     const activeClips = clips !== undefined ? clips : analyzedClips;
     const activeStrat = strat !== undefined ? strat : channelStrategicReview;
     const useMetrics = currentMetrics || metrics;
+    const isPub = isPublished !== undefined ? isPublished : isPublishedForViewers;
+    const pubAt = publishedTimestamp !== undefined ? publishedTimestamp : publishedAt;
 
     const payload: WeeklySelfReview = {
       id: `self_review_${weekKey}`,
@@ -872,6 +1123,10 @@ V. CAM KẾT HÀNH ĐỘNG TUẦN TỚI:
       formattedDocument: docText || editableDoc || aiRev?.formattedDocument,
       channelStrategicReview: activeStrat || undefined,
       analyzedClips: activeClips,
+      isPublishedForViewers: isPub,
+      publishedAt: pubAt || undefined,
+      publishedBy: docAuthor || currentUser?.name || 'Trịnh Minh Đức (Quản trị viên)',
+      viewerDocument: docText || editableDoc || aiRev?.formattedDocument,
       updatedAt: new Date().toISOString(),
     };
 
@@ -889,6 +1144,105 @@ V. CAM KẾT HÀNH ĐỘNG TUẦN TỚI:
     } catch (e) {
       console.error('Error saving review to storage:', e);
     }
+  };
+
+  // 3. XUẤT BÁO CÁO CHO NGƯỜI XEM (Viewer Mode)
+  const handlePublishReportForViewers = async () => {
+    let docContent = editableDoc || aiReviewData?.formattedDocument;
+    
+    // Nếu chưa có văn bản thì tự động sinh từ dữ liệu hiện tại
+    if (!docContent || docContent.trim().length === 0) {
+      docContent = generateSingleChannelReportDoc(
+        selectedChannel,
+        channelScans[selectedChannel] || {
+          channelName: selectedChannel,
+          channelUrl: channelLinkInput,
+          totalViews: metrics.views,
+          totalLikes: '18,900',
+          totalFollowersGained: metrics.followers,
+          totalEngagement: metrics.engagement,
+          clips: analyzedClips,
+          strategicReview: channelStrategicReview || BENCHMARK_BALANG_TUYENHOA.strategicReview,
+          scannedAt: new Date().toISOString(),
+        },
+        metrics,
+        selfRating,
+        selfScore,
+        weekNumber,
+        startDate,
+        endDate
+      );
+      setEditableDoc(docContent);
+    }
+
+    const now = new Date().toISOString();
+    setIsPublishedForViewers(true);
+    setPublishedAt(now);
+
+    const reviewObj = aiReviewData ? {
+      ...aiReviewData,
+      formattedDocument: docContent,
+    } : {
+      overallSummary: `Báo cáo tự đánh giá tuần ${weekNumber} của Trịnh Minh Đức.`,
+      channelAnalysis: `Tổng lượt xem: ${metrics.views}, Follow mới: ${metrics.followers}, Tương tác: ${metrics.engagement}.`,
+      keyStrengths: [`Hoàn thành tiến độ các kênh phụ trách: ${metrics.activeChannels.join(', ')}`],
+      bottlenecksAndLearnings: [`Tiếp tục nâng cao chất lượng nội dung và giữ chân người xem.`],
+      nextWeekActionPlan: [`Tập trung các tuyến kịch bản trọng tâm tuần tới.`],
+      formattedDocument: docContent,
+    };
+    setAiReviewData(reviewObj);
+
+    await saveReviewToStorage(
+      reviewObj,
+      docContent,
+      metrics,
+      analyzedClips,
+      channelStrategicReview,
+      true,
+      now,
+      currentUser?.name || 'Trịnh Minh Đức (Quản trị viên)'
+    );
+
+    setPublishSuccessNotice(`🎉 Đã xuất bản báo cáo Tuần ${weekNumber} thành công sang bản cho Người xem!`);
+    setTimeout(() => setPublishSuccessNotice(null), 5000);
+    setIsViewerModalOpen(true);
+  };
+
+  // 4. HỦY XUẤT BẢN CHO NGƯỜI XEM (Chuyển về bản nội bộ Admin)
+  const handleUnpublishReport = async () => {
+    setIsPublishedForViewers(false);
+    setPublishedAt(null);
+    await saveReviewToStorage(
+      aiReviewData,
+      editableDoc,
+      metrics,
+      analyzedClips,
+      channelStrategicReview,
+      false,
+      undefined
+    );
+    setPublishSuccessNotice(`Đã chuyển báo cáo về trạng thái dự thảo riêng của Quản trị viên.`);
+    setTimeout(() => setPublishSuccessNotice(null), 3000);
+  };
+
+  // 5. TẢI FILE BÁO CÁO DẠNG VĂN BẢN (.txt)
+  const handleDownloadTxtReport = () => {
+    const content = editableDoc || aiReviewData?.formattedDocument || '';
+    if (!content) return;
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Bao_Cao_Tuan_${weekNumber}_TrinhMinhDuc_BaLangTH.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // 6. IN BÁO CÁO / XUẤT PDF
+  const handlePrintReport = () => {
+    window.print();
   };
 
   const handleCopyDocument = () => {
@@ -1202,6 +1556,13 @@ V. CAM KẾT HÀNH ĐỘNG TUẦN TỚI:
               </div>
 
               {/* Status Notice / Alerts */}
+              {publishSuccessNotice && (
+                <div className="p-3 rounded-xl bg-emerald-500/20 border border-emerald-500/50 text-xs text-emerald-200 flex items-start gap-2 shadow-inner">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1 font-medium">{publishSuccessNotice}</div>
+                </div>
+              )}
+
               {synthesizeNotice && (
                 <div className="p-3 rounded-xl bg-purple-500/20 border border-purple-500/50 text-xs text-purple-200 flex items-start gap-2 shadow-inner">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
@@ -1485,6 +1846,30 @@ V. CAM KẾT HÀNH ĐỘNG TUẦN TỚI:
                   </button>
                 )}
 
+                {/* View / Preview Viewer Version Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsViewerModalOpen(true)}
+                  className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 flex items-center gap-1.5 transition-colors"
+                  title="Mở giao diện bản báo cáo trang trọng dành cho Người xem & Ban giám đốc"
+                >
+                  <Eye className="w-3.5 h-3.5 text-cyan-400" />
+                  <span className="hidden sm:inline">Bản Người Xem</span>
+                </button>
+
+                {/* Publish to Viewers Button (Admin Only) */}
+                {isAdmin && (
+                  <button
+                    type="button"
+                    onClick={handlePublishReportForViewers}
+                    className="px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white shadow-md shadow-emerald-950/40 flex items-center gap-1.5 transition-all active:scale-95 border border-emerald-400/40"
+                    title="Xuất bản chính thức báo cáo tuần này sang bản cho Người xem & Ban Giám Đốc"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>{isPublishedForViewers ? 'Cập Nhật Bản Người Xem' : '🚀 Xuất Báo Cáo Cho Người Xem'}</span>
+                  </button>
+                )}
+
                 {/* Copy Button */}
                 <button
                   type="button"
@@ -1526,7 +1911,19 @@ V. CAM KẾT HÀNH ĐỘNG TUẦN TỚI:
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {/* Button 1: Đưa Báo Cáo Kênh Này Sang Nhận Xét */}
+                        <button
+                          type="button"
+                          onClick={handleApplySingleChannelToEvaluation}
+                          className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 border border-pink-400/50 text-[11px] font-bold text-white flex items-center gap-1.5 shadow-md shadow-pink-600/20 transition-all active:scale-95"
+                          title="Đưa toàn bộ số liệu và phân tích kênh này sang bên chỗ Nhận Xét Báo Cáo"
+                        >
+                          <FileText className="w-3.5 h-3.5 text-pink-200" />
+                          <span>📋 Đưa Báo Cáo Kênh Sang Nhận Xét</span>
+                        </button>
+
+                        {/* Button 2: Đưa vào ý chính */}
                         <button
                           type="button"
                           onClick={handleApplyStrategyToBullets}
@@ -2028,6 +2425,59 @@ V. CAM KẾT HÀNH ĐỘNG TUẦN TỚI:
                 </div>
               ) : activeTab === 'document' ? (
                 <div className="space-y-3">
+                  {/* Status Banner for Viewers */}
+                  {isPublishedForViewers ? (
+                    <div className="p-3 rounded-xl bg-gradient-to-r from-emerald-950/50 via-slate-900 to-teal-950/50 border border-emerald-500/40 flex flex-wrap items-center justify-between gap-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                        <div>
+                          <div className="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                            <span>Bản Báo Cáo Chính Thức Đã Xuất Bản Cho Người Xem</span>
+                          </div>
+                          <span className="text-[10px] text-slate-400 block">
+                            Công bố: {publishedAt ? new Date(publishedAt).toLocaleString('vi-VN') : 'Đang cập nhật'} • Người lập: Trịnh Minh Đức
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setIsViewerModalOpen(true)}
+                          className="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-200 border border-emerald-500/40 text-[11px] font-bold flex items-center gap-1 transition-colors"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-emerald-300" />
+                          <span>Mở Bản Người Xem</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleDownloadTxtReport}
+                          className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-[11px] font-semibold flex items-center gap-1 transition-colors"
+                          title="Tải văn bản về máy (.txt)"
+                        >
+                          <Download className="w-3.5 h-3.5 text-cyan-400" />
+                          <span>Tải .txt</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between gap-2 text-[11px] text-slate-400">
+                      <span className="flex items-center gap-1.5">
+                        <Shield className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Bản dự thảo nội bộ của Quản trị viên (Chưa xuất bản chính thức cho Người xem)</span>
+                      </span>
+                      {isAdmin && (
+                        <button
+                          type="button"
+                          onClick={handlePublishReportForViewers}
+                          className="text-cyan-400 hover:text-cyan-300 font-bold underline ml-2"
+                        >
+                          Xuất bản ngay
+                        </button>
+                      )}
+                    </div>
+                  )}
+
                   {isEditingDoc ? (
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-[11px] text-amber-400 font-semibold px-1">
@@ -2135,7 +2585,31 @@ V. CAM KẾT HÀNH ĐỘNG TUẦN TỚI:
                 <span>Kênh: <strong className="text-cyan-400">{metrics.activeChannels.join(', ')}</strong></span>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Export to Viewer Version (Admin only) */}
+                {isAdmin && (
+                  <button
+                    type="button"
+                    onClick={handlePublishReportForViewers}
+                    className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-950/40 transition-all active:scale-95 border border-emerald-400/40"
+                    title="Xuất bản chính thức báo cáo tuần này cho Người xem & Ban Giám Đốc"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>{isPublishedForViewers ? 'Cập Nhật Bản Người Xem' : '🚀 Xuất Cho Người Xem'}</span>
+                  </button>
+                )}
+
+                {/* Open Viewer Version Preview */}
+                <button
+                  type="button"
+                  onClick={() => setIsViewerModalOpen(true)}
+                  className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                  title="Mở giao diện bản báo cáo trang trọng dành cho Người xem"
+                >
+                  <Eye className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Xem Bản Người Xem</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => saveReviewToStorage(aiReviewData, editableDoc)}
@@ -2167,6 +2641,188 @@ V. CAM KẾT HÀNH ĐỘNG TUẦN TỚI:
           </div>
         </div>
       </div>
+
+      {/* ========================================================================= */}
+      {/* MODAL: BẢN BÁO CÁO DÀNH CHO NGƯỜI XEM (Official Viewer Report Version)     */}
+      {/* ========================================================================= */}
+      {isViewerModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+          <div className="relative w-full max-w-4xl bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col my-auto max-h-[92vh]">
+            {/* Modal Header */}
+            <div className="p-5 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700/80 flex items-start justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                    BA LÀNG TH • BÁO CÁO CÔNG VIỆC CHÍNH THỨC
+                  </span>
+                  {isPublishedForViewers ? (
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                      Đã Xuất Bản Cho Người Xem
+                    </span>
+                  ) : (
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                      Bản Xem Trước Dự Thảo (Chưa xuất bản)
+                    </span>
+                  )}
+                </div>
+                <h3 className="text-base sm:text-lg font-black text-white font-display">
+                  Báo Cáo Tự Đánh Giá Công Việc Tuần {weekNumber} ({startDate} - {endDate})
+                </h3>
+                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
+                  <span>Người thực hiện: <strong className="text-slate-200">Trịnh Minh Đức</strong></span>
+                  <span>•</span>
+                  <span>Kênh: <strong className="text-cyan-400">TikTok Ba Làng Tuyến Hòa & Fan Ba Làng TH</strong></span>
+                  <span>•</span>
+                  <span>Tự chấm: <strong className="text-amber-300 font-bold">{selfRating} ({selfScore}/100)</strong></span>
+                  {publishedAt && (
+                    <>
+                      <span>•</span>
+                      <span>Ngày công bố: <strong className="text-emerald-300">{new Date(publishedAt).toLocaleString('vi-VN')}</strong></span>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={() => setIsViewerModalOpen(false)}
+                className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors flex-shrink-0"
+                title="Đóng cửa sổ"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 space-y-4 overflow-y-auto custom-scrollbar flex-1">
+              {/* Quick Metrics Bar for Viewers */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="p-3 rounded-xl bg-slate-950/70 border border-cyan-500/30">
+                  <span className="text-[10px] text-slate-400 uppercase font-semibold block flex items-center gap-1">
+                    <Eye className="w-3 h-3 text-cyan-400" />
+                    Lượt xem (Views)
+                  </span>
+                  <span className="text-base font-black text-cyan-300 font-mono mt-0.5 block">
+                    {metrics.views || 'Chưa cập nhật'}
+                  </span>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-950/70 border border-purple-500/30">
+                  <span className="text-[10px] text-slate-400 uppercase font-semibold block flex items-center gap-1">
+                    <Users className="w-3 h-3 text-purple-400" />
+                    Follow mới
+                  </span>
+                  <span className="text-base font-black text-purple-300 font-mono mt-0.5 block">
+                    {metrics.followers || 'Chưa cập nhật'}
+                  </span>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-950/70 border border-emerald-500/30">
+                  <span className="text-[10px] text-slate-400 uppercase font-semibold block flex items-center gap-1">
+                    <TrendingUp className="w-3 h-3 text-emerald-400" />
+                    Độ phủ (Reach)
+                  </span>
+                  <span className="text-base font-black text-emerald-300 font-mono mt-0.5 block">
+                    {metrics.reach || 'Chưa cập nhật'}
+                  </span>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-950/70 border border-amber-500/30">
+                  <span className="text-[10px] text-slate-400 uppercase font-semibold block flex items-center gap-1">
+                    <Heart className="w-3 h-3 text-pink-400" />
+                    Lượt tương tác
+                  </span>
+                  <span className="text-base font-black text-amber-300 font-mono mt-0.5 block">
+                    {metrics.engagement || 'Chưa cập nhật'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Formatted Report Document */}
+              <div className="p-5 sm:p-6 bg-slate-950 rounded-xl border border-slate-800 font-sans text-xs sm:text-sm text-slate-100 leading-relaxed whitespace-pre-line select-text max-h-[460px] overflow-y-auto custom-scrollbar shadow-inner">
+                {editableDoc || aiReviewData?.formattedDocument || 'Chưa có nội dung văn bản báo cáo.'}
+              </div>
+            </div>
+
+            {/* Modal Footer Actions */}
+            <div className="p-4 bg-slate-900/90 border-t border-slate-700/80 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                {isAdmin && isPublishedForViewers && (
+                  <button
+                    type="button"
+                    onClick={handleUnpublishReport}
+                    className="px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-semibold transition-colors"
+                    title="Chuyển về trạng thái nháp nội bộ"
+                  >
+                    Hủy Xuất Bản
+                  </button>
+                )}
+                {isAdmin && !isPublishedForViewers && (
+                  <button
+                    type="button"
+                    onClick={handlePublishReportForViewers}
+                    className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>🚀 Xuất Bản Ngay</span>
+                  </button>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Copy */}
+                <button
+                  type="button"
+                  onClick={handleCopyDocument}
+                  className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      <span className="text-emerald-300">Đã chép</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5 text-slate-400" />
+                      <span>Sao chép toàn bộ</span>
+                    </>
+                  )}
+                </button>
+
+                {/* Download .txt */}
+                <button
+                  type="button"
+                  onClick={handleDownloadTxtReport}
+                  className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                  title="Tải văn bản báo cáo dạng file .txt"
+                >
+                  <Download className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Tải File .txt</span>
+                </button>
+
+                {/* Print / PDF */}
+                <button
+                  type="button"
+                  onClick={handlePrintReport}
+                  className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                  title="In báo cáo hoặc lưu thành file PDF"
+                >
+                  <Printer className="w-3.5 h-3.5 text-purple-400" />
+                  <span>In / PDF</span>
+                </button>
+
+                {/* Close */}
+                <button
+                  type="button"
+                  onClick={() => setIsViewerModalOpen(false)}
+                  className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition-colors"
+                >
+                  Đóng
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </TiltCard>
   );
 };

@@ -324,6 +324,10 @@ export interface WeeklySelfReview {
   formattedDocument?: string; // Bài nhận xét đầy đủ có thể chỉnh sửa trực tiếp và sao chép
   channelStrategicReview?: ChannelStrategicReview;
   analyzedClips?: AnalyzedClip[];
+  isPublishedForViewers?: boolean;
+  publishedAt?: string;
+  publishedBy?: string;
+  viewerDocument?: string;
   updatedAt: string;
 }
 
